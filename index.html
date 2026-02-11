@@ -111,6 +111,21 @@
     <p>a^m / a^n = a^m-n</p>
     <p>a^-m = 1 / a^m</p>
     <p>a^m/n = n^√a^m</p>
+    <style>
+.blur-text {
+    filter: blur(6px);
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.blur-text.revealed {
+    filter: blur(0);
+}
+</style>
+
+<p class="blur-text" onclick="this.classList.add('revealed')">
+    The answer is x = 5
+</p>
 </div>
 </body>
 </html>
