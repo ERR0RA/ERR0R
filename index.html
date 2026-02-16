@@ -1,146 +1,327 @@
-<!-- ========================= -->
-<!-- 1. Solving Equations -->
-<!-- ========================= -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERR0R // Systemized Math</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=Space+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-cyan: #00f2ff;
+            --dark-bg: #050507;
+            --card-bg: #0d0d12;
+        }
+        body {
+            background-color: var(--dark-bg);
+            color: #d1d1d1;
+            font-family: 'Space Grotesk', sans-serif;
+            overflow-x: hidden;
+        }
+        .mono { font-family: 'Space Mono', monospace; }
+        
+        .answer-container {
+            position: relative;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 8px 16px;
+            min-width: 100px;
+            text-align: center;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .answer-text {
+            opacity: 0;
+            filter: blur(10px);
+            transition: all 0.3s ease;
+            color: var(--neon-cyan);
+            font-weight: bold;
+        }
+        .answer-container.revealed .answer-text {
+            opacity: 1;
+            filter: blur(0px);
+        }
+        .decrypt-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #444;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .answer-container.revealed .decrypt-overlay { display: none; }
 
-<h2>Solving One‑Step and Two‑Step Equations</h2>
+        .nav-btn.active {
+            color: var(--neon-cyan);
+            border-bottom: 2px solid var(--neon-cyan);
+        }
 
-<p>An equation is like a balance. Whatever you do to one side, you must also do to the other side.</p>
+        .glitch-text { text-shadow: 2px 0 #ff00c1, -2px 0 #00fff9; }
+        .hidden-page { display: none; }
 
-<h3>One‑Step Equations</h3>
-<p>These only need one operation to solve.</p>
+        #chat-box::-webkit-scrollbar { width: 4px; }
+        #chat-box::-webkit-scrollbar-thumb { background: #1a1a20; border-radius: 10px; }
+    </style>
+</head>
+<body class="selection:bg-cyan-500/30">
 
-<p><strong>Example:</strong> Solve \(x + 7 = 12\)</p>
-<p>Subtract 7 from both sides → \(x = 5\)</p>
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/5">
+        <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="text-xl font-bold tracking-tighter text-white mono glitch-text">ERR<span class="text-cyan-400">0</span>R</div>
+            <div class="flex gap-8">
+                <button onclick="showPage('study')" id="nav-study" class="nav-btn active text-xs font-bold uppercase tracking-widest pb-1 transition-all">Study Terminal</button>
+                <button onclick="showPage('forum')" id="nav-forum" class="nav-btn text-xs font-bold uppercase tracking-widest pb-1 transition-all">Discussion Forum</button>
+            </div>
+        </div>
+    </nav>
 
-<h3>Two‑Step Equations</h3>
-<p>These need two operations.</p>
+    <!-- Header -->
+    <header class="pt-32 pb-12 px-6 bg-gradient-to-b from-cyan-950/10 to-transparent">
+        <div class="max-w-6xl mx-auto text-center">
+            <h1 id="page-title" class="text-5xl font-bold tracking-tighter text-white mb-2">STUDY_TERMINAL</h1>
+            <p id="status-text" class="mono text-cyan-500/60 uppercase tracking-[0.3em] text-[10px]">Accessing Curriculum Database...</p>
+        </div>
+    </header>
 
-<p><strong>Example:</strong> Solve \(3x - 4 = 11\)</p>
-<p>Add 4 → \(3x = 15\)</p>
-<p>Divide by 3 → \(x = 5\)</p>
+    <!-- STUDY PAGE -->
+    <main id="study-page" class="max-w-6xl mx-auto p-6 space-y-12 pb-24">
+        <section class="bg-[#0d0d12] border border-white/5 rounded-3xl overflow-hidden shadow-2xl p-8 md:p-12">
+            <div class="flex items-center gap-3 mb-8">
+                <span class="bg-cyan-500/10 text-cyan-400 px-3 py-1 rounded-full text-[10px] font-bold border border-cyan-500/20 uppercase">Module 01</span>
+                <h2 class="text-3xl font-bold text-white tracking-tight">Solving Equations</h2>
+            </div>
+            <div class="grid lg:grid-cols-2 gap-12">
+                <div class="space-y-6">
+                    <div class="bg-black/40 p-6 rounded-2xl border border-white/5">
+                        <h3 class="text-cyan-400 font-bold uppercase text-xs tracking-widest mb-4">Level 1: The Balance Rule</h3>
+                        <p class="text-sm text-slate-400 leading-relaxed mb-4">Maintain equality. Perform inverse operations on both sides.</p>
+                        <div class="space-y-4">
+                            <div class="bg-white/5 p-4 rounded-lg">
+                                <p class="text-[10px] font-bold text-white mb-1 uppercase tracking-wider">One-Step (Grade 1-2)</p>
+                                <p class="text-sm">\(x + 9 = 14\) $\implies$ $x = 5$</p>
+                            </div>
+                            <div class="bg-white/5 p-4 rounded-lg">
+                                <p class="text-[10px] font-bold text-white mb-1 uppercase tracking-wider">Two-Step (Grade 3-4)</p>
+                                <p class="text-sm">\(5x + 2 = 27\) $\implies$ $5x = 25 \implies x = 5$</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <h3 class="text-slate-500 font-bold uppercase text-[10px] tracking-[0.2em]">Live Practice Questions</h3>
+                    <div class="space-y-3" id="equations-questions">
+                        <!-- Questions dynamically generated or static -->
+                        <div class="flex items-center justify-between bg-white/5 p-4 rounded-xl border border-white/5">
+                            <div><span class="text-[9px] font-bold text-cyan-500 block uppercase mb-1">Grade 1-2</span><p class="text-sm">\(x - 8 = 3\)</p></div>
+                            <div class="answer-container" onclick="reveal(this)"><span class="decrypt-overlay">Decrypt</span><span class="answer-text text-sm">x = 11</span></div>
+                        </div>
+                        <div class="flex items-center justify-between bg-white/5 p-4 rounded-xl border border-blue-500/10">
+                            <div><span class="text-[9px] font-bold text-blue-500 block uppercase mb-1">Grade 3-4</span><p class="text-sm">\(4x + 1 = 17\)</p></div>
+                            <div class="answer-container" onclick="reveal(this)"><span class="decrypt-overlay">Decrypt</span><span class="answer-text text-sm">x = 4</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-<h3>Practice Questions (Year 8)</h3>
-<ol>
-    <li>\(x + 9 = 14\)</li>
-    <li>\(2x - 3 = 11\)</li>
-    <li>\(5x + 2 = 27\)</li>
-    <li>\(x - 8 = 3\)</li>
-    <li>\(4x + 1 = 17\)</li>
-</ol>
+        <!-- Module 02 -->
+        <section class="bg-[#0d0d12] border border-white/5 rounded-3xl overflow-hidden shadow-2xl p-8 md:p-12">
+            <div class="flex items-center gap-3 mb-8">
+                <span class="bg-purple-500/10 text-purple-400 px-3 py-1 rounded-full text-[10px] font-bold border border-purple-500/20 uppercase">Module 02</span>
+                <h2 class="text-3xl font-bold text-white tracking-tight">Expanding Brackets</h2>
+            </div>
+            <div class="grid lg:grid-cols-2 gap-12">
+                <div class="space-y-6">
+                    <div class="bg-black/40 p-6 rounded-2xl border border-white/5">
+                        <h3 class="text-purple-400 font-bold uppercase text-xs tracking-widest mb-4">FOIL Expansion</h3>
+                        <p class="text-sm text-slate-400 mb-4">Multiply: First, Outer, Inner, Last.</p>
+                        <p class="text-xs text-cyan-400 mono">Ex: \((x + 5)(x - 1) = x^2 + 4x - 5\)</p>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between bg-white/5 p-4 rounded-xl border border-purple-500/10">
+                        <div><span class="text-[9px] font-bold text-purple-400 block uppercase mb-1">Grade 4-5</span><p class="text-sm">\((x+5)(x-1)\)</p></div>
+                        <div class="answer-container" onclick="reveal(this)"><span class="decrypt-overlay">Decrypt</span><span class="answer-text text-sm">x² + 4x - 5</span></div>
+                    </div>
+                    <div class="flex items-center justify-between bg-white/5 p-4 rounded-xl border border-red-500/10">
+                        <div><span class="text-[9px] font-bold text-red-500 block uppercase mb-1">Grade 8-9</span><p class="text-sm">\(3(x+1)(x-2)\)</p></div>
+                        <div class="answer-container" onclick="reveal(this)"><span class="decrypt-overlay">Decrypt</span><span class="answer-text text-sm">3x² - 3x - 6</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
 
-<h3>Extension Questions (GCSE Grade 4–5)</h3>
-<ol start="6">
-    <li>\(3(x - 2) = 15\)</li>
-    <li>\(2x + 5 = 3x - 7\)</li>
-    <li>\(4(x + 1) - 3 = 2x + 9\)</li>
-</ol>
+    <!-- FORUM PAGE -->
+    <main id="forum-page" class="max-w-4xl mx-auto p-6 hidden-page pb-24">
+        <div class="bg-[#0d0d12] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
+            <div class="p-8 border-b border-white/5 flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold text-white mb-1">Global Discussion</h2>
+                    <p id="user-display" class="text-[10px] text-slate-500 mono uppercase tracking-widest">Identifying Session...</p>
+                </div>
+                <div id="connection-status" class="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"></div>
+            </div>
+            
+            <div class="p-8 space-y-4 h-[450px] overflow-y-auto bg-black/20" id="chat-box">
+                <div class="text-center py-10 opacity-30 mono text-xs uppercase tracking-widest">Initializing Feed...</div>
+            </div>
 
-<hr>
+            <form id="message-form" class="p-6 bg-black/40 border-t border-white/5 flex gap-4">
+                <input id="forum-input" type="text" autocomplete="off" placeholder="Share knowledge..." class="flex-1 bg-black border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-cyan-500/50 mono">
+                <button type="submit" class="bg-cyan-500 text-black font-bold px-6 py-3 rounded-xl hover:bg-white transition-all text-sm uppercase">Post</button>
+            </form>
+        </div>
+    </main>
 
-<!-- ========================= -->
-<!-- 2. Expanding Brackets -->
-<!-- ========================= -->
+    <footer class="py-12 text-center">
+        <p class="mono text-slate-700 text-[10px] uppercase tracking-[0.5em]">System_State: Active // Node: Math_Lab_Alpha</p>
+    </footer>
 
-<h2>Expanding Brackets</h2>
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, onSnapshot, serverTimestamp, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-<h3>Single Brackets</h3>
-<p>Multiply everything inside the bracket by the number or letter outside.</p>
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-<p><strong>Example:</strong> \(4(x + 3) = 4x + 12\)</p>
+        let currentUser = null;
 
-<h3>Double Brackets (FOIL)</h3>
-<p>Multiply:</p>
-<ul>
-    <li><strong>F</strong>irst</li>
-    <li><strong>O</strong>uter</li>
-    <li><strong>I</strong>nner</li>
-    <li><strong>L</strong>ast</li>
-</ul>
+        // Auth Logic
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (err) {
+                console.error("Auth Error:", err);
+            }
+        };
 
-<p><strong>Example:</strong> \((x + 2)(x + 5)\)</p>
-<p>→ \(x^2 + 7x + 10\)</p>
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('user-display').innerText = `Node: ${user.uid.substring(0, 12)}...`;
+                document.getElementById('connection-status').classList.replace('bg-red-500', 'bg-cyan-500');
+                document.getElementById('connection-status').classList.add('shadow-[0_0_8px_rgba(0,242,255,0.5)]');
+                setupMessageListener();
+            }
+        });
 
-<h3>Practice Questions (Year 8)</h3>
-<ol>
-    <li>\(3(x + 4)\)</li>
-    <li>\(5(2x - 1)\)</li>
-    <li>\(7(x + 3)\)</li>
-    <li>\((x + 2)(x + 3)\)</li>
-    <li>\((x + 5)(x - 1)\)</li>
-</ol>
+        // Firestore Logic
+        function setupMessageListener() {
+            if (!currentUser) return;
+            // Public path for global chat
+            const msgCol = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
+            
+            // Simple query to get messages
+            onSnapshot(msgCol, (snapshot) => {
+                const chatBox = document.getElementById('chat-box');
+                chatBox.innerHTML = '';
+                
+                const msgs = [];
+                snapshot.forEach(doc => msgs.push(doc.data()));
+                
+                // Sort manually in JS to avoid index requirement
+                msgs.sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
 
-<h3>Extension Questions (GCSE Grade 5–6)</h3>
-<ol start="6">
-    <li>\((2x - 3)(x + 4)\)</li>
-    <li>\((x - 5)(x - 2)\)</li>
-    <li>\(3(x + 1)(x - 2)\)</li>
-</ol>
+                if (msgs.length === 0) {
+                    chatBox.innerHTML = '<div class="text-center py-10 opacity-30 mono text-xs">No entries in database. Start the conversation.</div>';
+                }
 
-<hr>
+                msgs.forEach(data => {
+                    const isMe = data.userId === currentUser.uid;
+                    const msgDiv = document.createElement('div');
+                    msgDiv.className = `flex gap-4 ${isMe ? 'flex-row-reverse' : ''}`;
+                    msgDiv.innerHTML = `
+                        <div class="w-10 h-10 shrink-0 rounded-lg ${isMe ? 'bg-cyan-500/20 text-cyan-400' : 'bg-white/10 text-white'} border border-white/10 flex items-center justify-center text-[10px] font-bold uppercase">
+                            ${data.userId.substring(0, 2)}
+                        </div>
+                        <div class="flex-1 max-w-[80%]">
+                            <div class="${isMe ? 'bg-cyan-500/10 border-cyan-500/20' : 'bg-white/5 border-white/5'} rounded-2xl p-4 border">
+                                <div class="flex justify-between mb-1 gap-4">
+                                    <span class="text-[9px] font-bold text-slate-500 uppercase">${data.userId}</span>
+                                </div>
+                                <p class="text-sm text-slate-300 break-words">${data.text}</p>
+                            </div>
+                        </div>
+                    `;
+                    chatBox.appendChild(msgDiv);
+                });
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, (err) => console.error("Snapshot error:", err));
+        }
 
-<!-- ========================= -->
-<!-- 3. Laws of Indices -->
-<!-- ========================= -->
+        async function sendMessage(text) {
+            if (!currentUser || !text.trim()) return;
+            const msgCol = collection(db, 'artifacts', appId, 'public', 'data', 'messages');
+            try {
+                await addDoc(msgCol, {
+                    text: text,
+                    userId: currentUser.uid,
+                    timestamp: serverTimestamp()
+                });
+            } catch (err) {
+                console.error("Send error:", err);
+            }
+        }
 
-<h2>Laws of Indices</h2>
+        document.getElementById('message-form').onsubmit = (e) => {
+            e.preventDefault();
+            const input = document.getElementById('forum-input');
+            sendMessage(input.value);
+            input.value = '';
+        };
 
-<p>Indices (powers) follow special rules:</p>
+        initAuth();
 
-<ul>
-    <li>\(a^m \times a^n = a^{m+n}\)</li>
-    <li>\(a^m \div a^n = a^{m-n}\)</li>
-    <li>\((a^m)^n = a^{mn}\)</li>
-    <li>\(a^0 = 1\)</li>
-    <li>\(a^{-m} = \frac{1}{a^m}\)</li>
-    <li>\(a^{m/n} = \sqrt[n]{a^m}\)</li>
-</ul>
+        // UI Helpers
+        window.showPage = (page) => {
+            const study = document.getElementById('study-page');
+            const forum = document.getElementById('forum-page');
+            const title = document.getElementById('page-title');
+            const navStudy = document.getElementById('nav-study');
+            const navForum = document.getElementById('nav-forum');
 
-<h3>Practice Questions (Year 8)</h3>
-<ol>
-    <li>\(a^3 \times a^2\)</li>
-    <li>\(x^7 \div x^4\)</li>
-    <li>\((y^2)^3\)</li>
-    <li>\(b^{-2}\)</li>
-    <li>\(16^{1/2}\)</li>
-</ol>
+            if (page === 'study') {
+                study.classList.remove('hidden-page');
+                forum.classList.add('hidden-page');
+                title.innerText = 'STUDY_TERMINAL';
+                navStudy.classList.add('active');
+                navForum.classList.remove('active');
+            } else {
+                study.classList.add('hidden-page');
+                forum.classList.remove('hidden-page');
+                title.innerText = 'GLOBAL_FORUM';
+                navForum.classList.add('active');
+                navStudy.classList.remove('active');
+            }
+            window.scrollTo(0,0);
+        };
 
-<h3>Extension Questions (GCSE Grade 5–6)</h3>
-<ol start="6">
-    <li>\(3a^4 \times 2a^3\)</li>
-    <li>\(\frac{5x^7}{10x^3}\)</li>
-    <li>\((2y^3)^2\)</li>
-</ol>
-
-<hr>
-
-<!-- ========================= -->
-<!-- 4. Experimental Probability -->
-<!-- ========================= -->
-
-<h2>Experimental Probability</h2>
-
-<p>Experimental probability is based on results from an experiment.</p>
-
-<p><strong>Formula:</strong></p>
-<p>\(\text{Probability} = \frac{\text{Number of favourable outcomes}}{\text{Total trials}}\)</p>
-
-<p><strong>Example:</strong> A dice is rolled 60 times and lands on 6 ten times.</p>
-<p>Probability = \(10/60 = 1/6\)</p>
-
-<h3>Practice Questions (Year 8)</h3>
-<ol>
-    <li>You flip a coin 20 times and get 8 heads. What is the probability of heads?</li>
-    <li>A spinner is spun 50 times and lands on red 15 times. Probability of red?</li>
-    <li>A bag has 3 green, 5 blue, 2 black counters. What is the probability of green or blue?</li>
-    <li>Out of 200 students, 60 walk to school. What is the probability a student walks?</li>
-    <li>A number generator picks numbers 1–10. It lands on 7 four times out of 30 tries. Probability?</li>
-</ol>
-
-<h3>Extension Questions (GCSE Grade 4–5)</h3>
-<ol start="6">
-    <li>A biased coin lands on heads 70 out of 100 times. What is the probability of tails?</li>
-    <li>A dice is rolled 120 times. It lands on even numbers 78 times. Probability of odd?</li>
-    <li>A class of 30 students: 12 play football, 8 play basketball, 5 play both. What is the probability a student plays at least one sport?</li>
-</ol>
-
-<hr>
+        window.reveal = (el) => el.classList.add('revealed');
+    </script>
+</body>
+</html>
