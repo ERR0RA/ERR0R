@@ -2,13 +2,14 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Math Practice with Score Tracking</title>
+<title>Math Practice</title>
 <style>
 body { font-family: Arial, sans-serif; background: #f4f6fa; text-align: center; padding: 20px; }
 .container { background: white; max-width: 800px; margin: auto; padding: 25px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
 select, button, input { padding: 8px; margin: 8px; font-size: 16px; }
 .question { font-size: 22px; margin: 20px 0; }
 .score { margin-top: 20px; font-weight: bold; }
+#feedback { margin-top: 10px; font-weight: bold; }
 </style>
 </head>
 <body>
@@ -43,30 +44,7 @@ select, button, input { padding: 8px; margin: 8px; font-size: 16px; }
 <div class="score" id="score">Score: 0</div>
 </div>
 
-<!-- Firebase -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-
-// Replace this config with your Firebase project config
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-
-let currentUser;
-signInAnonymously(auth).catch(console.error);
-onAuthStateChanged(auth, (user) => { if (user) currentUser = user; });
-
+<script>
 let currentAnswer;
 let score = 0;
 
@@ -80,7 +58,7 @@ function generateQuestion(){
     document.getElementById("answerInput").value="";
     currentAnswer = null;
 
-    // ---------- Topics ----------
+    // Topics
     if(topic==="expand"){
         if(difficulty==="easy"){ let a=rand(2,5), b=rand(1,5); qa.innerHTML=`Expand: ${a}(x+${b})`; currentAnswer=`${a}x+${a*b}`;}
         if(difficulty==="medium"){ let a=rand(2,6), b=rand(1,6), c=rand(1,6); qa.innerHTML=`Expand: ${a}(x+${b})+${c}x`; currentAnswer=`${a+c}x+${a*b}`;}
@@ -118,35 +96,27 @@ function generateQuestion(){
     }
 }
 
-async function checkAnswer(){
+function checkAnswer(){
     let userAnswer = document.getElementById("answerInput").value.replace(/\s+/g,'');
     let correct = currentAnswer.toString().replace(/\s+/g,'');
     let feedback = document.getElementById("feedback");
-    if(userAnswer===correct){
-        score++;
-        feedback.innerText="Correct!";
-    }else{
-        feedback.innerText="Incorrect. Correct: "+currentAnswer;
-    }
-    document.getElementById("score").innerText="Score: "+score;
 
-    if(currentUser){
-        try{
-            await addDoc(collection(db,"scores"),{
-                uid: currentUser.uid,
-                topic: document.getElementById("topic").value,
-                difficulty: document.getElementById("difficulty").value,
-                question: document.getElementById("questionArea").innerText,
-                correctAnswer: currentAnswer,
-                userAnswer: userAnswer,
-                timestamp: serverTimestamp(),
-                score: score
-            });
-        }catch(e){ console.error("Firestore error:", e);}
+    // numeric comparison if possible
+    if(!isNaN(userAnswer) && !isNaN(correct)){
+        if(parseFloat(userAnswer) === parseFloat(correct)){
+            score++; feedback.innerText="Correct!";
+        } else { feedback.innerText="Incorrect. Correct: "+currentAnswer;}
+    } else { // string comparison
+        if(userAnswer.toLowerCase() === correct.toLowerCase()){
+            score++; feedback.innerText="Correct!";
+        } else { feedback.innerText="Incorrect. Correct: "+currentAnswer;}
     }
+
+    document.getElementById("score").innerText="Score: "+score;
 }
 
-generateQuestion();
+// generate first question on load
+window.onload = generateQuestion;
 </script>
 </body>
 </html>
