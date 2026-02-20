@@ -1,115 +1,57 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Math Practice</title>
-<style>
-body { font-family: Arial, sans-serif; background: #f4f6fa; text-align: center; padding: 20px; }
-.container { background: white; max-width: 800px; margin: auto; padding: 25px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
-select, button, input { padding: 8px; margin: 8px; font-size: 16px; }
-.question { font-size: 22px; margin: 20px 0; }
-.score { margin-top: 20px; font-weight: bold; }
-#feedback { margin-top: 10px; font-weight: bold; }
-</style>
-</head>
-<body>
-
-<div class="container">
-<h1>Maths Practice</h1>
-
-<label>Topic:</label>
-<select id="topic">
-    <option value="expand">Algebra - Expanding</option>
-    <option value="factor">Algebra - Factorising</option>
-    <option value="simplify">Simplifying Fractions</option>
-    <option value="probability">Experimental Probability</option>
-    <option value="ratio">Ratio</option>
-    <option value="similar">Similar Shapes</option>
-</select>
-
-<label>Difficulty:</label>
-<select id="difficulty">
-    <option value="easy">Easy</option>
-    <option value="medium">Medium</option>
-    <option value="hard">Hard</option>
-</select>
-
-<br>
-<button id="newQuestion">New Question</button>
-<div class="question" id="questionArea"></div>
-<input type="text" id="answerInput" placeholder="Enter answer here">
-<br>
-<button id="submitAnswer">Submit</button>
-<div id="feedback"></div>
-<div class="score" id="score">Score: 0</div>
-</div>
-
-<script>
-let currentAnswer;
-let score = 0;
-
-function rand(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
-
-function generateQuestion(){
-    const topic = document.getElementById("topic").value;
-    const difficulty = document.getElementById("difficulty").value;
-    const qa = document.getElementById("questionArea");
-    document.getElementById("feedback").innerText="";
-    document.getElementById("answerInput").value="";
-    currentAnswer = null;
-
-    if(topic==="expand"){
-        if(difficulty==="easy"){ let a=rand(2,5), b=rand(1,5); qa.innerHTML=`Expand: ${a}(x+${b})`; currentAnswer=`${a}x+${a*b}`;}
-        if(difficulty==="medium"){ let a=rand(2,6), b=rand(1,6), c=rand(1,6); qa.innerHTML=`Expand: ${a}(x+${b})+${c}x`; currentAnswer=`${a+c}x+${a*b}`;}
-        if(difficulty==="hard"){ let a=rand(2,5), b=rand(1,5), c=rand(2,5), d=rand(1,5); qa.innerHTML=`(${a}x+${b})(${c}x+${d})`; currentAnswer=`${a*c}x^2+${a*d+b*c}x+${b*d}`;}
-    }
-    if(topic==="factor"){
-        if(difficulty==="easy"){ let a=rand(2,6), b=rand(1,6); qa.innerHTML=`Factorise: ${a}x+${a*b}`; currentAnswer=`${a}(x+${b})`;}
-        if(difficulty==="medium"){ let a=rand(2,5), b=rand(1,5); qa.innerHTML=`Factorise: x^2+${a+b}x+${a*b}`; currentAnswer=`(x+${a})(x+${b})`;}
-        if(difficulty==="hard"){ let a=rand(2,5), b=rand(1,5), c=rand(2,5); qa.innerHTML=`Factorise: ${a*c}x^2+${a*b+c*b}x+${b*b}`; currentAnswer=`(${a}x+${b})(${c}x+${b})`;}
-    }
-    if(topic==="simplify"){
-        if(difficulty==="easy"){ let a=rand(2,5); qa.innerHTML=`Simplify: ${a}x / ${a}`; currentAnswer=`x`;}
-        if(difficulty==="medium"){ let a=rand(2,5), b=rand(1,5); qa.innerHTML=`Simplify: ${a*b}x / ${a}`; currentAnswer=`${b}x`;}
-        if(difficulty==="hard"){ let a=rand(2,5), b=rand(1,5); qa.innerHTML=`Simplify: (${a}x^2+${a*b}x)/${a}x`; currentAnswer=`x+${b}`;}
-    }
-    if(topic==="probability"){
-        if(difficulty==="easy"){ let s=rand(1,10), t=s+rand(1,10); qa.innerHTML=`A coin is flipped ${t} times and heads ${s} times. Fraction?`; currentAnswer=`${s}/${t}`;}
-        if(difficulty==="medium"){ let r=rand(5,15), b=rand(5,15); qa.innerHTML=`Bag has ${r} red, ${b} blue balls. Probability red?`; currentAnswer=`${r}/${r+b}`;}
-        if(difficulty==="hard"){ let s=rand(10,30), t=s+rand(10,30); qa.innerHTML=`Dice rolled ${t} times, 6 occurs ${s} times. Decimal 3dp?`; currentAnswer=(s/t).toFixed(3);}
-    }
-    if(topic==="ratio"){
-        if(difficulty==="easy"){ let a=rand(1,5), b=rand(1,5); qa.innerHTML=`Simplify ratio ${a*2}:${b*2}`; currentAnswer=`${a}:${b}`;}
-        if(difficulty==="medium"){ let a=rand(1,5), b=rand(1,5); let total=(a+b)*rand(2,4); qa.innerHTML=`Share £${total} in ratio ${a}:${b}. First person?`; currentAnswer=`${a*total/(a+b)}`;}
-        if(difficulty==="hard"){ let a=rand(2,6), b=rand(2,6), c=rand(2,6); qa.innerHTML=`Three numbers in ratio ${a}:${b}:${c}. Sum ${(a+b+c)*5}. Largest number?`; currentAnswer=`${c*5}`;}
-    }
-    if(topic==="similar"){
-        if(difficulty==="easy"){ let scale=rand(2,5), l=rand(2,10); qa.innerHTML=`Two similar shapes scale ${scale}. Small length ${l}cm. Large length?`; currentAnswer=`${l*scale}`;}
-        if(difficulty==="medium"){ let scale=rand(2,4), a=rand(10,30); qa.innerHTML=`Two similar shapes scale ${scale}. Small area ${a}cm². Large area?`; currentAnswer=`${a*scale*scale}`;}
-        if(difficulty==="hard"){ let scale=rand(2,4), v=rand(5,20); qa.innerHTML=`Two similar solids scale ${scale}. Small volume ${v}cm³. Large volume?`; currentAnswer=`${v*scale*scale*scale}`;}
-    }
-}
-
 function checkAnswer(){
-    let userAnswer = document.getElementById("answerInput").value.replace(/\s+/g,'');
-    let correct = currentAnswer.toString().replace(/\s+/g,'');
-    let feedback = document.getElementById("feedback");
-    if(!isNaN(userAnswer) && !isNaN(correct)){
-        if(parseFloat(userAnswer) === parseFloat(correct)){ score++; feedback.innerText="Correct!";}
-        else { feedback.innerText="Incorrect. Correct: "+currentAnswer;}
-    } else {
-        if(userAnswer.toLowerCase() === correct.toLowerCase()){ score++; feedback.innerText="Correct!";}
-        else { feedback.innerText="Incorrect. Correct: "+currentAnswer;}
-    }
-    document.getElementById("score").innerText="Score: "+score;
-}
+    let userAnswer = document.getElementById("answerInput").value
+        .replace(/\s+/g,'')
+        .toLowerCase();
 
-// attach buttons after DOM is loaded
-window.onload = () => {
-    document.getElementById("newQuestion").addEventListener("click", generateQuestion);
-    document.getElementById("submitAnswer").addEventListener("click", checkAnswer);
-    generateQuestion();
-};
-</script>
-</body>
-</html>
+    let correct = currentAnswer
+        .replace(/\s+/g,'')
+        .toLowerCase();
+
+    let feedback = document.getElementById("feedback");
+
+    let isCorrect = false;
+
+    // If numeric comparison
+    if(!isNaN(userAnswer) && !isNaN(correct)){
+        if(parseFloat(userAnswer) === parseFloat(correct)){
+            isCorrect = true;
+        }
+    }
+    // If factorised form with two brackets
+    else if(correct.includes(")(")){
+        let correctParts = correct.split(")(");
+        let userParts = userAnswer.split(")(");
+
+        if(userParts.length === 2){
+            // Remove brackets
+            correctParts[0] = correctParts[0].replace("(","");
+            correctParts[1] = correctParts[1].replace(")","");
+
+            userParts[0] = userParts[0].replace("(","");
+            userParts[1] = userParts[1].replace(")","");
+
+            // Check both possible orders
+            if(
+                (userParts[0] === correctParts[0] && userParts[1] === correctParts[1]) ||
+                (userParts[0] === correctParts[1] && userParts[1] === correctParts[0])
+            ){
+                isCorrect = true;
+            }
+        }
+    }
+    else {
+        if(userAnswer === correct){
+            isCorrect = true;
+        }
+    }
+
+    if(isCorrect){
+        score++;
+        feedback.innerText = "Correct!";
+        document.getElementById("score").innerText = "Score: "+score;
+    } else {
+        feedback.innerText = "Incorrect. Correct: "+currentAnswer;
+    }
+
+    document.getElementById("answerInput").value = "";
+}
