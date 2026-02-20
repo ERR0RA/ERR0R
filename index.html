@@ -1,177 +1,202 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Systemized Math</title>
-
-<script src="https://cdn.tailwindcss.com"></script>
-
-<script>
-window.MathJax = {
-  tex: {
-    inlineMath: [['$', '$'], ['\\(', '\\)']],
-  }
-};
-</script>
-<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&family=Space+Mono&display=swap" rel="stylesheet">
-
+<title>Advanced Maths Practice</title>
 <style>
 body {
-  background:#050507;
-  color:#d1d1d1;
-  font-family:'Space Grotesk', sans-serif;
+    font-family: Arial, sans-serif;
+    background: #f4f6fa;
+    text-align: center;
+    padding: 20px;
 }
-.hidden-page { display:none; }
 
-.answer {
-  opacity:0;
-  transition:0.3s;
-  color:#00f2ff;
-  font-weight:bold;
+.container {
+    background: white;
+    max-width: 700px;
+    margin: auto;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
 }
-.revealed .answer { opacity:1; }
 
-.nav-btn.active {
-  color:#00f2ff;
-  border-bottom:2px solid #00f2ff;
+select, button, input {
+    padding: 8px;
+    margin: 8px;
+    font-size: 16px;
+}
+
+button {
+    cursor: pointer;
+}
+
+.question {
+    font-size: 22px;
+    margin: 20px 0;
+}
+
+.score {
+    margin-top: 20px;
+    font-weight: bold;
 }
 </style>
 </head>
-<body class="selection:bg-cyan-500/30">
+<body>
 
-<!-- NAV -->
-<nav class="fixed top-0 left-0 right-0 bg-black/80 border-b border-white/10 h-16 flex items-center justify-between px-6 z-50">
-<div class="text-xl font-bold text-white">SYSTEMIZED <span class="text-cyan-400">MATH</span></div>
-<div class="flex gap-6">
-<button onclick="showPage('study')" id="nav-study" class="nav-btn active">Study</button>
-<button onclick="showPage('practice')" id="nav-practice" class="nav-btn">Practice</button>
-</div>
-</nav>
+<div class="container">
+<h1>Advanced Maths Practice</h1>
 
-<header class="pt-28 pb-8 text-center">
-<h1 id="page-title" class="text-4xl font-bold text-white">STUDY MODE</h1>
-</header>
+<label>Topic:</label>
+<select id="topic">
+    <option value="expand">Algebra - Expanding</option>
+    <option value="factor">Algebra - Factorising</option>
+    <option value="simplify">Simplifying Fractions</option>
+    <option value="probability">Experimental Probability</option>
+</select>
 
-<!-- STUDY PAGE -->
-<main id="study-page" class="max-w-4xl mx-auto p-6 space-y-8">
+<label>Difficulty:</label>
+<select id="difficulty">
+    <option value="easy">Easy</option>
+    <option value="medium">Medium</option>
+    <option value="hard">Hard</option>
+</select>
 
-<div class="bg-[#0d0d12] p-6 rounded-2xl">
-<h2 class="text-xl text-cyan-400 mb-4">Solving Linear Equations</h2>
+<br>
 
-<p class="mb-4 text-slate-400">
-To solve an equation, use inverse operations on both sides.
-</p>
+<button onclick="generateQuestion()">New Question</button>
 
-<div class="space-y-4">
+<div class="question" id="questionArea"></div>
 
-<div class="flex justify-between bg-white/5 p-4 rounded-lg">
-<div>\(x + 7 = 12\)</div>
-<div onclick="reveal(this)" class="cursor-pointer">
-Click to reveal → <span class="answer">x = 5</span>
-</div>
-</div>
+<input type="text" id="answerInput" placeholder="Enter answer here">
 
-<div class="flex justify-between bg-white/5 p-4 rounded-lg">
-<div>\(5x - 3 = 22\)</div>
-<div onclick="reveal(this)" class="cursor-pointer">
-Click to reveal → <span class="answer">x = 5</span>
-</div>
-</div>
+<br>
+
+<button onclick="checkAnswer()">Submit</button>
+
+<div id="feedback"></div>
+<div class="score" id="score">Score: 0</div>
 
 </div>
-</div>
-
-</main>
-
-<!-- PRACTICE PAGE -->
-<main id="practice-page" class="max-w-4xl mx-auto p-6 hidden-page">
-
-<div class="bg-[#0d0d12] p-6 rounded-2xl space-y-6">
-
-<h2 class="text-xl text-cyan-400">Random Equation Generator</h2>
-
-<div id="question" class="text-2xl"></div>
-
-<input id="answerInput" type="number" placeholder="Enter your answer"
-class="w-full bg-black border border-white/20 rounded-lg px-4 py-2">
-
-<button onclick="checkAnswer()" 
-class="bg-cyan-500 text-black px-6 py-2 rounded-lg w-full">
-Check Answer
-</button>
-
-<div id="result" class="text-lg font-bold"></div>
-
-<button onclick="generateQuestion()" 
-class="bg-white/10 px-6 py-2 rounded-lg w-full">
-New Question
-</button>
-
-</div>
-
-</main>
 
 <script>
-let correctAnswer = 0;
+let currentAnswer;
+let score = 0;
 
-function showPage(page){
-  const study=document.getElementById("study-page");
-  const practice=document.getElementById("practice-page");
-  const title=document.getElementById("page-title");
-  const navStudy=document.getElementById("nav-study");
-  const navPractice=document.getElementById("nav-practice");
-
-  if(page==="study"){
-    study.classList.remove("hidden-page");
-    practice.classList.add("hidden-page");
-    title.innerText="STUDY MODE";
-    navStudy.classList.add("active");
-    navPractice.classList.remove("active");
-  }else{
-    study.classList.add("hidden-page");
-    practice.classList.remove("hidden-page");
-    title.innerText="PRACTICE MODE";
-    navPractice.classList.add("active");
-    navStudy.classList.remove("active");
-    generateQuestion();
-  }
+function rand(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function reveal(el){
-  el.classList.add("revealed");
+function generateQuestion() {
+    const topic = document.getElementById("topic").value;
+    const difficulty = document.getElementById("difficulty").value;
+    const questionArea = document.getElementById("questionArea");
+    document.getElementById("feedback").innerText = "";
+    document.getElementById("answerInput").value = "";
+
+    if (topic === "expand") {
+        if (difficulty === "easy") {
+            let a = rand(2,5);
+            let b = rand(1,5);
+            questionArea.innerHTML = `Expand: ${a}(x + ${b})`;
+            currentAnswer = `${a}x+${a*b}`;
+        }
+        if (difficulty === "medium") {
+            let a = rand(2,6);
+            let b = rand(1,6);
+            let c = rand(1,6);
+            questionArea.innerHTML = `Expand: ${a}(x + ${b}) + ${c}x`;
+            currentAnswer = `${a+c}x+${a*b}`;
+        }
+        if (difficulty === "hard") {
+            let a = rand(2,5);
+            let b = rand(1,5);
+            let c = rand(2,5);
+            let d = rand(1,5);
+            questionArea.innerHTML = `Expand: (${a}x + ${b})(${c}x + ${d})`;
+            currentAnswer = `${a*c}x^2+${a*d + b*c}x+${b*d}`;
+        }
+    }
+
+    if (topic === "factor") {
+        if (difficulty === "easy") {
+            let a = rand(2,6);
+            let b = rand(1,6);
+            questionArea.innerHTML = `Factorise: ${a}x + ${a*b}`;
+            currentAnswer = `${a}(x+${b})`;
+        }
+        if (difficulty === "medium") {
+            let a = rand(2,5);
+            let b = rand(1,5);
+            questionArea.innerHTML = `Factorise: x^2 + ${a+b}x + ${a*b}`;
+            currentAnswer = `(x+${a})(x+${b})`;
+        }
+        if (difficulty === "hard") {
+            let a = rand(2,5);
+            let b = rand(1,5);
+            let c = rand(2,5);
+            questionArea.innerHTML = `Factorise: ${a*c}x^2 + ${a*b + c*b}x + ${b*b}`;
+            currentAnswer = `(${a}x+${b})(${c}x+${b})`;
+        }
+    }
+
+    if (topic === "simplify") {
+        if (difficulty === "easy") {
+            let a = rand(2,5);
+            questionArea.innerHTML = `Simplify: ${a}x / ${a}`;
+            currentAnswer = `x`;
+        }
+        if (difficulty === "medium") {
+            let a = rand(2,5);
+            let b = rand(1,5);
+            questionArea.innerHTML = `Simplify: ${a*b}x / ${a}`;
+            currentAnswer = `${b}x`;
+        }
+        if (difficulty === "hard") {
+            let a = rand(2,5);
+            let b = rand(1,5);
+            let c = rand(1,5);
+            questionArea.innerHTML = `Simplify: (${a}x^2 + ${a*b}x) / ${a}x`;
+            currentAnswer = `x+${b}`;
+        }
+    }
+
+    if (topic === "probability") {
+        if (difficulty === "easy") {
+            let success = rand(1,10);
+            let total = success + rand(1,10);
+            questionArea.innerHTML = `A coin is flipped ${total} times and lands heads ${success} times. What is experimental probability of heads? (as fraction)`;
+            currentAnswer = `${success}/${total}`;
+        }
+        if (difficulty === "medium") {
+            let red = rand(5,15);
+            let blue = rand(5,15);
+            questionArea.innerHTML = `A bag has ${red} red and ${blue} blue balls. One ball is picked. Experimental probability of red?`;
+            currentAnswer = `${red}/${red+blue}`;
+        }
+        if (difficulty === "hard") {
+            let success = rand(10,30);
+            let total = success + rand(10,30);
+            questionArea.innerHTML = `A dice is rolled ${total} times and lands on 6 exactly ${success} times. Give experimental probability as decimal (3dp).`;
+            currentAnswer = (success/total).toFixed(3);
+        }
+    }
 }
 
-function generateQuestion(){
-  const x = Math.floor(Math.random()*10)+1;
-  const a = Math.floor(Math.random()*5)+1;
-  const b = Math.floor(Math.random()*10);
+function checkAnswer() {
+    let userAnswer = document.getElementById("answerInput").value.replace(/\s+/g,'');
+    let correct = currentAnswer.replace(/\s+/g,'');
 
-  const rightSide = a*x + b;
-  correctAnswer = x;
+    if (userAnswer === correct) {
+        score++;
+        document.getElementById("feedback").innerText = "Correct!";
+    } else {
+        document.getElementById("feedback").innerText = "Incorrect. Correct answer: " + currentAnswer;
+    }
 
-  document.getElementById("question").innerHTML =
-    `\\(${a}x + ${b} = ${rightSide}\\)`;
-
-  document.getElementById("result").innerText="";
-  document.getElementById("answerInput").value="";
-
-  MathJax.typeset();
+    document.getElementById("score").innerText = "Score: " + score;
 }
 
-function checkAnswer(){
-  const userAnswer = Number(document.getElementById("answerInput").value);
-
-  if(userAnswer === correctAnswer){
-    document.getElementById("result").innerText="✅ Correct!";
-    document.getElementById("result").className="text-green-400 font-bold";
-  }else{
-    document.getElementById("result").innerText="❌ Try again!";
-    document.getElementById("result").className="text-red-400 font-bold";
-  }
-}
+generateQuestion();
 </script>
 
 </body>
