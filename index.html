@@ -35,11 +35,11 @@ select, button, input { padding: 8px; margin: 8px; font-size: 16px; }
 </select>
 
 <br>
-<button onclick="generateQuestion()">New Question</button>
+<button id="newQuestion">New Question</button>
 <div class="question" id="questionArea"></div>
 <input type="text" id="answerInput" placeholder="Enter answer here">
 <br>
-<button onclick="checkAnswer()">Submit</button>
+<button id="submitAnswer">Submit</button>
 <div id="feedback"></div>
 <div class="score" id="score">Score: 0</div>
 </div>
@@ -58,37 +58,31 @@ function generateQuestion(){
     document.getElementById("answerInput").value="";
     currentAnswer = null;
 
-    // Topics
     if(topic==="expand"){
         if(difficulty==="easy"){ let a=rand(2,5), b=rand(1,5); qa.innerHTML=`Expand: ${a}(x+${b})`; currentAnswer=`${a}x+${a*b}`;}
         if(difficulty==="medium"){ let a=rand(2,6), b=rand(1,6), c=rand(1,6); qa.innerHTML=`Expand: ${a}(x+${b})+${c}x`; currentAnswer=`${a+c}x+${a*b}`;}
         if(difficulty==="hard"){ let a=rand(2,5), b=rand(1,5), c=rand(2,5), d=rand(1,5); qa.innerHTML=`(${a}x+${b})(${c}x+${d})`; currentAnswer=`${a*c}x^2+${a*d+b*c}x+${b*d}`;}
     }
-
     if(topic==="factor"){
         if(difficulty==="easy"){ let a=rand(2,6), b=rand(1,6); qa.innerHTML=`Factorise: ${a}x+${a*b}`; currentAnswer=`${a}(x+${b})`;}
         if(difficulty==="medium"){ let a=rand(2,5), b=rand(1,5); qa.innerHTML=`Factorise: x^2+${a+b}x+${a*b}`; currentAnswer=`(x+${a})(x+${b})`;}
         if(difficulty==="hard"){ let a=rand(2,5), b=rand(1,5), c=rand(2,5); qa.innerHTML=`Factorise: ${a*c}x^2+${a*b+c*b}x+${b*b}`; currentAnswer=`(${a}x+${b})(${c}x+${b})`;}
     }
-
     if(topic==="simplify"){
         if(difficulty==="easy"){ let a=rand(2,5); qa.innerHTML=`Simplify: ${a}x / ${a}`; currentAnswer=`x`;}
         if(difficulty==="medium"){ let a=rand(2,5), b=rand(1,5); qa.innerHTML=`Simplify: ${a*b}x / ${a}`; currentAnswer=`${b}x`;}
         if(difficulty==="hard"){ let a=rand(2,5), b=rand(1,5); qa.innerHTML=`Simplify: (${a}x^2+${a*b}x)/${a}x`; currentAnswer=`x+${b}`;}
     }
-
     if(topic==="probability"){
         if(difficulty==="easy"){ let s=rand(1,10), t=s+rand(1,10); qa.innerHTML=`A coin is flipped ${t} times and heads ${s} times. Fraction?`; currentAnswer=`${s}/${t}`;}
         if(difficulty==="medium"){ let r=rand(5,15), b=rand(5,15); qa.innerHTML=`Bag has ${r} red, ${b} blue balls. Probability red?`; currentAnswer=`${r}/${r+b}`;}
         if(difficulty==="hard"){ let s=rand(10,30), t=s+rand(10,30); qa.innerHTML=`Dice rolled ${t} times, 6 occurs ${s} times. Decimal 3dp?`; currentAnswer=(s/t).toFixed(3);}
     }
-
     if(topic==="ratio"){
         if(difficulty==="easy"){ let a=rand(1,5), b=rand(1,5); qa.innerHTML=`Simplify ratio ${a*2}:${b*2}`; currentAnswer=`${a}:${b}`;}
         if(difficulty==="medium"){ let a=rand(1,5), b=rand(1,5); let total=(a+b)*rand(2,4); qa.innerHTML=`Share £${total} in ratio ${a}:${b}. First person?`; currentAnswer=`${a*total/(a+b)}`;}
         if(difficulty==="hard"){ let a=rand(2,6), b=rand(2,6), c=rand(2,6); qa.innerHTML=`Three numbers in ratio ${a}:${b}:${c}. Sum ${(a+b+c)*5}. Largest number?`; currentAnswer=`${c*5}`;}
     }
-
     if(topic==="similar"){
         if(difficulty==="easy"){ let scale=rand(2,5), l=rand(2,10); qa.innerHTML=`Two similar shapes scale ${scale}. Small length ${l}cm. Large length?`; currentAnswer=`${l*scale}`;}
         if(difficulty==="medium"){ let scale=rand(2,4), a=rand(10,30); qa.innerHTML=`Two similar shapes scale ${scale}. Small area ${a}cm². Large area?`; currentAnswer=`${a*scale*scale}`;}
@@ -100,23 +94,22 @@ function checkAnswer(){
     let userAnswer = document.getElementById("answerInput").value.replace(/\s+/g,'');
     let correct = currentAnswer.toString().replace(/\s+/g,'');
     let feedback = document.getElementById("feedback");
-
-    // numeric comparison if possible
     if(!isNaN(userAnswer) && !isNaN(correct)){
-        if(parseFloat(userAnswer) === parseFloat(correct)){
-            score++; feedback.innerText="Correct!";
-        } else { feedback.innerText="Incorrect. Correct: "+currentAnswer;}
-    } else { // string comparison
-        if(userAnswer.toLowerCase() === correct.toLowerCase()){
-            score++; feedback.innerText="Correct!";
-        } else { feedback.innerText="Incorrect. Correct: "+currentAnswer;}
+        if(parseFloat(userAnswer) === parseFloat(correct)){ score++; feedback.innerText="Correct!";}
+        else { feedback.innerText="Incorrect. Correct: "+currentAnswer;}
+    } else {
+        if(userAnswer.toLowerCase() === correct.toLowerCase()){ score++; feedback.innerText="Correct!";}
+        else { feedback.innerText="Incorrect. Correct: "+currentAnswer;}
     }
-
     document.getElementById("score").innerText="Score: "+score;
 }
 
-// generate first question on load
-window.onload = generateQuestion;
+// attach buttons after DOM is loaded
+window.onload = () => {
+    document.getElementById("newQuestion").addEventListener("click", generateQuestion);
+    document.getElementById("submitAnswer").addEventListener("click", checkAnswer);
+    generateQuestion();
+};
 </script>
 </body>
 </html>
