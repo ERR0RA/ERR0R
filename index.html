@@ -2,39 +2,13 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Advanced Maths Practice</title>
+<title>Math Practice with Score Tracking</title>
 <style>
-body {
-    font-family: Arial, sans-serif;
-    background: #f4f6fa;
-    text-align: center;
-    padding: 20px;
-}
-
-.container {
-    background: white;
-    max-width: 800px;
-    margin: auto;
-    padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-}
-
-select, button, input {
-    padding: 8px;
-    margin: 8px;
-    font-size: 16px;
-}
-
-.question {
-    font-size: 22px;
-    margin: 20px 0;
-}
-
-.score {
-    margin-top: 20px;
-    font-weight: bold;
-}
+body { font-family: Arial, sans-serif; background: #f4f6fa; text-align: center; padding: 20px; }
+.container { background: white; max-width: 800px; margin: auto; padding: 25px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+select, button, input { padding: 8px; margin: 8px; font-size: 16px; }
+.question { font-size: 22px; margin: 20px 0; }
+.score { margin-top: 20px; font-weight: bold; }
 </style>
 </head>
 <body>
@@ -60,112 +34,119 @@ select, button, input {
 </select>
 
 <br>
-
 <button onclick="generateQuestion()">New Question</button>
-
 <div class="question" id="questionArea"></div>
-
 <input type="text" id="answerInput" placeholder="Enter answer here">
-
 <br>
-
 <button onclick="checkAnswer()">Submit</button>
-
 <div id="feedback"></div>
 <div class="score" id="score">Score: 0</div>
-
 </div>
 
-<script>
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+// Replace this config with your Firebase project config
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+let currentUser;
+signInAnonymously(auth).catch(console.error);
+onAuthStateChanged(auth, (user) => { if (user) currentUser = user; });
+
 let currentAnswer;
 let score = 0;
 
-function rand(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-}
+function rand(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
 
-function generateQuestion() {
+function generateQuestion(){
     const topic = document.getElementById("topic").value;
     const difficulty = document.getElementById("difficulty").value;
-    const questionArea = document.getElementById("questionArea");
-    document.getElementById("feedback").innerText = "";
-    document.getElementById("answerInput").value = "";
+    const qa = document.getElementById("questionArea");
+    document.getElementById("feedback").innerText="";
+    document.getElementById("answerInput").value="";
+    currentAnswer = null;
 
-    // ================= RATIO =================
-    if (topic === "ratio") {
-
-        if (difficulty === "easy") {
-            let a = rand(1,5);
-            let b = rand(1,5);
-            questionArea.innerHTML = `Simplify the ratio ${a*2}:${b*2}`;
-            currentAnswer = `${a}:${b}`;
-        }
-
-        if (difficulty === "medium") {
-            let a = rand(1,5);
-            let b = rand(1,5);
-            let total = (a+b)*rand(2,4);
-            let scale = total/(a+b);
-            questionArea.innerHTML = `Share £${total} in the ratio ${a}:${b}. How much does the first person get?`;
-            currentAnswer = `${a*scale}`;
-        }
-
-        if (difficulty === "hard") {
-            let a = rand(2,6);
-            let b = rand(2,6);
-            let c = rand(2,6);
-            questionArea.innerHTML = `Three numbers are in the ratio ${a}:${b}:${c}. Their sum is ${(a+b+c)*5}. Find the largest number.`;
-            currentAnswer = `${c*5}`;
-        }
+    // ---------- Topics ----------
+    if(topic==="expand"){
+        if(difficulty==="easy"){ let a=rand(2,5), b=rand(1,5); qa.innerHTML=`Expand: ${a}(x+${b})`; currentAnswer=`${a}x+${a*b}`;}
+        if(difficulty==="medium"){ let a=rand(2,6), b=rand(1,6), c=rand(1,6); qa.innerHTML=`Expand: ${a}(x+${b})+${c}x`; currentAnswer=`${a+c}x+${a*b}`;}
+        if(difficulty==="hard"){ let a=rand(2,5), b=rand(1,5), c=rand(2,5), d=rand(1,5); qa.innerHTML=`(${a}x+${b})(${c}x+${d})`; currentAnswer=`${a*c}x^2+${a*d+b*c}x+${b*d}`;}
     }
 
-    // ================= SIMILAR SHAPES =================
-    if (topic === "similar") {
-
-        if (difficulty === "easy") {
-            let scale = rand(2,5);
-            let length = rand(2,10);
-            questionArea.innerHTML = `Two similar shapes have scale factor ${scale}. If small length is ${length}cm, find the large length.`;
-            currentAnswer = `${length*scale}`;
-        }
-
-        if (difficulty === "medium") {
-            let scale = rand(2,4);
-            let area = rand(10,30);
-            questionArea.innerHTML = `Two shapes are similar with scale factor ${scale}. If small area is ${area}cm², find large area.`;
-            currentAnswer = `${area * scale * scale}`;
-        }
-
-        if (difficulty === "hard") {
-            let scale = rand(2,4);
-            let volume = rand(5,20);
-            questionArea.innerHTML = `Two similar solids have scale factor ${scale}. If small volume is ${volume}cm³, find large volume.`;
-            currentAnswer = `${volume * scale * scale * scale}`;
-        }
+    if(topic==="factor"){
+        if(difficulty==="easy"){ let a=rand(2,6), b=rand(1,6); qa.innerHTML=`Factorise: ${a}x+${a*b}`; currentAnswer=`${a}(x+${b})`;}
+        if(difficulty==="medium"){ let a=rand(2,5), b=rand(1,5); qa.innerHTML=`Factorise: x^2+${a+b}x+${a*b}`; currentAnswer=`(x+${a})(x+${b})`;}
+        if(difficulty==="hard"){ let a=rand(2,5), b=rand(1,5), c=rand(2,5); qa.innerHTML=`Factorise: ${a*c}x^2+${a*b+c*b}x+${b*b}`; currentAnswer=`(${a}x+${b})(${c}x+${b})`;}
     }
 
-    // ================= (Keep previous topics below if needed) =================
-    if (!currentAnswer) {
-        questionArea.innerHTML = "Select another topic to generate question.";
+    if(topic==="simplify"){
+        if(difficulty==="easy"){ let a=rand(2,5); qa.innerHTML=`Simplify: ${a}x / ${a}`; currentAnswer=`x`;}
+        if(difficulty==="medium"){ let a=rand(2,5), b=rand(1,5); qa.innerHTML=`Simplify: ${a*b}x / ${a}`; currentAnswer=`${b}x`;}
+        if(difficulty==="hard"){ let a=rand(2,5), b=rand(1,5); qa.innerHTML=`Simplify: (${a}x^2+${a*b}x)/${a}x`; currentAnswer=`x+${b}`;}
+    }
+
+    if(topic==="probability"){
+        if(difficulty==="easy"){ let s=rand(1,10), t=s+rand(1,10); qa.innerHTML=`A coin is flipped ${t} times and heads ${s} times. Fraction?`; currentAnswer=`${s}/${t}`;}
+        if(difficulty==="medium"){ let r=rand(5,15), b=rand(5,15); qa.innerHTML=`Bag has ${r} red, ${b} blue balls. Probability red?`; currentAnswer=`${r}/${r+b}`;}
+        if(difficulty==="hard"){ let s=rand(10,30), t=s+rand(10,30); qa.innerHTML=`Dice rolled ${t} times, 6 occurs ${s} times. Decimal 3dp?`; currentAnswer=(s/t).toFixed(3);}
+    }
+
+    if(topic==="ratio"){
+        if(difficulty==="easy"){ let a=rand(1,5), b=rand(1,5); qa.innerHTML=`Simplify ratio ${a*2}:${b*2}`; currentAnswer=`${a}:${b}`;}
+        if(difficulty==="medium"){ let a=rand(1,5), b=rand(1,5); let total=(a+b)*rand(2,4); qa.innerHTML=`Share £${total} in ratio ${a}:${b}. First person?`; currentAnswer=`${a*total/(a+b)}`;}
+        if(difficulty==="hard"){ let a=rand(2,6), b=rand(2,6), c=rand(2,6); qa.innerHTML=`Three numbers in ratio ${a}:${b}:${c}. Sum ${(a+b+c)*5}. Largest number?`; currentAnswer=`${c*5}`;}
+    }
+
+    if(topic==="similar"){
+        if(difficulty==="easy"){ let scale=rand(2,5), l=rand(2,10); qa.innerHTML=`Two similar shapes scale ${scale}. Small length ${l}cm. Large length?`; currentAnswer=`${l*scale}`;}
+        if(difficulty==="medium"){ let scale=rand(2,4), a=rand(10,30); qa.innerHTML=`Two similar shapes scale ${scale}. Small area ${a}cm². Large area?`; currentAnswer=`${a*scale*scale}`;}
+        if(difficulty==="hard"){ let scale=rand(2,4), v=rand(5,20); qa.innerHTML=`Two similar solids scale ${scale}. Small volume ${v}cm³. Large volume?`; currentAnswer=`${v*scale*scale*scale}`;}
     }
 }
 
-function checkAnswer() {
+async function checkAnswer(){
     let userAnswer = document.getElementById("answerInput").value.replace(/\s+/g,'');
     let correct = currentAnswer.toString().replace(/\s+/g,'');
-
-    if (userAnswer === correct) {
+    let feedback = document.getElementById("feedback");
+    if(userAnswer===correct){
         score++;
-        document.getElementById("feedback").innerText = "Correct!";
-    } else {
-        document.getElementById("feedback").innerText = "Incorrect. Correct answer: " + currentAnswer;
+        feedback.innerText="Correct!";
+    }else{
+        feedback.innerText="Incorrect. Correct: "+currentAnswer;
     }
+    document.getElementById("score").innerText="Score: "+score;
 
-    document.getElementById("score").innerText = "Score: " + score;
+    if(currentUser){
+        try{
+            await addDoc(collection(db,"scores"),{
+                uid: currentUser.uid,
+                topic: document.getElementById("topic").value,
+                difficulty: document.getElementById("difficulty").value,
+                question: document.getElementById("questionArea").innerText,
+                correctAnswer: currentAnswer,
+                userAnswer: userAnswer,
+                timestamp: serverTimestamp(),
+                score: score
+            });
+        }catch(e){ console.error("Firestore error:", e);}
+    }
 }
 
 generateQuestion();
 </script>
-
 </body>
 </html>
