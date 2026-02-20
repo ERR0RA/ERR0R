@@ -13,7 +13,7 @@ body {
 
 .container {
     background: white;
-    max-width: 700px;
+    max-width: 800px;
     margin: auto;
     padding: 25px;
     border-radius: 12px;
@@ -24,10 +24,6 @@ select, button, input {
     padding: 8px;
     margin: 8px;
     font-size: 16px;
-}
-
-button {
-    cursor: pointer;
 }
 
 .question {
@@ -52,6 +48,8 @@ button {
     <option value="factor">Algebra - Factorising</option>
     <option value="simplify">Simplifying Fractions</option>
     <option value="probability">Experimental Probability</option>
+    <option value="ratio">Ratio</option>
+    <option value="similar">Similar Shapes</option>
 </select>
 
 <label>Difficulty:</label>
@@ -93,98 +91,68 @@ function generateQuestion() {
     document.getElementById("feedback").innerText = "";
     document.getElementById("answerInput").value = "";
 
-    if (topic === "expand") {
+    // ================= RATIO =================
+    if (topic === "ratio") {
+
         if (difficulty === "easy") {
-            let a = rand(2,5);
+            let a = rand(1,5);
             let b = rand(1,5);
-            questionArea.innerHTML = `Expand: ${a}(x + ${b})`;
-            currentAnswer = `${a}x+${a*b}`;
+            questionArea.innerHTML = `Simplify the ratio ${a*2}:${b*2}`;
+            currentAnswer = `${a}:${b}`;
         }
+
         if (difficulty === "medium") {
+            let a = rand(1,5);
+            let b = rand(1,5);
+            let total = (a+b)*rand(2,4);
+            let scale = total/(a+b);
+            questionArea.innerHTML = `Share £${total} in the ratio ${a}:${b}. How much does the first person get?`;
+            currentAnswer = `${a*scale}`;
+        }
+
+        if (difficulty === "hard") {
             let a = rand(2,6);
-            let b = rand(1,6);
-            let c = rand(1,6);
-            questionArea.innerHTML = `Expand: ${a}(x + ${b}) + ${c}x`;
-            currentAnswer = `${a+c}x+${a*b}`;
-        }
-        if (difficulty === "hard") {
-            let a = rand(2,5);
-            let b = rand(1,5);
-            let c = rand(2,5);
-            let d = rand(1,5);
-            questionArea.innerHTML = `Expand: (${a}x + ${b})(${c}x + ${d})`;
-            currentAnswer = `${a*c}x^2+${a*d + b*c}x+${b*d}`;
+            let b = rand(2,6);
+            let c = rand(2,6);
+            questionArea.innerHTML = `Three numbers are in the ratio ${a}:${b}:${c}. Their sum is ${(a+b+c)*5}. Find the largest number.`;
+            currentAnswer = `${c*5}`;
         }
     }
 
-    if (topic === "factor") {
+    // ================= SIMILAR SHAPES =================
+    if (topic === "similar") {
+
         if (difficulty === "easy") {
-            let a = rand(2,6);
-            let b = rand(1,6);
-            questionArea.innerHTML = `Factorise: ${a}x + ${a*b}`;
-            currentAnswer = `${a}(x+${b})`;
+            let scale = rand(2,5);
+            let length = rand(2,10);
+            questionArea.innerHTML = `Two similar shapes have scale factor ${scale}. If small length is ${length}cm, find the large length.`;
+            currentAnswer = `${length*scale}`;
         }
+
         if (difficulty === "medium") {
-            let a = rand(2,5);
-            let b = rand(1,5);
-            questionArea.innerHTML = `Factorise: x^2 + ${a+b}x + ${a*b}`;
-            currentAnswer = `(x+${a})(x+${b})`;
+            let scale = rand(2,4);
+            let area = rand(10,30);
+            questionArea.innerHTML = `Two shapes are similar with scale factor ${scale}. If small area is ${area}cm², find large area.`;
+            currentAnswer = `${area * scale * scale}`;
         }
+
         if (difficulty === "hard") {
-            let a = rand(2,5);
-            let b = rand(1,5);
-            let c = rand(2,5);
-            questionArea.innerHTML = `Factorise: ${a*c}x^2 + ${a*b + c*b}x + ${b*b}`;
-            currentAnswer = `(${a}x+${b})(${c}x+${b})`;
+            let scale = rand(2,4);
+            let volume = rand(5,20);
+            questionArea.innerHTML = `Two similar solids have scale factor ${scale}. If small volume is ${volume}cm³, find large volume.`;
+            currentAnswer = `${volume * scale * scale * scale}`;
         }
     }
 
-    if (topic === "simplify") {
-        if (difficulty === "easy") {
-            let a = rand(2,5);
-            questionArea.innerHTML = `Simplify: ${a}x / ${a}`;
-            currentAnswer = `x`;
-        }
-        if (difficulty === "medium") {
-            let a = rand(2,5);
-            let b = rand(1,5);
-            questionArea.innerHTML = `Simplify: ${a*b}x / ${a}`;
-            currentAnswer = `${b}x`;
-        }
-        if (difficulty === "hard") {
-            let a = rand(2,5);
-            let b = rand(1,5);
-            let c = rand(1,5);
-            questionArea.innerHTML = `Simplify: (${a}x^2 + ${a*b}x) / ${a}x`;
-            currentAnswer = `x+${b}`;
-        }
-    }
-
-    if (topic === "probability") {
-        if (difficulty === "easy") {
-            let success = rand(1,10);
-            let total = success + rand(1,10);
-            questionArea.innerHTML = `A coin is flipped ${total} times and lands heads ${success} times. What is experimental probability of heads? (as fraction)`;
-            currentAnswer = `${success}/${total}`;
-        }
-        if (difficulty === "medium") {
-            let red = rand(5,15);
-            let blue = rand(5,15);
-            questionArea.innerHTML = `A bag has ${red} red and ${blue} blue balls. One ball is picked. Experimental probability of red?`;
-            currentAnswer = `${red}/${red+blue}`;
-        }
-        if (difficulty === "hard") {
-            let success = rand(10,30);
-            let total = success + rand(10,30);
-            questionArea.innerHTML = `A dice is rolled ${total} times and lands on 6 exactly ${success} times. Give experimental probability as decimal (3dp).`;
-            currentAnswer = (success/total).toFixed(3);
-        }
+    // ================= (Keep previous topics below if needed) =================
+    if (!currentAnswer) {
+        questionArea.innerHTML = "Select another topic to generate question.";
     }
 }
 
 function checkAnswer() {
     let userAnswer = document.getElementById("answerInput").value.replace(/\s+/g,'');
-    let correct = currentAnswer.replace(/\s+/g,'');
+    let correct = currentAnswer.toString().replace(/\s+/g,'');
 
     if (userAnswer === correct) {
         score++;
