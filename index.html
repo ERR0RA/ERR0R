@@ -148,9 +148,8 @@ function generateQuestion() {
         }
         if(difficulty==="hard"){
             let a=rand(1,5),b=rand(1,10),c=rand(1,10);
-            let disc=b*b-4*a*c;
             q.innerHTML=`Factorise: ${a}x^2 + ${b}x + ${c}`;
-            currentAnswer=`Quadratic factors (may require calculator)`;
+            currentAnswer=`Quadratic factors (calculator may help)`;
             hint.innerText="Calculator recommended";
         }
         if(difficulty==="veryhard"){
@@ -161,9 +160,113 @@ function generateQuestion() {
         }
     }
 
-    // ================= Keep previous topics here as needed =================
+    // ================= SIMPLIFYING FRACTIONS =================
+    if(topic==="simplify"){
+        let numerator, denominator;
+        if(difficulty==="easy"){
+            numerator = rand(2,20); denominator = rand(2,10);
+            q.innerHTML=`Simplify: ${numerator}/${denominator}`;
+            let g= gcd(numerator,denominator);
+            currentAnswer = `${numerator/g}/${denominator/g}`;
+            hint.innerText="Calculator not needed";
+        }
+        if(difficulty==="medium"){
+            numerator = rand(10,50); denominator = rand(2,20);
+            q.innerHTML=`Simplify: ${numerator}/${denominator}`;
+            let g= gcd(numerator,denominator);
+            currentAnswer = `${numerator/g}/${denominator/g}`;
+            hint.innerText="Calculator recommended";
+        }
+        if(difficulty==="hard"){
+            numerator = rand(20,100); denominator = rand(5,50);
+            q.innerHTML=`Simplify: ${numerator}/${denominator}`;
+            let g= gcd(numerator,denominator);
+            currentAnswer = `${numerator/g}/${denominator/g}`;
+            hint.innerText="Calculator recommended";
+        }
+        if(difficulty==="veryhard"){
+            numerator = rand(50,200); denominator = rand(10,100);
+            q.innerHTML=`Simplify: ${numerator}/${denominator}`;
+            let g= gcd(numerator,denominator);
+            currentAnswer = `${numerator/g}/${denominator/g}`;
+            hint.innerText="Calculator allowed";
+        }
+    }
+
+    // ================= EXPERIMENTAL PROBABILITY =================
+    if(topic==="probability"){
+        let success, total;
+        if(difficulty==="easy"){ success=rand(1,5); total=rand(5,10); }
+        if(difficulty==="medium"){ success=rand(2,8); total=rand(10,20); }
+        if(difficulty==="hard"){ success=rand(5,15); total=rand(15,30); }
+        if(difficulty==="veryhard"){ success=rand(5,15); total=rand(15,30); let extra=rand(1,10); success+=extra; }
+
+        q.innerHTML=`Event occurs ${success} times out of ${total} trials. Find probability (decimal).`;
+        currentAnswer = (success/total).toFixed(2);
+        hint.innerText=(difficulty==="easy")?"Calculator not needed":"Calculator allowed";
+    }
+
+    // ================= RATIO =================
+    if(topic==="ratio"){
+        let a,b,c,sum,scale;
+        if(difficulty==="easy"){
+            a=rand(1,5); b=rand(1,5);
+            q.innerHTML=`Simplify ratio ${a*2}:${b*2}`;
+            currentAnswer=`${a}:${b}`;
+            hint.innerText="Calculator not needed";
+        }
+        if(difficulty==="medium"){
+            a=rand(1,5); b=rand(1,5); sum=(a+b)*rand(2,5);
+            q.innerHTML=`Share ${sum} in ratio ${a}:${b}. First person gets?`;
+            currentAnswer=(sum*a/(a+b)).toFixed(2);
+            hint.innerText="Calculator recommended";
+        }
+        if(difficulty==="hard"){
+            a=rand(2,6); b=rand(2,6); c=rand(2,6); sum=(a+b+c)*rand(3,7);
+            q.innerHTML=`Three numbers are in ratio ${a}:${b}:${c}. Sum is ${sum}. Largest number?`;
+            currentAnswer=(c*sum/(a+b+c)).toFixed(2);
+            hint.innerText="Calculator recommended";
+        }
+        if(difficulty==="veryhard"){
+            a=rand(2,8); b=rand(2,8); c=rand(2,8); d=rand(2,8); sum=rand(50,200);
+            let numbers=[a,b,c,d].map(x=>x*sum/(a+b+c+d)).sort((x,y)=>x-y);
+            q.innerHTML=`Four numbers in ratio ${a}:${b}:${c}:${d}. Sum=${sum}. Second largest?`;
+            currentAnswer=numbers[2].toFixed(2);
+            hint.innerText="Calculator allowed";
+        }
+    }
+
+    // ================= SIMILAR SHAPES =================
+    if(topic==="similar"){
+        let scale, small, large;
+        if(difficulty==="easy"){
+            scale=rand(2,5); small=rand(2,10);
+            q.innerHTML=`Scale factor ${scale}, small length=${small}cm. Find large length.`;
+            currentAnswer=(small*scale).toFixed(2);
+            hint.innerText="Calculator not needed";
+        }
+        if(difficulty==="medium"){
+            scale=rand(2,4); small=rand(10,30);
+            q.innerHTML=`Scale factor ${scale}, small area=${small}cm². Find large area.`;
+            currentAnswer=(small*Math.pow(scale,2)).toFixed(2);
+            hint.innerText="Calculator recommended";
+        }
+        if(difficulty==="hard"){
+            scale=rand(2,4); small=rand(5,20);
+            q.innerHTML=`Scale factor ${scale}, small volume=${small}cm³. Find large volume.`;
+            currentAnswer=(small*Math.pow(scale,3)).toFixed(2);
+            hint.innerText="Calculator recommended";
+        }
+        if(difficulty==="veryhard"){
+            scale=rand(2,5); small=rand(10,50); small2=rand(5,25);
+            q.innerHTML=`Scale factor ${scale}, small volumes=${small}cm³ and ${small2}cm³. Find difference in large volumes.`;
+            currentAnswer=(Math.abs(small-small2)*Math.pow(scale,3)).toFixed(2);
+            hint.innerText="Calculator allowed";
+        }
+    }
 }
 
+// ================= Check Answer =================
 function checkAnswer(){
     let userAnswer=document.getElementById("answerInput").value.replace(/\s+/g,'');
     let correct=currentAnswer.toString().replace(/\s+/g,'');
@@ -187,7 +290,11 @@ function checkAnswer(){
     document.getElementById("score").innerText="Score: "+score;
 }
 
+// ================= GCD helper =================
+function gcd(a,b){return b===0?a:gcd(b,a%b);}
+
 generateQuestion();
 </script>
+
 </body>
 </html>
