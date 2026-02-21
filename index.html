@@ -88,6 +88,7 @@ function rand(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+// ================= Question Generator =================
 function generateQuestion() {
     const topic = document.getElementById("topic").value;
     const difficulty = document.getElementById("difficulty").value;
@@ -95,8 +96,124 @@ function generateQuestion() {
     const calculatorHint = document.getElementById("calculatorHint");
     document.getElementById("feedback").innerText = "";
     document.getElementById("answerInput").value = "";
-
     currentAnswer = null;
+
+    // ================= ALGBRA - EXPANDING =================
+    if (topic === "expand") {
+        if (difficulty === "easy") {
+            let a = rand(1,5), b = rand(1,5), c = rand(1,5), d = rand(1,5);
+            questionArea.innerHTML = `Expand: (${a}x + ${b})(${c}x + ${d})`;
+            currentAnswer = `${a*c}x^2 + ${a*d + b*c}x + ${b*d}`;
+            calculatorHint.innerText = "Calculator not needed";
+        }
+        if (difficulty === "medium") {
+            let a = rand(1,10), b = rand(1,10), c = rand(1,10), d = rand(1,10);
+            questionArea.innerHTML = `Expand and simplify: (${a}x - ${b})(${c}x + ${d})`;
+            currentAnswer = `${a*c}x^2 + ${a*d - b*c}x - ${b*d}`;
+            calculatorHint.innerText = "Calculator recommended";
+        }
+        if (difficulty === "hard") {
+            let a = rand(1,5), b = rand(1,5), c = rand(1,5);
+            questionArea.innerHTML = `Expand: (${a}x + ${b})^2 - ${c}^2`;
+            currentAnswer = `${a*a}x^2 + ${2*a*b}x + ${b*b - c*c}`;
+            calculatorHint.innerText = "Calculator recommended";
+        }
+        if (difficulty === "veryhard") {
+            let a = rand(2,5), b = rand(1,5), c = rand(1,5), d = rand(1,5);
+            questionArea.innerHTML = `Expand fully: (${a}x + ${b})(${c}x - ${d}) + (${b}x + ${c})(${d}x - ${a})`;
+            currentAnswer = (a*c + b*d) + "x^2 + " + ( -a*d + b*c + b*d - a*c ) + "x + " + (-b*d + c*d); 
+            calculatorHint.innerText = "Calculator allowed";
+        }
+    }
+
+    // ================= ALGBRA - FACTORISING =================
+    if (topic === "factor") {
+        if (difficulty === "easy") {
+            let a = rand(1,5), b = rand(1,5);
+            questionArea.innerHTML = `Factorise: ${a*b}x + ${a*b*2}`;
+            currentAnswer = `${a}(${b}x + ${b*2})`;
+            calculatorHint.innerText = "Calculator not needed";
+        }
+        if (difficulty === "medium") {
+            let a = rand(1,5), b = rand(1,5), c = rand(1,5);
+            questionArea.innerHTML = `Factorise: ${a*b}x^2 + ${a*c}x`;
+            currentAnswer = `${a}x(${b}x + ${c})`;
+            calculatorHint.innerText = "Calculator recommended";
+        }
+        if (difficulty === "hard") {
+            let a = rand(1,3), b = rand(1,5), c = rand(1,5);
+            questionArea.innerHTML = `Factorise: ${a}x^2 + ${b}x + ${c}`;
+            currentAnswer = `(${a}x + ?)(x + ?) — multiple answers possible`;
+            calculatorHint.innerText = "Calculator recommended";
+        }
+        if (difficulty === "veryhard") {
+            let a = rand(2,5), b = rand(1,5), c = rand(1,5), d = rand(1,5);
+            questionArea.innerHTML = `Factorise fully: ${a*b}x^2 + ${a*c}x + ${b*d}`;
+            currentAnswer = "Complex factoring — calculator allowed";
+            calculatorHint.innerText = "Calculator allowed";
+        }
+    }
+
+    // ================= SIMPLIFYING FRACTIONS =================
+    if (topic === "simplify") {
+        if (difficulty === "easy") {
+            let a = rand(2,10), b = rand(2,10);
+            questionArea.innerHTML = `Simplify: ${a*b}/${b*2}`;
+            currentAnswer = `${a}/${2}`;
+            calculatorHint.innerText = "Calculator not needed";
+        }
+        if (difficulty === "medium") {
+            let a = rand(2,20), b = rand(2,10);
+            questionArea.innerHTML = `Simplify: ${a*b}/${b*3}`;
+            currentAnswer = `${a}/3`;
+            calculatorHint.innerText = "Calculator recommended";
+        }
+        if (difficulty === "hard") {
+            let a = rand(10,50), b = rand(2,10);
+            questionArea.innerHTML = `Simplify: ${a*b}/${b*4}`;
+            currentAnswer = `${a}/4`;
+            calculatorHint.innerText = "Calculator recommended";
+        }
+        if (difficulty === "veryhard") {
+            let a = rand(10,50), b = rand(2,10), c = rand(2,5);
+            questionArea.innerHTML = `Simplify: (${a*b})/(${b*c})`;
+            currentAnswer = a/c;
+            calculatorHint.innerText = "Calculator allowed";
+        }
+    }
+
+    // ================= EXPERIMENTAL PROBABILITY =================
+    if (topic === "probability") {
+        if (difficulty === "easy") {
+            let success = rand(1,5);
+            let total = rand(5,10);
+            questionArea.innerHTML = `If an event happens ${success} times out of ${total} trials, what is the experimental probability?`;
+            currentAnswer = (success/total).toFixed(2);
+            calculatorHint.innerText = "Calculator not needed";
+        }
+        if (difficulty === "medium") {
+            let success = rand(2,8);
+            let total = rand(10,20);
+            questionArea.innerHTML = `Event occurs ${success} times out of ${total} trials. Find probability.`;
+            currentAnswer = (success/total).toFixed(2);
+            calculatorHint.innerText = "Calculator recommended";
+        }
+        if (difficulty === "hard") {
+            let success = rand(5,15);
+            let total = rand(15,30);
+            questionArea.innerHTML = `Probability = success/total. Success=${success}, total=${total}.`;
+            currentAnswer = (success/total).toFixed(3);
+            calculatorHint.innerText = "Calculator recommended";
+        }
+        if (difficulty === "veryhard") {
+            let success1 = rand(2,10);
+            let success2 = rand(2,10);
+            let total = rand(15,30);
+            questionArea.innerHTML = `Event A occurs ${success1} times, Event B ${success2} times, out of ${total} trials. Find combined probability.`;
+            currentAnswer = ((success1+success2)/total).toFixed(3);
+            calculatorHint.innerText = "Calculator allowed";
+        }
+    }
 
     // ================= RATIO =================
     if (topic === "ratio") {
@@ -108,34 +225,23 @@ function generateQuestion() {
             calculatorHint.innerText = "Calculator not needed";
         }
         if (difficulty === "medium") {
-            let a = rand(1,5);
-            let b = rand(1,5);
-            let total = (a+b)*rand(2,4);
-            let scale = total/(a+b);
+            let a = rand(1,5), b = rand(1,5), total = (a+b)*rand(2,4);
             questionArea.innerHTML = `Share £${total} in the ratio ${a}:${b}. How much does the first person get?`;
-            currentAnswer = `${a*scale}`;
+            currentAnswer = a*total/(a+b);
             calculatorHint.innerText = "Calculator recommended";
         }
         if (difficulty === "hard") {
-            let a = rand(2,6);
-            let b = rand(2,6);
-            let c = rand(2,6);
-            let sum = (a+b+c)*rand(3,7);
-            questionArea.innerHTML = `Three numbers are in the ratio ${a}:${b}:${c}. Their sum is ${sum}. Find the largest number.`;
-            let factor = sum / (a+b+c);
-            currentAnswer = `${c*factor}`;
+            let a = rand(2,6), b = rand(2,6), c = rand(2,6), total = (a+b+c)*rand(3,7);
+            questionArea.innerHTML = `Three numbers are in the ratio ${a}:${b}:${c}. Their sum is ${total}. Find the largest number.`;
+            currentAnswer = c*total/(a+b+c);
             calculatorHint.innerText = "Calculator recommended";
         }
         if (difficulty === "veryhard") {
-            let a = rand(2,8);
-            let b = rand(2,8);
-            let c = rand(2,8);
-            let d = rand(2,8);
-            let sum = rand(50,200);
+            let a = rand(2,8), b = rand(2,8), c = rand(2,8), d = rand(2,8), sum = rand(50,200);
             questionArea.innerHTML = `Four numbers are in the ratio ${a}:${b}:${c}:${d}. Their sum is ${sum}. Find the second largest number.`;
-            let factor = sum / (a+b+c+d);
-            let numbers = [a,b,c,d].map(x => x*factor).sort((x,y)=>x-y);
-            currentAnswer = numbers[2]; // second largest
+            let factor = sum/(a+b+c+d);
+            let numbers = [a,b,c,d].map(x=>x*factor).sort((x,y)=>x-y);
+            currentAnswer = numbers[2];
             calculatorHint.innerText = "Calculator allowed";
         }
     }
@@ -143,34 +249,27 @@ function generateQuestion() {
     // ================= SIMILAR SHAPES =================
     if (topic === "similar") {
         if (difficulty === "easy") {
-            let scale = rand(2,5);
-            let length = rand(2,10);
-            questionArea.innerHTML = `Two similar shapes have scale factor ${scale}. If small length is ${length}cm, find the large length.`;
+            let scale = rand(2,5), length = rand(2,10);
+            questionArea.innerHTML = `Two similar shapes have scale factor ${scale}. Small length is ${length}cm. Find large length.`;
             currentAnswer = length*scale;
             calculatorHint.innerText = "Calculator not needed";
         }
         if (difficulty === "medium") {
-            let scale = rand(2,4);
-            let area = rand(10,30);
-            questionArea.innerHTML = `Two shapes are similar with scale factor ${scale}. If small area is ${area}cm², find large area.`;
-            currentAnswer = area * scale * scale;
+            let scale = rand(2,4), area = rand(10,30);
+            questionArea.innerHTML = `Two shapes are similar, scale factor ${scale}. Small area=${area}cm². Find large area.`;
+            currentAnswer = area*Math.pow(scale,2);
             calculatorHint.innerText = "Calculator recommended";
         }
         if (difficulty === "hard") {
-            let scale = rand(2,4);
-            let volume = rand(5,20);
-            questionArea.innerHTML = `Two similar solids have scale factor ${scale}. If small volume is ${volume}cm³, find large volume.`;
-            currentAnswer = volume * scale * scale * scale;
+            let scale = rand(2,4), volume = rand(5,20);
+            questionArea.innerHTML = `Two solids similar, scale factor=${scale}. Small volume=${volume}cm³. Find large volume.`;
+            currentAnswer = volume*Math.pow(scale,3);
             calculatorHint.innerText = "Calculator recommended";
         }
         if (difficulty === "veryhard") {
-            let scale = rand(2,5);
-            let v1 = rand(20,50);
-            let v2 = rand(5,15);
-            questionArea.innerHTML = `Two similar solids have scale factor ${scale}. Small volumes are ${v1}cm³ and ${v2}cm³. Find the difference between the large volumes.`;
-            let largeV1 = v1 * Math.pow(scale,3);
-            let largeV2 = v2 * Math.pow(scale,3);
-            currentAnswer = largeV1 - largeV2;
+            let scale = rand(2,5), v1 = rand(20,50), v2 = rand(5,15);
+            questionArea.innerHTML = `Two similar solids, scale factor=${scale}. Small volumes=${v1}cm³ and ${v2}cm³. Find difference between large volumes.`;
+            currentAnswer = Math.pow(scale,3)*(v1-v2);
             calculatorHint.innerText = "Calculator allowed";
         }
     }
@@ -181,13 +280,14 @@ function generateQuestion() {
     }
 }
 
+// ================= Check Answer =================
 function checkAnswer() {
     let userAnswer = document.getElementById("answerInput").value.replace(/\s+/g,'');
     let correct = currentAnswer.toString().replace(/\s+/g,'');
+
     if (!currentAnswer) return;
 
     if (!isNaN(userAnswer) && !isNaN(correct)) {
-        // numeric comparison with tolerance
         if (Math.abs(parseFloat(userAnswer) - parseFloat(correct)) < 0.01) {
             score++;
             document.getElementById("feedback").innerText = "Correct!";
