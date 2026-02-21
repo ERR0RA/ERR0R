@@ -13,9 +13,9 @@ body {
 
 .container {
     background: white;
-    max-width: 800px;
+    max-width: 900px;
     margin: auto;
-    padding: 25px;
+    padding: 30px;
     border-radius: 12px;
     box-shadow: 0 5px 20px rgba(0,0,0,0.1);
 }
@@ -29,6 +29,12 @@ select, button, input {
 .question {
     font-size: 22px;
     margin: 20px 0;
+}
+
+.calculator {
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 10px;
 }
 
 .score {
@@ -57,23 +63,21 @@ select, button, input {
     <option value="easy">Easy</option>
     <option value="medium">Medium</option>
     <option value="hard">Hard</option>
+    <option value="veryhard">Very Hard (Calculator Allowed)</option>
 </select>
 
 <br>
-
 <button onclick="generateQuestion()">New Question</button>
 
 <div class="question" id="questionArea"></div>
+<div class="calculator" id="calculatorHint"></div>
 
 <input type="text" id="answerInput" placeholder="Enter answer here">
-
 <br>
-
 <button onclick="checkAnswer()">Submit</button>
 
 <div id="feedback"></div>
 <div class="score" id="score">Score: 0</div>
-
 </div>
 
 <script>
@@ -88,19 +92,21 @@ function generateQuestion() {
     const topic = document.getElementById("topic").value;
     const difficulty = document.getElementById("difficulty").value;
     const questionArea = document.getElementById("questionArea");
+    const calculatorHint = document.getElementById("calculatorHint");
     document.getElementById("feedback").innerText = "";
     document.getElementById("answerInput").value = "";
 
+    currentAnswer = null;
+
     // ================= RATIO =================
     if (topic === "ratio") {
-
         if (difficulty === "easy") {
             let a = rand(1,5);
             let b = rand(1,5);
             questionArea.innerHTML = `Simplify the ratio ${a*2}:${b*2}`;
             currentAnswer = `${a}:${b}`;
+            calculatorHint.innerText = "Calculator not needed";
         }
-
         if (difficulty === "medium") {
             let a = rand(1,5);
             let b = rand(1,5);
@@ -108,57 +114,93 @@ function generateQuestion() {
             let scale = total/(a+b);
             questionArea.innerHTML = `Share £${total} in the ratio ${a}:${b}. How much does the first person get?`;
             currentAnswer = `${a*scale}`;
+            calculatorHint.innerText = "Calculator recommended";
         }
-
         if (difficulty === "hard") {
             let a = rand(2,6);
             let b = rand(2,6);
             let c = rand(2,6);
-            questionArea.innerHTML = `Three numbers are in the ratio ${a}:${b}:${c}. Their sum is ${(a+b+c)*5}. Find the largest number.`;
-            currentAnswer = `${c*5}`;
+            let sum = (a+b+c)*rand(3,7);
+            questionArea.innerHTML = `Three numbers are in the ratio ${a}:${b}:${c}. Their sum is ${sum}. Find the largest number.`;
+            let factor = sum / (a+b+c);
+            currentAnswer = `${c*factor}`;
+            calculatorHint.innerText = "Calculator recommended";
+        }
+        if (difficulty === "veryhard") {
+            let a = rand(2,8);
+            let b = rand(2,8);
+            let c = rand(2,8);
+            let d = rand(2,8);
+            let sum = rand(50,200);
+            questionArea.innerHTML = `Four numbers are in the ratio ${a}:${b}:${c}:${d}. Their sum is ${sum}. Find the second largest number.`;
+            let factor = sum / (a+b+c+d);
+            let numbers = [a,b,c,d].map(x => x*factor).sort((x,y)=>x-y);
+            currentAnswer = numbers[2]; // second largest
+            calculatorHint.innerText = "Calculator allowed";
         }
     }
 
     // ================= SIMILAR SHAPES =================
     if (topic === "similar") {
-
         if (difficulty === "easy") {
             let scale = rand(2,5);
             let length = rand(2,10);
             questionArea.innerHTML = `Two similar shapes have scale factor ${scale}. If small length is ${length}cm, find the large length.`;
-            currentAnswer = `${length*scale}`;
+            currentAnswer = length*scale;
+            calculatorHint.innerText = "Calculator not needed";
         }
-
         if (difficulty === "medium") {
             let scale = rand(2,4);
             let area = rand(10,30);
             questionArea.innerHTML = `Two shapes are similar with scale factor ${scale}. If small area is ${area}cm², find large area.`;
-            currentAnswer = `${area * scale * scale}`;
+            currentAnswer = area * scale * scale;
+            calculatorHint.innerText = "Calculator recommended";
         }
-
         if (difficulty === "hard") {
             let scale = rand(2,4);
             let volume = rand(5,20);
             questionArea.innerHTML = `Two similar solids have scale factor ${scale}. If small volume is ${volume}cm³, find large volume.`;
-            currentAnswer = `${volume * scale * scale * scale}`;
+            currentAnswer = volume * scale * scale * scale;
+            calculatorHint.innerText = "Calculator recommended";
+        }
+        if (difficulty === "veryhard") {
+            let scale = rand(2,5);
+            let v1 = rand(20,50);
+            let v2 = rand(5,15);
+            questionArea.innerHTML = `Two similar solids have scale factor ${scale}. Small volumes are ${v1}cm³ and ${v2}cm³. Find the difference between the large volumes.`;
+            let largeV1 = v1 * Math.pow(scale,3);
+            let largeV2 = v2 * Math.pow(scale,3);
+            currentAnswer = largeV1 - largeV2;
+            calculatorHint.innerText = "Calculator allowed";
         }
     }
 
-    // ================= (Keep previous topics below if needed) =================
     if (!currentAnswer) {
         questionArea.innerHTML = "Select another topic to generate question.";
+        calculatorHint.innerText = "";
     }
 }
 
 function checkAnswer() {
     let userAnswer = document.getElementById("answerInput").value.replace(/\s+/g,'');
     let correct = currentAnswer.toString().replace(/\s+/g,'');
+    if (!currentAnswer) return;
 
-    if (userAnswer === correct) {
-        score++;
-        document.getElementById("feedback").innerText = "Correct!";
+    if (!isNaN(userAnswer) && !isNaN(correct)) {
+        // numeric comparison with tolerance
+        if (Math.abs(parseFloat(userAnswer) - parseFloat(correct)) < 0.01) {
+            score++;
+            document.getElementById("feedback").innerText = "Correct!";
+        } else {
+            document.getElementById("feedback").innerText = "Incorrect. Correct answer: " + currentAnswer;
+        }
     } else {
-        document.getElementById("feedback").innerText = "Incorrect. Correct answer: " + currentAnswer;
+        if(userAnswer.toLowerCase() === correct.toLowerCase()) {
+            score++;
+            document.getElementById("feedback").innerText = "Correct!";
+        } else {
+            document.getElementById("feedback").innerText = "Incorrect. Correct answer: " + currentAnswer;
+        }
     }
 
     document.getElementById("score").innerText = "Score: " + score;
