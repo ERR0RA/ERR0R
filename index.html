@@ -1,82 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Advanced Maths Practice</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6fa;
+    text-align: center;
+    padding: 20px;
+}
+
+.container {
+    background: white;
+    max-width: 800px;
+    margin: auto;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+}
+
+select, button, input {
+    padding: 8px;
+    margin: 8px;
+    font-size: 16px;
+}
+
+.question {
+    font-size: 22px;
+    margin: 20px 0;
+}
+
+.score {
+    margin-top: 20px;
+    font-weight: bold;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h1>Advanced Maths Practice</h1>
+
+<label>Topic:</label>
+<select id="topic">
+    <option value="expand">Algebra - Expanding</option>
+    <option value="factor">Algebra - Factorising</option>
+    <option value="simplify">Simplifying Fractions</option>
+    <option value="probability">Experimental Probability</option>
+    <option value="ratio">Ratio</option>
+    <option value="similar">Similar Shapes</option>
+</select>
+
+<label>Difficulty:</label>
+<select id="difficulty">
+    <option value="easy">Easy</option>
+    <option value="medium">Medium</option>
+    <option value="hard">Hard</option>
+</select>
+
+<br>
+
+<button onclick="generateQuestion()">New Question</button>
+
+<div class="question" id="questionArea"></div>
+
+<input type="text" id="answerInput" placeholder="Enter answer here">
+
+<br>
+
+<button onclick="checkAnswer()">Submit</button>
+
+<div id="feedback"></div>
+<div class="score" id="score">Score: 0</div>
+
+</div>
+
 <script>
-let currentAnswer = null;
+let currentAnswer;
 let score = 0;
-let answered = false;
 
-// Utility function to get random integer in range
-const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-
-// Clear previous question and feedback
-function resetQuestion() {
-    document.getElementById("feedback").innerText = "";
-    document.getElementById("answerInput").value = "";
-    currentAnswer = null;
-    answered = false;
+function rand(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-// Generate a ratio question
-function generateRatioQuestion(difficulty) {
-    const questionArea = document.getElementById("questionArea");
-    if (difficulty === "easy") {
-        const a = rand(1, 5), b = rand(1, 5);
-        questionArea.innerHTML = `Simplify the ratio ${a*2}:${b*2}`;
-        currentAnswer = `${a}:${b}`;
-    } else if (difficulty === "medium") {
-        const a = rand(1, 5), b = rand(1, 5);
-        const total = (a + b) * rand(2, 4);
-        const scale = total / (a + b);
-        questionArea.innerHTML = `Share £${total} in the ratio ${a}:${b}. How much does the first person get?`;
-        currentAnswer = (a * scale).toString();
-    } else if (difficulty === "hard") {
-        const a = rand(2, 6), b = rand(2, 6), c = rand(2, 6);
-        const sumMultiplier = 5;
-        questionArea.innerHTML = `Three numbers are in the ratio ${a}:${b}:${c}. Their sum is ${(a + b + c) * sumMultiplier}. Find the largest number.`;
-        currentAnswer = (c * sumMultiplier).toString();
-    }
-}
-
-// Generate a similar shapes question
-function generateSimilarQuestion(difficulty) {
-    const questionArea = document.getElementById("questionArea");
-    if (difficulty === "easy") {
-        const scale = rand(2, 5), length = rand(2, 10);
-        questionArea.innerHTML = `Two similar shapes have scale factor ${scale}. If small length is ${length}cm, find the large length.`;
-        currentAnswer = (length * scale).toString();
-    } else if (difficulty === "medium") {
-        const scale = rand(2, 4), area = rand(10, 30);
-        questionArea.innerHTML = `Two shapes are similar with scale factor ${scale}. If small area is ${area}cm², find large area.`;
-        currentAnswer = (area * scale ** 2).toString();
-    } else if (difficulty === "hard") {
-        const scale = rand(2, 4), volume = rand(5, 20);
-        questionArea.innerHTML = `Two similar solids have scale factor ${scale}. If small volume is ${volume}cm³, find large volume.`;
-        currentAnswer = (volume * scale ** 3).toString();
-    }
-}
-
-// Main question generator
 function generateQuestion() {
-    resetQuestion();
     const topic = document.getElementById("topic").value;
     const difficulty = document.getElementById("difficulty").value;
+    const questionArea = document.getElementById("questionArea");
+    document.getElementById("feedback").innerText = "";
+    document.getElementById("answerInput").value = "";
 
-    switch(topic) {
-        case "ratio":
-            generateRatioQuestion(difficulty);
-            break;
-        case "similar":
-            generateSimilarQuestion(difficulty);
-            break;
-        default:
-            document.getElementById("questionArea").innerHTML = "Select a valid topic.";
+    // ================= RATIO =================
+    if (topic === "ratio") {
+
+        if (difficulty === "easy") {
+            let a = rand(1,5);
+            let b = rand(1,5);
+            questionArea.innerHTML = `Simplify the ratio ${a*2}:${b*2}`;
+            currentAnswer = `${a}:${b}`;
+        }
+
+        if (difficulty === "medium") {
+            let a = rand(1,5);
+            let b = rand(1,5);
+            let total = (a+b)*rand(2,4);
+            let scale = total/(a+b);
+            questionArea.innerHTML = `Share £${total} in the ratio ${a}:${b}. How much does the first person get?`;
+            currentAnswer = `${a*scale}`;
+        }
+
+        if (difficulty === "hard") {
+            let a = rand(2,6);
+            let b = rand(2,6);
+            let c = rand(2,6);
+            questionArea.innerHTML = `Three numbers are in the ratio ${a}:${b}:${c}. Their sum is ${(a+b+c)*5}. Find the largest number.`;
+            currentAnswer = `${c*5}`;
+        }
+    }
+
+    // ================= SIMILAR SHAPES =================
+    if (topic === "similar") {
+
+        if (difficulty === "easy") {
+            let scale = rand(2,5);
+            let length = rand(2,10);
+            questionArea.innerHTML = `Two similar shapes have scale factor ${scale}. If small length is ${length}cm, find the large length.`;
+            currentAnswer = `${length*scale}`;
+        }
+
+        if (difficulty === "medium") {
+            let scale = rand(2,4);
+            let area = rand(10,30);
+            questionArea.innerHTML = `Two shapes are similar with scale factor ${scale}. If small area is ${area}cm², find large area.`;
+            currentAnswer = `${area * scale * scale}`;
+        }
+
+        if (difficulty === "hard") {
+            let scale = rand(2,4);
+            let volume = rand(5,20);
+            questionArea.innerHTML = `Two similar solids have scale factor ${scale}. If small volume is ${volume}cm³, find large volume.`;
+            currentAnswer = `${volume * scale * scale * scale}`;
+        }
+    }
+
+    // ================= (Keep previous topics below if needed) =================
+    if (!currentAnswer) {
+        questionArea.innerHTML = "Select another topic to generate question.";
     }
 }
 
-// Check user's answer
 function checkAnswer() {
-    if (answered) return;
+    let userAnswer = document.getElementById("answerInput").value.replace(/\s+/g,'');
+    let correct = currentAnswer.toString().replace(/\s+/g,'');
 
-    const userAnswer = document.getElementById("answerInput").value.replace(/\s+/g,'');
-    if (userAnswer === currentAnswer) {
+    if (userAnswer === correct) {
         score++;
         document.getElementById("feedback").innerText = "Correct!";
     } else {
@@ -84,9 +162,10 @@ function checkAnswer() {
     }
 
     document.getElementById("score").innerText = "Score: " + score;
-    answered = true;
 }
 
-// Initialize first question
 generateQuestion();
 </script>
+
+</body>
+</html>
