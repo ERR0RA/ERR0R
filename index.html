@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Maths Practice</title>
+
 <style>
 body {
     font-family: Arial, sans-serif;
@@ -42,22 +43,12 @@ select, button, input {
 }
 </style>
 </head>
+
 <body>
 
 <div class="container">
 <h1>Maths Practice</h1>
 
-<label>Topic:</label>
-<select id="topic">
-    <option value="factor">Algebra - Factorising</option>
-</select>
-
-<label>Difficulty:</label>
-<select id="difficulty">
-    <option value="medium">Medium</option>
-</select>
-
-<br>
 <button id="newQuestion">New Question</button>
 
 <div class="question" id="questionArea"></div>
@@ -71,141 +62,96 @@ select, button, input {
 </div>
 
 <script>
-let currentAnswer = "";
+
+let currentAnswer = [];
 let score = 0;
 let answered = false;
 
-function rand(min,max){
-    return Math.floor(Math.random()*(max-min+1))+min;
+function rand(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function generateQuestion(){
-    let a = rand(2,9);
+function generateQuestion() {
+
+    let a = rand(1,9);
     let b = rand(1,9);
 
     let sum = a + b;
     let product = a * b;
 
-    document.getElementById("questionArea").innerHTML =
-        `Factorise: x^2 + ${sum}x + ${product}`;
+    document.getElementById("questionArea").innerText =
+        "Factorise: x² + " + sum + "x + " + product;
 
-    currentAnswer = `(x+${a})(x+${b})`;
+    currentAnswer = [a, b];
 
     document.getElementById("feedback").innerText = "";
     document.getElementById("answerInput").value = "";
     answered = false;
 }
 
-function normalize(str){
-    return str.replace(/\s+/g,"")
-              .toLowerCase()
-              .replace(")(",")*("); // helper
+function parseBracket(str) {
+    str = str.replace(/\s+/g, "").toLowerCase();
+
+    let match = str.match(/^\(?x([+-]\d+)\)?$/);
+
+    if (!match) return null;
+
+    return parseInt(match[1]) * -1;
 }
 
-function checkFactorised(user, correct){
+function checkAnswer() {
 
-    user = user.replace(/\s+/g,"").toLowerCase();
-    correct = correct.replace(/\s+/g,"").toLowerCase();
+    if (answered) return;
 
-    if(!user.includes(")(")) return false;
-
-    let uParts = user.split(")(");
-    let cParts = correct.split(")(");
-
-    if(uParts.length !== 2) return false;
-
-    uParts[0] = uParts[0].replace("(","");
-    uParts[1] = uParts[1].replace(")","");
-
-    cParts[0] = cParts[0].replace("(","");
-    cParts[1] = cParts[1].replace(")","");
-
-    return (
-        (uParts[0] === cParts[0] && uParts[1] === cParts[1]) ||
-        (uParts[0] === cParts[1] && uParts[1] === cParts[0])
-    );
-}
-
-function checkAnswer(){
-
-    if(answered) return; // prevent double scoring
-
-    let userAnswer = document.getElementById("answerInput").value;
+    let user = document.getElementById("answerInput").value;
     let feedback = document.getElementById("feedback");
 
-    if(checkFactorised(userAnswer, currentAnswer)){
+    user = user.replace(/\s+/g, "").toLowerCase();
+
+    let brackets = user.split(")(");
+
+    if (brackets.length !== 2) {
+        feedback.innerText = "Incorrect format. Use (x+?)(x+?)";
+        answered = true;
+        return;
+    }
+
+    brackets[0] = brackets[0].replace("(", "");
+    brackets[1] = brackets[1].replace(")", "");
+
+    let val1 = parseBracket(brackets[0]);
+    let val2 = parseBracket(brackets[1]);
+
+    if (val1 === null || val2 === null) {
+        feedback.innerText = "Incorrect format. Use (x+?)(x+?)";
+        answered = true;
+        return;
+    }
+
+    let correct1 = currentAnswer[0];
+    let correct2 = currentAnswer[1];
+
+    if (
+        (val1 === correct1 && val2 === correct2) ||
+        (val1 === correct2 && val2 === correct1)
+    ) {
         score++;
         feedback.innerText = "Correct!";
         document.getElementById("score").innerText = "Score: " + score;
-        answered = true;
     } else {
-        feedback.innerText = "Incorrect. Correct: " + currentAnswer;
-        answered = true;
+        feedback.innerText =
+            "Incorrect. Correct answer: (x+" + correct1 + ")(x+" + correct2 + ")";
     }
+
+    answered = true;
 }
 
 document.getElementById("newQuestion").addEventListener("click", generateQuestion);
 document.getElementById("submitAnswer").addEventListener("click", checkAnswer);
 
 generateQuestion();
+
 </script>
 
 </body>
 </html>
-function checkAnswer(){
-    let userAnswer = document.getElementById("answerInput").value
-        .replace(/\s+/g,'')
-        .toLowerCase();
-
-    let correct = currentAnswer
-        .replace(/\s+/g,'')
-        .toLowerCase();
-
-    let feedback = document.getElementById("feedback");
-
-    let isCorrect = false;
-
-    // If numeric comparison
-    if(!isNaN(userAnswer) && !isNaN(correct)){
-        if(parseFloat(userAnswer) === parseFloat(correct)){
-            isCorrect = true;
-        }
-    }
-    // If factorised form with two brackets
-    else if(correct.includes(")(")){
-        let correctParts = correct.split(")(");
-        let userParts = userAnswer.split(")(");
-
-        if(userParts.length === 2){
-            // Remove brackets
-            correctParts[0] = correctParts[0].replace("(","");
-            correctParts[1] = correctParts[1].replace(")","");
-
-            userParts[0] = userParts[0].replace("(","");
-            userParts[1] = userParts[1].replace(")","");
-
-            // Check both possible orders
-            if(
-                (userParts[0] === correctParts[0] && userParts[1] === correctParts[1]) ||
-                (userParts[0] === correctParts[1] && userParts[1] === correctParts[0])
-            ){
-                isCorrect = true;
-            }
-        }
-    }
-    else {
-        if(userAnswer === correct){
-            isCorrect = true;
-        }
-    }
-
-    if(isCorrect){
-        score++;
-        feedback.innerText = "Correct!";
-        document.getElementById("score").innerText = "Score: "+score;
-    } else {
-        feedback.innerText = "Incorrect. Correct: "+currentAnswer;
-    }
-
-    document.getElementById("answerInput").value = "";
-}
