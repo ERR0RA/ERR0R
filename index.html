@@ -1,3 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Maths Practice</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6fa;
+    text-align: center;
+    padding: 20px;
+}
+
+.container {
+    background: white;
+    max-width: 800px;
+    margin: auto;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+}
+
+select, button, input {
+    padding: 8px;
+    margin: 8px;
+    font-size: 16px;
+}
+
+.question {
+    font-size: 24px;
+    margin: 20px 0;
+}
+
+#feedback {
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+.score {
+    margin-top: 15px;
+    font-size: 18px;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h1>Maths Practice</h1>
+
+<label>Topic:</label>
+<select id="topic">
+    <option value="factor">Algebra - Factorising</option>
+</select>
+
+<label>Difficulty:</label>
+<select id="difficulty">
+    <option value="medium">Medium</option>
+</select>
+
+<br>
+<button id="newQuestion">New Question</button>
+
+<div class="question" id="questionArea"></div>
+
+<input type="text" id="answerInput" placeholder="Enter answer here">
+<br>
+<button id="submitAnswer">Submit</button>
+
+<div id="feedback"></div>
+<div class="score" id="score">Score: 0</div>
+</div>
+
+<script>
+let currentAnswer = "";
+let score = 0;
+let answered = false;
+
+function rand(min,max){
+    return Math.floor(Math.random()*(max-min+1))+min;
+}
+
+function generateQuestion(){
+    let a = rand(2,9);
+    let b = rand(1,9);
+
+    let sum = a + b;
+    let product = a * b;
+
+    document.getElementById("questionArea").innerHTML =
+        `Factorise: x^2 + ${sum}x + ${product}`;
+
+    currentAnswer = `(x+${a})(x+${b})`;
+
+    document.getElementById("feedback").innerText = "";
+    document.getElementById("answerInput").value = "";
+    answered = false;
+}
+
+function normalize(str){
+    return str.replace(/\s+/g,"")
+              .toLowerCase()
+              .replace(")(",")*("); // helper
+}
+
+function checkFactorised(user, correct){
+
+    user = user.replace(/\s+/g,"").toLowerCase();
+    correct = correct.replace(/\s+/g,"").toLowerCase();
+
+    if(!user.includes(")(")) return false;
+
+    let uParts = user.split(")(");
+    let cParts = correct.split(")(");
+
+    if(uParts.length !== 2) return false;
+
+    uParts[0] = uParts[0].replace("(","");
+    uParts[1] = uParts[1].replace(")","");
+
+    cParts[0] = cParts[0].replace("(","");
+    cParts[1] = cParts[1].replace(")","");
+
+    return (
+        (uParts[0] === cParts[0] && uParts[1] === cParts[1]) ||
+        (uParts[0] === cParts[1] && uParts[1] === cParts[0])
+    );
+}
+
+function checkAnswer(){
+
+    if(answered) return; // prevent double scoring
+
+    let userAnswer = document.getElementById("answerInput").value;
+    let feedback = document.getElementById("feedback");
+
+    if(checkFactorised(userAnswer, currentAnswer)){
+        score++;
+        feedback.innerText = "Correct!";
+        document.getElementById("score").innerText = "Score: " + score;
+        answered = true;
+    } else {
+        feedback.innerText = "Incorrect. Correct: " + currentAnswer;
+        answered = true;
+    }
+}
+
+document.getElementById("newQuestion").addEventListener("click", generateQuestion);
+document.getElementById("submitAnswer").addEventListener("click", checkAnswer);
+
+generateQuestion();
+</script>
+
+</body>
+</html>
 function checkAnswer(){
     let userAnswer = document.getElementById("answerInput").value
         .replace(/\s+/g,'')
