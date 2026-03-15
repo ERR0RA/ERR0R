@@ -3,144 +3,160 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Math App</title>
+<title>Ultimate Math App</title>
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        padding: 10px;
-        background-color: #f7f7f7;
-        max-width: 500px;
-        margin: auto;
-    }
-    h1 { text-align: center; }
-    .question { margin: 20px 0; }
-    .calculator { display: none; margin: 10px 0; }
-    input { padding: 8px; font-size: 16px; width: 100%; margin-bottom: 10px; }
-    button { padding: 10px; font-size: 16px; cursor: pointer; }
-    .feedback { font-weight: bold; margin-top: 10px; }
+body { font-family: Arial; padding: 10px; max-width: 600px; margin: auto; background: #f7f7f7; }
+h1 { text-align: center; }
+.question { margin: 20px 0; }
+.formula { font-style: italic; color: #555; margin-bottom: 10px; }
+.calculator { display: none; margin: 10px 0; }
+input { padding: 8px; font-size: 16px; width: 100%; margin-bottom: 10px; }
+button { padding: 10px; font-size: 16px; cursor: pointer; margin: 2px; }
+.feedback { font-weight: bold; margin-top: 10px; }
+.graph-img { max-width: 100%; margin-top: 10px; }
 </style>
 </head>
 <body>
 
-<h1>Math App</h1>
+<h1>Ultimate Math App</h1>
 <div id="question-container" class="question"></div>
+<div id="formula" class="formula"></div>
+<img id="graph-image" class="graph-img" src="" style="display:none;">
 <input type="text" id="answer-input" placeholder="Type your answer here">
 <button id="submit-answer">Submit Answer</button>
 
 <div class="calculator" id="calculator">
-    <h3>Calculator</h3>
-    <input type="text" id="calc-display" readonly>
-    <br>
-    <button onclick="calcPress('1')">1</button>
-    <button onclick="calcPress('2')">2</button>
-    <button onclick="calcPress('3')">3</button>
-    <button onclick="calcPress('+')">+</button>
-    <br>
-    <button onclick="calcPress('4')">4</button>
-    <button onclick="calcPress('5')">5</button>
-    <button onclick="calcPress('6')">6</button>
-    <button onclick="calcPress('-')">-</button>
-    <br>
-    <button onclick="calcPress('7')">7</button>
-    <button onclick="calcPress('8')">8</button>
-    <button onclick="calcPress('9')">9</button>
-    <button onclick="calcPress('*')">*</button>
-    <br>
-    <button onclick="calcPress('0')">0</button>
-    <button onclick="calcClear()">C</button>
-    <button onclick="calcEvaluate()">=</button>
-    <button onclick="calcPress('/')">/</button>
+<h3>Calculator</h3>
+<input type="text" id="calc-display" readonly><br>
+<button onclick="calcPress('1')">1</button>
+<button onclick="calcPress('2')">2</button>
+<button onclick="calcPress('3')">3</button>
+<button onclick="calcPress('+')">+</button><br>
+<button onclick="calcPress('4')">4</button>
+<button onclick="calcPress('5')">5</button>
+<button onclick="calcPress('6')">6</button>
+<button onclick="calcPress('-')">-</button><br>
+<button onclick="calcPress('7')">7</button>
+<button onclick="calcPress('8')">8</button>
+<button onclick="calcPress('9')">9</button>
+<button onclick="calcPress('*')">*</button><br>
+<button onclick="calcPress('0')">0</button>
+<button onclick="calcPress('/')">/</button>
+<button onclick="calcPress(Math.PI)">π</button>
+<button onclick="calcClear()">C</button>
+<button onclick="calcEvaluate()">=</button>
 </div>
 
 <div class="feedback" id="feedback"></div>
 
 <script>
-// Sample questions
+// ====== Question Data ======
 const questions = [
-    { text: "Find the area of a circle with radius 5", answer: 78.54, difficulty: "easy" },
-    { text: "Calculate the circumference of a circle with radius 7", answer: 43.96, difficulty: "medium" },
-    { text: "Solve 45 * 23 + 12", answer: 1037, difficulty: "hard" },
-    { text: "What is 12 + 8?", answer: 20, difficulty: "easy" },
+    { text: "Find the area of a circle with radius 5", answer: 78.54, difficulty: "easy", topic: "circle area" },
+    { text: "Calculate the circumference of a circle with radius 7", answer: 43.96, difficulty: "medium", topic: "circle circumference" },
+    { text: "Volume of a cube with side 3", answer: 27, difficulty: "medium", topic: "volume cube" },
+    { text: "Simplify ratio 10:15", answer: 0.67, difficulty: "medium", topic: "ratio" },
+    { text: "Find 25% of 200", answer: 50, difficulty: "easy", topic: "percentages" },
+    { text: "Simplify 3x + 5 - 2x + 7", answer: "x + 12", difficulty: "medium", topic: "manipulating expressions" },
+    { text: "Solve 2x + 5 = 11", answer: 3, difficulty: "easy", topic: "one-step equations" },
+    { text: "Solve 3x - 7 = 8", answer: 5, difficulty: "medium", topic: "two-step equations" },
+    { text: "Find the hypotenuse of a right triangle with sides 3 and 4", answer: 5, difficulty: "medium", topic: "pythagoras" },
+    { text: "Find the upper and lower bounds of 4.5 ± 0.1", answer: [4.4,4.6], difficulty: "medium", topic: "bounds" },
+    { text: "Draw the graph of y = x²", answer: "", difficulty: "easy", topic: "graphs", graph: "graph_y_equals_x2.png" },
+    { text: "Point A is at (2,3). Find coordinates of B moved 3 right and 2 up.", answer: "(5,5)", difficulty: "medium", topic: "coordinates" },
+    { text: "Draw loci of points 3cm from a fixed point", answer: "", difficulty: "easy", topic: "loci", graph: "loci_circle.png" }
 ];
 
+// ====== Formula hints ======
+const formulas = {
+    "circle area": "Area = π × r²",
+    "circle circumference": "Circumference = 2 × π × r",
+    "square area": "Area = side²",
+    "rectangle area": "Area = length × width",
+    "triangle area": "Area = ½ × base × height",
+    "volume cube": "Volume = side³",
+    "volume rectangular prism": "Volume = length × width × height",
+    "algebra": "Use standard arithmetic operations (+, -, ×, ÷)",
+    "ratio": "Simplify ratio a:b by dividing both by GCD",
+    "percentages": "Percentage × total ÷ 100",
+    "manipulating expressions": "Combine like terms, expand brackets",
+    "one-step equations": "x = value after inverse operation",
+    "two-step equations": "Undo addition/subtraction first, then multiplication/division",
+    "pythagoras": "c² = a² + b²",
+    "bounds": "Upper bound = value + error, Lower bound = value - error",
+    "loci": "Loci = set of points satisfying given conditions",
+    "graphs": "Plot y against x as per the function",
+    "coordinates": "Add/subtract x and y values as per movement"
+};
+
+// ====== Calculator topics ======
+const calculatorTopics = ["area","circumference","perimeter","volume","surface area","algebra","ratio","percentages","manipulating expressions","one-step equations","two-step equations","pythagoras","bounds"];
+
+// ====== Variables ======
 let currentIndex = 0;
 let scores = [];
 
-// Show question
+// ====== Show question ======
 function showQuestion() {
     const q = questions[currentIndex];
     document.getElementById("question-container").innerText = q.text;
     document.getElementById("answer-input").value = "";
     document.getElementById("feedback").innerText = "";
     
-    // Show calculator logic
-    if (shouldShowCalculator(q)) {
-        document.getElementById("calculator").style.display = "block";
-    } else {
-        document.getElementById("calculator").style.display = "none";
-    }
+    document.getElementById("formula").innerText = formulas[q.topic] || "";
+
+    const graphImg = document.getElementById("graph-image");
+    if (q.graph) { graphImg.src = q.graph; graphImg.style.display = "block"; } 
+    else { graphImg.style.display = "none"; }
+
+    if (shouldShowCalculator(q)) { document.getElementById("calculator").style.display = "block"; } 
+    else { document.getElementById("calculator").style.display = "none"; }
 }
 
-// Calculator functions
-function calcPress(val) {
-    document.getElementById("calc-display").value += val;
-}
-
-function calcClear() {
-    document.getElementById("calc-display").value = "";
-}
-
+// ====== Calculator ======
+function calcPress(val) { document.getElementById("calc-display").value += val; }
+function calcClear() { document.getElementById("calc-display").value = ""; }
 function calcEvaluate() {
-    try {
-        const result = eval(document.getElementById("calc-display").value);
-        document.getElementById("calc-display").value = result;
-    } catch {
-        document.getElementById("calc-display").value = "Error";
-    }
+    try { 
+        const result = eval(document.getElementById("calc-display").value); 
+        document.getElementById("calc-display").value = result.toFixed(2);
+    } catch { document.getElementById("calc-display").value = "Error"; }
 }
-
-// Calculator display logic
 function shouldShowCalculator(question) {
     const text = question.text.toLowerCase();
     if (question.difficulty === "hard") return true;
-    if ((text.includes("circle") && text.includes("area")) || 
-        (text.includes("circle") && text.includes("circumference"))) return true;
+    for (let topic of calculatorTopics) if (text.includes(topic)) return true;
     return false;
 }
 
-// Submit answer
+// ====== Submit Answer ======
 document.getElementById("submit-answer").addEventListener("click", () => {
     const q = questions[currentIndex];
-    const userAnswer = parseFloat(document.getElementById("answer-input").value);
-    let correct = Math.abs(userAnswer - q.answer) < 0.01; // Allow minor decimal difference
-    scores.push(correct ? 1 : 0);
+    let userAnswer = document.getElementById("answer-input").value.trim();
 
-    document.getElementById("feedback").innerText = correct ? "✅ Correct!" : `❌ Wrong! Correct: ${q.answer}`;
-    
-    // Send data to GitHub when online
-    if (navigator.onLine) {
-        sendScoresToGitHub(scores);
-    }
+    if (Array.isArray(q.answer)) { userAnswer = userAnswer.split(',').map(n=>parseFloat(n.trim())); }
+    else if (typeof q.answer === "number") { userAnswer = parseFloat(parseFloat(userAnswer).toFixed(2)); }
 
-    // Next question
+    let correct = false;
+    if (Array.isArray(q.answer)) {
+        correct = userAnswer.length === q.answer.length && userAnswer.every((n,i)=>Math.abs(n-q.answer[i])<0.01);
+    } else if (typeof q.answer === "number") { correct = Math.abs(userAnswer-q.answer)<0.01; }
+    else { correct = userAnswer.replace(/\s+/g,'') === q.answer.replace(/\s+/g,''); }
+
+    scores.push(correct?1:0);
+    document.getElementById("feedback").innerText = correct ? "✅ Correct!" : `❌ Wrong! Correct: ${Array.isArray(q.answer)?q.answer.join(', '):q.answer}`;
+
+    if (navigator.onLine) sendScoresToGitHub(scores);
+
     currentIndex++;
-    if (currentIndex < questions.length) {
-        setTimeout(showQuestion, 1000);
-    } else {
-        setTimeout(() => {
-            const avg = (scores.reduce((a,b)=>a+b,0)/scores.length*100).toFixed(1);
-            alert(`All done! Score: ${scores.length}/${questions.length} (${avg}%)`);
-        }, 1000);
-    }
+    if (currentIndex < questions.length) { setTimeout(showQuestion, 1000); }
+    else { setTimeout(()=>{ const avg = (scores.reduce((a,b)=>a+b,0)/scores.length*100).toFixed(1); alert(`All done! Score: ${scores.length}/${questions.length} (${avg}%)`); },1000); }
 });
 
-// Dummy function to send scores to GitHub
-function sendScoresToGitHub(scores) {
-    // Replace this with your GitHub API logic
-    console.log("Sending scores to GitHub:", scores);
-}
+// ====== Dummy GitHub ======
+function sendScoresToGitHub(scores) { console.log("Sending scores to GitHub:", scores); }
 
-// Initial load
+// ====== Init ======
 showQuestion();
 </script>
 
