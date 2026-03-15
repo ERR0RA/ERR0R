@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Maths questions</title>
+<title>Ultimate Math App</title>
 <style>
 body { font-family: Arial; padding: 10px; max-width: 600px; margin: auto; background: #f7f7f7; }
 h1 { text-align: center; }
+.selector { margin: 10px 0; }
 .question { margin: 20px 0; }
 .formula { font-style: italic; color: #555; margin-bottom: 10px; }
 .calculator { display: none; margin: 10px 0; }
@@ -19,6 +20,24 @@ button { padding: 10px; font-size: 16px; cursor: pointer; margin: 2px; }
 <body>
 
 <h1>Ultimate Math App</h1>
+
+<div class="selector">
+  <label for="topic-select">Choose Topic:</label>
+  <select id="topic-select"><option value="all">All Topics</option></select>
+</div>
+
+<div class="selector">
+  <label for="difficulty-select">Choose Difficulty:</label>
+  <select id="difficulty-select">
+    <option value="all">All</option>
+    <option value="easy">Easy</option>
+    <option value="medium">Medium</option>
+    <option value="hard">Hard</option>
+  </select>
+</div>
+
+<button id="start-topic">Start</button>
+
 <div id="question-container" class="question"></div>
 <div id="formula" class="formula"></div>
 <img id="graph-image" class="graph-img" src="" style="display:none;">
@@ -71,12 +90,7 @@ const questions = [
 const formulas = {
     "circle area": "Area = π × r²",
     "circle circumference": "Circumference = 2 × π × r",
-    "square area": "Area = side²",
-    "rectangle area": "Area = length × width",
-    "triangle area": "Area = ½ × base × height",
     "volume cube": "Volume = side³",
-    "volume rectangular prism": "Volume = length × width × height",
-    "algebra": "Use standard arithmetic operations (+, -, ×, ÷)",
     "ratio": "Simplify ratio a:b by dividing both by GCD",
     "percentages": "Percentage × total ÷ 100",
     "manipulating expressions": "Combine like terms, expand brackets",
@@ -92,73 +106,80 @@ const formulas = {
 // ====== Calculator topics ======
 const calculatorTopics = ["area","circumference","perimeter","volume","surface area","algebra","ratio","percentages","manipulating expressions","one-step equations","two-step equations","pythagoras","bounds"];
 
-// ====== Variables ======
+let filteredQuestions = [];
 let currentIndex = 0;
 let scores = [];
 
+// ====== Populate topic dropdown ======
+const topicSelect = document.getElementById("topic-select");
+[...new Set(questions.map(q=>q.topic))].forEach(t=>{
+    const option = document.createElement("option");
+    option.value = t;
+    option.innerText = t.charAt(0).toUpperCase() + t.slice(1);
+    topicSelect.appendChild(option);
+});
+
+// ====== Start quiz by topic & difficulty ======
+document.getElementById("start-topic").addEventListener("click", ()=>{
+    const selectedTopic = topicSelect.value;
+    const selectedDifficulty = document.getElementById("difficulty-select").value;
+    filteredQuestions = questions.filter(q=>{
+        return (selectedTopic==="all" || q.topic===selectedTopic) &&
+               (selectedDifficulty==="all" || q.difficulty===selectedDifficulty);
+    });
+    if(filteredQuestions.length===0){ alert("No questions for this selection!"); return; }
+    currentIndex=0; scores=[];
+    showQuestion();
+});
+
 // ====== Show question ======
-function showQuestion() {
-    const q = questions[currentIndex];
+function showQuestion(){
+    const q = filteredQuestions[currentIndex];
     document.getElementById("question-container").innerText = q.text;
     document.getElementById("answer-input").value = "";
     document.getElementById("feedback").innerText = "";
-    
     document.getElementById("formula").innerText = formulas[q.topic] || "";
-
     const graphImg = document.getElementById("graph-image");
-    if (q.graph) { graphImg.src = q.graph; graphImg.style.display = "block"; } 
-    else { graphImg.style.display = "none"; }
-
-    if (shouldShowCalculator(q)) { document.getElementById("calculator").style.display = "block"; } 
-    else { document.getElementById("calculator").style.display = "none"; }
+    if(q.graph){ graphImg.src=q.graph; graphImg.style.display="block"; } 
+    else{ graphImg.style.display="none"; }
+    if(shouldShowCalculator(q)){ document.getElementById("calculator").style.display="block"; } 
+    else{ document.getElementById("calculator").style.display="none"; }
 }
 
 // ====== Calculator ======
-function calcPress(val) { document.getElementById("calc-display").value += val; }
-function calcClear() { document.getElementById("calc-display").value = ""; }
-function calcEvaluate() {
-    try { 
-        const result = eval(document.getElementById("calc-display").value); 
-        document.getElementById("calc-display").value = result.toFixed(2);
-    } catch { document.getElementById("calc-display").value = "Error"; }
+function calcPress(val){ document.getElementById("calc-display").value+=val; }
+function calcClear(){ document.getElementById("calc-display").value=""; }
+function calcEvaluate(){ 
+    try{ const result=eval(document.getElementById("calc-display").value); 
+        document.getElementById("calc-display").value=result.toFixed(2);
+    }catch{ document.getElementById("calc-display").value="Error"; }
 }
-function shouldShowCalculator(question) {
-    const text = question.text.toLowerCase();
-    if (question.difficulty === "hard") return true;
-    for (let topic of calculatorTopics) if (text.includes(topic)) return true;
-    return false;
+function shouldShowCalculator(question){
+    if(question.difficulty==="hard") return true;
+    return calculatorTopics.some(topic=>question.text.toLowerCase().includes(topic));
 }
 
-// ====== Submit Answer ======
-document.getElementById("submit-answer").addEventListener("click", () => {
-    const q = questions[currentIndex];
-    let userAnswer = document.getElementById("answer-input").value.trim();
-
-    if (Array.isArray(q.answer)) { userAnswer = userAnswer.split(',').map(n=>parseFloat(n.trim())); }
-    else if (typeof q.answer === "number") { userAnswer = parseFloat(parseFloat(userAnswer).toFixed(2)); }
-
-    let correct = false;
-    if (Array.isArray(q.answer)) {
-        correct = userAnswer.length === q.answer.length && userAnswer.every((n,i)=>Math.abs(n-q.answer[i])<0.01);
-    } else if (typeof q.answer === "number") { correct = Math.abs(userAnswer-q.answer)<0.01; }
-    else { correct = userAnswer.replace(/\s+/g,'') === q.answer.replace(/\s+/g,''); }
-
+// ====== Submit answer ======
+document.getElementById("submit-answer").addEventListener("click", ()=>{
+    const q=filteredQuestions[currentIndex];
+    let userAnswer=document.getElementById("answer-input").value.trim();
+    if(Array.isArray(q.answer)){ userAnswer=userAnswer.split(',').map(n=>parseFloat(n.trim())); }
+    else if(typeof q.answer==="number"){ userAnswer=parseFloat(parseFloat(userAnswer).toFixed(2)); }
+    let correct=false;
+    if(Array.isArray(q.answer)){ correct=userAnswer.length===q.answer.length && userAnswer.every((n,i)=>Math.abs(n-q.answer[i])<0.01); }
+    else if(typeof q.answer==="number"){ correct=Math.abs(userAnswer-q.answer)<0.01; }
+    else{ correct=userAnswer.replace(/\s+/g,'')===q.answer.replace(/\s+/g,''); }
     scores.push(correct?1:0);
-    document.getElementById("feedback").innerText = correct ? "✅ Correct!" : `❌ Wrong! Correct: ${Array.isArray(q.answer)?q.answer.join(', '):q.answer}`;
-
-    if (navigator.onLine) sendScoresToGitHub(scores);
-
+    document.getElementById("feedback").innerText=correct?"✅ Correct!":`❌ Wrong! Correct: ${Array.isArray(q.answer)?q.answer.join(', '):q.answer}`;
+    if(navigator.onLine) sendScoresToGitHub(scores);
     currentIndex++;
-    if (currentIndex < questions.length) { setTimeout(showQuestion, 1000); }
-    else { setTimeout(()=>{ const avg = (scores.reduce((a,b)=>a+b,0)/scores.length*100).toFixed(1); alert(`All done! Score: ${scores.length}/${questions.length} (${avg}%)`); },1000); }
+    if(currentIndex<filteredQuestions.length){ setTimeout(showQuestion,1000); }
+    else{ setTimeout(()=>{ const avg=(scores.reduce((a,b)=>a+b,0)/scores.length*100).toFixed(1); alert(`All done! Score: ${scores.length}/${filteredQuestions.length} (${avg}%)`); },1000); }
 });
 
 // ====== Dummy GitHub ======
-function sendScoresToGitHub(scores) { console.log("Sending scores to GitHub:", scores); }
+function sendScoresToGitHub(scores){ console.log("Sending scores to GitHub:", scores); }
 
-// ====== Init ======
-showQuestion();
 </script>
-
 </body>
 </html>
