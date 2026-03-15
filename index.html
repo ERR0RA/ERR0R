@@ -2,305 +2,431 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Advanced Maths Practice</title>
+<title>Ultimate GCSE Maths Trainer</title>
+
 <style>
-body {
-    font-family: Arial, sans-serif;
-    background: #f4f6fa;
-    text-align: center;
-    padding: 20px;
+
+body{
+font-family:Arial;
+background:#e8eef7;
+text-align:center;
+padding:20px;
 }
 
-.container {
-    background: white;
-    max-width: 900px;
-    margin: auto;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+.container{
+background:white;
+max-width:1100px;
+margin:auto;
+padding:30px;
+border-radius:14px;
+box-shadow:0 8px 25px rgba(0,0,0,0.15);
 }
 
-select, button, input {
-    padding: 8px;
-    margin: 8px;
-    font-size: 16px;
+select,input,button{
+padding:10px;
+margin:6px;
+font-size:16px;
+border-radius:6px;
 }
 
-.question {
-    font-size: 22px;
-    margin: 20px 0;
+button{
+cursor:pointer;
 }
 
-.calculator {
-    font-size: 16px;
-    color: #555;
-    margin-bottom: 10px;
+.question{
+font-size:22px;
+margin:15px;
 }
 
-.score {
-    margin-top: 20px;
-    font-weight: bold;
+canvas{
+border:1px solid #ccc;
+margin-top:15px;
 }
+
+.correct{color:green;font-weight:bold}
+.wrong{color:red;font-weight:bold}
+
+.stats{
+font-size:18px;
+margin-top:10px;
+}
+
+#solution{
+margin-top:20px;
+}
+
 </style>
+
 </head>
+
 <body>
 
 <div class="container">
-<h1>Advanced Maths Practice</h1>
 
-<label>Topic:</label>
+<h1>Ultimate GCSE Maths Trainer</h1>
+
 <select id="topic">
-    <option value="expand">Algebra - Expanding</option>
-    <option value="factor">Algebra - Factorising</option>
-    <option value="simplify">Simplifying Fractions</option>
-    <option value="probability">Experimental Probability</option>
-    <option value="ratio">Ratio</option>
-    <option value="similar">Similar Shapes</option>
+
+<option value="pythagoras">Pythagoras</option>
+<option value="trig">Trigonometry</option>
+<option value="quadratic">Quadratic Equations</option>
+<option value="probability">Probability Tree</option>
+<option value="graphClick">Click Graph Point</option>
+<option value="functions">Functions</option>
+
 </select>
 
-<label>Difficulty:</label>
-<select id="difficulty">
-    <option value="easy">Easy</option>
-    <option value="medium">Medium</option>
-    <option value="hard">Hard</option>
-    <option value="veryhard">Very Hard (Calculator Allowed)</option>
-</select>
-
-<br>
 <button onclick="generateQuestion()">New Question</button>
 
-<div class="question" id="questionArea"></div>
-<div class="calculator" id="calculatorHint"></div>
+<div class="question" id="question"></div>
 
-<input type="text" id="answerInput" placeholder="Enter answer here">
+<canvas id="diagram" width="500" height="320"></canvas>
+
 <br>
-<button onclick="checkAnswer()">Submit</button>
 
+<input id="answer" placeholder="Answer">
+
+<br>
+
+<button onclick="checkAnswer()">Submit</button>
+<button onclick="showHint()">Hint</button>
+
+<div id="hint"></div>
 <div id="feedback"></div>
-<div class="score" id="score">Score: 0</div>
+<div id="solution"></div>
+
+<div class="stats">
+Score: <span id="score">0</span> |
+Level: <span id="level">1</span> |
+XP: <span id="xp">0</span> |
+🔥 Streak: <span id="streak">0</span>
+</div>
+
 </div>
 
 <script>
-let currentAnswer;
-let score = 0;
 
-function rand(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+/* STATE */
 
-function generateQuestion() {
-    const topic = document.getElementById("topic").value;
-    const difficulty = document.getElementById("difficulty").value;
-    const q = document.getElementById("questionArea");
-    const hint = document.getElementById("calculatorHint");
-    document.getElementById("feedback").innerText="";
-    document.getElementById("answerInput").value="";
-    currentAnswer = null;
+let answer
+let hint
+let solution
+let wrongAttempts=0
 
-    // ================= ALGBRA - EXPANDING =================
-    if(topic==="expand"){
-        let a=rand(1,5),b=rand(0,5),c=rand(1,5),d=rand(0,5);
-        if(difficulty==="easy"){
-            q.innerHTML=`Expand: (${a}x + ${b})(${c}x + ${d})`;
-            currentAnswer=`${a*c}x^2 + ${a*d + b*c}x + ${b*d}`;
-            hint.innerText="Calculator not needed";
-        }
-        if(difficulty==="medium"){
-            a=rand(1,10); b=rand(1,10); c=rand(1,10); d=rand(1,10);
-            q.innerHTML=`Expand: (${a}x - ${b})(${c}x + ${d})`;
-            currentAnswer=`${a*c}x^2 + ${a*d - b*c}x - ${b*d}`;
-            hint.innerText="Calculator recommended";
-        }
-        if(difficulty==="hard"){
-            a=rand(1,5); b=rand(1,5);
-            q.innerHTML=`Expand and simplify: (${a}x + ${b})^2`;
-            currentAnswer=`${a*a}x^2 + ${2*a*b}x + ${b*b}`;
-            hint.innerText="Calculator recommended";
-        }
-        if(difficulty==="veryhard"){
-            a=rand(1,5); b=rand(1,5); c=rand(1,5); d=rand(1,5);
-            q.innerHTML=`Expand fully: (${a}x + ${b})(${c}x - ${d}) + (${b}x + ${c})(${d}x - ${a})`;
-            let term1_x2 = a*c;
-            let term1_x = a*(-d) + b*c;
-            let term1_const = b*(-d);
-            let term2_x2 = b*d;
-            let term2_x = b*(-a) + c*d;
-            let term2_const = c*(-a);
-            let total_x2 = term1_x2 + term2_x2;
-            let total_x = term1_x + term2_x;
-            let total_const = term1_const + term2_const;
-            currentAnswer = `${total_x2}x^2 + ${total_x}x + ${total_const}`;
-            hint.innerText="Calculator allowed";
-        }
-    }
+let score=localStorage.getItem("score")||0
+let xp=localStorage.getItem("xp")||0
+let level=localStorage.getItem("level")||1
+let streak=localStorage.getItem("streak")||0
 
-    // ================= ALGBRA - FACTORISING =================
-    if(topic==="factor"){
-        if(difficulty==="easy"){
-            let a=rand(1,5),b=rand(1,5);
-            q.innerHTML=`Factorise: ${a*b}x + ${a*b*2}`;
-            currentAnswer=`${a}(${b}x + ${b*2})`;
-            hint.innerText="Calculator not needed";
-        }
-        if(difficulty==="medium"){
-            let a=rand(1,5),b=rand(1,5),c=rand(1,5);
-            q.innerHTML=`Factorise: ${a*b}x^2 + ${a*c}x`;
-            currentAnswer=`${a}x(${b}x + ${c})`;
-            hint.innerText="Calculator recommended";
-        }
-        if(difficulty==="hard"){
-            let a=rand(1,5),b=rand(1,10),c=rand(1,10);
-            q.innerHTML=`Factorise: ${a}x^2 + ${b}x + ${c}`;
-            currentAnswer=`Quadratic factors (calculator may help)`;
-            hint.innerText="Calculator recommended";
-        }
-        if(difficulty==="veryhard"){
-            let a=rand(2,5),b=rand(1,10),c=rand(1,5);
-            q.innerHTML=`Factorise: ${a}x^2 + ${b}x + ${c}`;
-            currentAnswer=`Complex quadratic — calculator allowed`;
-            hint.innerText="Calculator allowed";
-        }
-    }
+document.getElementById("score").innerText=score
+document.getElementById("xp").innerText=xp
+document.getElementById("level").innerText=level
+document.getElementById("streak").innerText=streak
 
-    // ================= SIMPLIFYING FRACTIONS =================
-    if(topic==="simplify"){
-        let numerator, denominator;
-        if(difficulty==="easy"){
-            numerator = rand(2,20); denominator = rand(2,10);
-            q.innerHTML=`Simplify: ${numerator}/${denominator}`;
-            let g= gcd(numerator,denominator);
-            currentAnswer = `${numerator/g}/${denominator/g}`;
-            hint.innerText="Calculator not needed";
-        }
-        if(difficulty==="medium"){
-            numerator = rand(10,50); denominator = rand(2,20);
-            q.innerHTML=`Simplify: ${numerator}/${denominator}`;
-            let g= gcd(numerator,denominator);
-            currentAnswer = `${numerator/g}/${denominator/g}`;
-            hint.innerText="Calculator recommended";
-        }
-        if(difficulty==="hard"){
-            numerator = rand(20,100); denominator = rand(5,50);
-            q.innerHTML=`Simplify: ${numerator}/${denominator}`;
-            let g= gcd(numerator,denominator);
-            currentAnswer = `${numerator/g}/${denominator/g}`;
-            hint.innerText="Calculator recommended";
-        }
-        if(difficulty==="veryhard"){
-            numerator = rand(50,200); denominator = rand(10,100);
-            q.innerHTML=`Simplify: ${numerator}/${denominator}`;
-            let g= gcd(numerator,denominator);
-            currentAnswer = `${numerator/g}/${denominator/g}`;
-            hint.innerText="Calculator allowed";
-        }
-    }
-
-    // ================= EXPERIMENTAL PROBABILITY =================
-    if(topic==="probability"){
-        let success, total;
-        if(difficulty==="easy"){ success=rand(1,5); total=rand(5,10); }
-        if(difficulty==="medium"){ success=rand(2,8); total=rand(10,20); }
-        if(difficulty==="hard"){ success=rand(5,15); total=rand(15,30); }
-        if(difficulty==="veryhard"){ success=rand(5,15); total=rand(15,30); let extra=rand(1,10); success+=extra; }
-
-        q.innerHTML=`Event occurs ${success} times out of ${total} trials. Find probability (decimal).`;
-        currentAnswer = (success/total).toFixed(2);
-        hint.innerText=(difficulty==="easy")?"Calculator not needed":"Calculator allowed";
-    }
-
-    // ================= RATIO =================
-    if(topic==="ratio"){
-        let a,b,c,sum,scale;
-        if(difficulty==="easy"){
-            a=rand(1,5); b=rand(1,5);
-            q.innerHTML=`Simplify ratio ${a*2}:${b*2}`;
-            currentAnswer=`${a}:${b}`;
-            hint.innerText="Calculator not needed";
-        }
-        if(difficulty==="medium"){
-            a=rand(1,5); b=rand(1,5); sum=(a+b)*rand(2,5);
-            q.innerHTML=`Share ${sum} in ratio ${a}:${b}. First person gets?`;
-            currentAnswer=(sum*a/(a+b)).toFixed(2);
-            hint.innerText="Calculator recommended";
-        }
-        if(difficulty==="hard"){
-            a=rand(2,6); b=rand(2,6); c=rand(2,6); sum=(a+b+c)*rand(3,7);
-            q.innerHTML=`Three numbers are in ratio ${a}:${b}:${c}. Sum is ${sum}. Largest number?`;
-            currentAnswer=(c*sum/(a+b+c)).toFixed(2);
-            hint.innerText="Calculator recommended";
-        }
-        if(difficulty==="veryhard"){
-            a=rand(2,8); b=rand(2,8); c=rand(2,8); d=rand(2,8); sum=rand(50,200);
-            let numbers=[a,b,c,d].map(x=>x*sum/(a+b+c+d)).sort((x,y)=>x-y);
-            q.innerHTML=`Four numbers in ratio ${a}:${b}:${c}:${d}. Sum=${sum}. Second largest?`;
-            currentAnswer=numbers[2].toFixed(2);
-            hint.innerText="Calculator allowed";
-        }
-    }
-
-    // ================= SIMILAR SHAPES =================
-    if(topic==="similar"){
-        let scale, small, large;
-        if(difficulty==="easy"){
-            scale=rand(2,5); small=rand(2,10);
-            q.innerHTML=`Scale factor ${scale}, small length=${small}cm. Find large length.`;
-            currentAnswer=(small*scale).toFixed(2);
-            hint.innerText="Calculator not needed";
-        }
-        if(difficulty==="medium"){
-            scale=rand(2,4); small=rand(10,30);
-            q.innerHTML=`Scale factor ${scale}, small area=${small}cm². Find large area.`;
-            currentAnswer=(small*Math.pow(scale,2)).toFixed(2);
-            hint.innerText="Calculator recommended";
-        }
-        if(difficulty==="hard"){
-            scale=rand(2,4); small=rand(5,20);
-            q.innerHTML=`Scale factor ${scale}, small volume=${small}cm³. Find large volume.`;
-            currentAnswer=(small*Math.pow(scale,3)).toFixed(2);
-            hint.innerText="Calculator recommended";
-        }
-        if(difficulty==="veryhard"){
-            scale=rand(2,5); small=rand(10,50); small2=rand(5,25);
-            q.innerHTML=`Scale factor ${scale}, small volumes=${small}cm³ and ${small2}cm³. Find difference in large volumes.`;
-            currentAnswer=(Math.abs(small-small2)*Math.pow(scale,3)).toFixed(2);
-            hint.innerText="Calculator allowed";
-        }
-    }
+function rand(min,max){
+return Math.floor(Math.random()*(max-min+1))+min
 }
 
-// ================= Check Answer =================
+function clearCanvas(){
+let c=document.getElementById("diagram")
+let ctx=c.getContext("2d")
+ctx.clearRect(0,0,c.width,c.height)
+}
+
+/* GENERATE QUESTION */
+
+function generateQuestion(){
+
+wrongAttempts=0
+document.getElementById("feedback").innerHTML=""
+document.getElementById("solution").innerHTML=""
+document.getElementById("hint").innerHTML=""
+document.getElementById("answer").value=""
+
+clearCanvas()
+
+let topic=document.getElementById("topic").value
+let q=document.getElementById("question")
+
+/* PYTHAGORAS */
+
+if(topic=="pythagoras"){
+
+let a=rand(3,10)
+let b=rand(3,10)
+
+q.innerHTML=`Right triangle sides ${a} and ${b}. Find hypotenuse.`
+
+answer=Math.sqrt(a*a+b*b).toFixed(2)
+
+hint="Use a² + b² = c²"
+
+solution=`√(${a}² + ${b}²) = ${answer}`
+
+drawTriangle(a,b)
+
+}
+
+/* TRIG */
+
+if(topic=="trig"){
+
+let adj=rand(4,10)
+let hyp=rand(adj+1,15)
+
+q.innerHTML=`Adjacent=${adj}, Hypotenuse=${hyp}. Find cos θ.`
+
+answer=(adj/hyp).toFixed(2)
+
+hint="cosθ = adjacent/hypotenuse"
+
+solution=`${adj}/${hyp} = ${answer}`
+
+drawTriangle(adj,Math.sqrt(hyp*hyp-adj*adj))
+
+}
+
+/* QUADRATIC */
+
+if(topic=="quadratic"){
+
+let r1=rand(1,5)
+let r2=rand(1,5)
+
+let b=-(r1+r2)
+let c=r1*r2
+
+q.innerHTML=`Solve x² ${b>=0?"+":""}${b}x + ${c} = 0`
+
+answer=`${r1},${r2}`
+
+hint="Factorise the quadratic."
+
+solution=`(x-${r1})(x-${r2}) = 0`
+
+}
+
+/* PROBABILITY TREE */
+
+if(topic=="probability"){
+
+let p=rand(2,8)/10
+
+q.innerHTML=`Probability of success = ${p}.  
+Find probability of two successes.`
+
+answer=(p*p).toFixed(2)
+
+hint="Multiply probabilities."
+
+solution=`${p} × ${p} = ${answer}`
+
+drawTree()
+
+}
+
+/* GRAPH CLICK */
+
+if(topic=="graphClick"){
+
+drawGrid()
+
+let x=rand(1,5)
+let y=2*x+1
+
+answer=`${x},${y}`
+
+q.innerHTML=`Click the point (${x},${y}) on the graph.`
+
+document.getElementById("diagram").onclick=function(e){
+
+let rect=this.getBoundingClientRect()
+
+let cx=Math.round((e.clientX-rect.left-250)/20)
+let cy=Math.round((150-(e.clientY-rect.top))/20)
+
+if(cx==x && cy==y){
+
+correct()
+
+}
+
+}
+
+hint="Use coordinates (x,y)."
+
+solution=`Point is (${x},${y})`
+
+}
+
+/* FUNCTIONS */
+
+if(topic=="functions"){
+
+let x=rand(2,6)
+
+q.innerHTML=`f(x)=x²+2x+1. Find f(${x}).`
+
+answer=(x*x+2*x+1)
+
+hint="Substitute x."
+
+solution=`${x}² + 2(${x}) +1 = ${answer}`
+
+drawParabola()
+
+}
+
+}
+
+/* CHECK ANSWER */
+
 function checkAnswer(){
-    let userAnswer=document.getElementById("answerInput").value.replace(/\s+/g,'');
-    let correct=currentAnswer.toString().replace(/\s+/g,'');
-    if(!currentAnswer) return;
 
-    if(!isNaN(userAnswer) && !isNaN(correct)){
-        if(Math.abs(parseFloat(userAnswer)-parseFloat(correct))<0.01){
-            score++;
-            document.getElementById("feedback").innerText="Correct!";
-        }else{
-            document.getElementById("feedback").innerText="Incorrect. Correct answer: "+currentAnswer;
-        }
-    }else{
-        if(userAnswer.toLowerCase()===correct.toLowerCase()){
-            score++;
-            document.getElementById("feedback").innerText="Correct!";
-        }else{
-            document.getElementById("feedback").innerText="Incorrect. Correct answer: "+currentAnswer;
-        }
-    }
-    document.getElementById("score").innerText="Score: "+score;
+let user=document.getElementById("answer").value.replace(" ","")
+
+if(user==answer || Math.abs(user-answer)<0.01){
+
+correct()
+
+}else{
+
+wrongAttempts++
+streak=0
+
+document.getElementById("feedback").innerHTML="<span class='wrong'>Incorrect</span>"
+
+if(wrongAttempts>=3){
+document.getElementById("solution").innerHTML="<b>Solution:</b><br>"+solution
 }
 
-// ================= GCD helper =================
-function gcd(a,b){return b===0?a:gcd(b,a%b);}
+saveStats()
 
-generateQuestion();
+}
+
+}
+
+function correct(){
+
+document.getElementById("feedback").innerHTML="<span class='correct'>Correct</span>"
+
+score++
+streak++
+xp=parseInt(xp)+10
+
+if(xp>=100){
+level++
+xp=0
+}
+
+saveStats()
+
+}
+
+/* HINT */
+
+function showHint(){
+document.getElementById("hint").innerHTML="<b>Hint:</b> "+hint
+}
+
+/* SAVE */
+
+function saveStats(){
+
+localStorage.setItem("score",score)
+localStorage.setItem("xp",xp)
+localStorage.setItem("level",level)
+localStorage.setItem("streak",streak)
+
+document.getElementById("score").innerText=score
+document.getElementById("xp").innerText=xp
+document.getElementById("level").innerText=level
+document.getElementById("streak").innerText=streak
+
+}
+
+/* DRAWING FUNCTIONS */
+
+function drawTriangle(a,b){
+
+let ctx=document.getElementById("diagram").getContext("2d")
+
+ctx.beginPath()
+ctx.moveTo(80,250)
+ctx.lineTo(80+a*15,250)
+ctx.lineTo(80+a*15,250-b*15)
+ctx.closePath()
+ctx.stroke()
+
+}
+
+function drawGrid(){
+
+let ctx=document.getElementById("diagram").getContext("2d")
+
+for(let i=0;i<500;i+=20){
+
+ctx.moveTo(i,0)
+ctx.lineTo(i,320)
+ctx.stroke()
+
+ctx.moveTo(0,i)
+ctx.lineTo(500,i)
+ctx.stroke()
+
+}
+
+}
+
+function drawParabola(){
+
+let ctx=document.getElementById("diagram").getContext("2d")
+
+ctx.beginPath()
+
+for(let x=-10;x<=10;x++){
+
+let y=x*x
+
+ctx.lineTo(250+x*20,250-y*2)
+
+}
+
+ctx.stroke()
+
+}
+
+function drawTree(){
+
+let ctx=document.getElementById("diagram").getContext("2d")
+
+ctx.beginPath()
+
+ctx.moveTo(100,150)
+ctx.lineTo(200,100)
+
+ctx.moveTo(100,150)
+ctx.lineTo(200,200)
+
+ctx.moveTo(200,100)
+ctx.lineTo(300,70)
+
+ctx.moveTo(200,100)
+ctx.lineTo(300,130)
+
+ctx.moveTo(200,200)
+ctx.lineTo(300,170)
+
+ctx.moveTo(200,200)
+ctx.lineTo(300,230)
+
+ctx.stroke()
+
+}
+
+generateQuestion()
+
 </script>
 
 </body>
-</html>
-<html>
-<hr>
-<div>
-        <p>Hint for calculator allowed factorizing algebra use quadratic formula.</p>
-    </div>
 </html>
