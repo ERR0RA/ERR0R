@@ -84,7 +84,6 @@ canvas {
 <canvas id="diagram" width="500" height="320"></canvas>
 <br>
 
-<!-- Calculator input -->
 <input id="answer" placeholder="Answer">
 <br>
 <button onclick="checkAnswer()">Submit</button>
@@ -129,21 +128,23 @@ let topic=document.getElementById("topic").value;
 let diff=document.getElementById("difficulty").value;
 let q=document.getElementById("question");
 
-calculatorAllowed=false; // default hide input
+calculatorAllowed=false; 
 let inputField=document.getElementById("answer");
-inputField.style.display="none"; // hide default
+inputField.style.display="none";
 
 /* ==== QUESTIONS ==== */
 
+/* Expand Algebra */
 if(topic=="expand"){
     let a=rand(1,5),b=rand(0,5),c=rand(1,5),d=rand(0,5);
     q.innerHTML=`Expand: (${a}x + ${b})(${c}x + ${d})`;
     answer=`${a*c}x^2+${a*d+b*c}x+${b*d}`;
     hint="Multiply brackets";
     solution=`${a*c}x² + ${a*d+b*c}x + ${b*d}`;
-    calculatorAllowed=(diff=="hard"); // calculator only for hard
+    calculatorAllowed=(diff=="hard");
 }
 
+/* Factorise */
 if(topic=="factor"){
     let a=rand(2,5),b=rand(1,5);
     q.innerHTML=`Factorise: ${a*b}x + ${a*b*2}`;
@@ -153,6 +154,7 @@ if(topic=="factor"){
     calculatorAllowed=(diff=="hard");
 }
 
+/* Quadratics */
 if(topic=="quadratic"){
     let r1=rand(1,5), r2=rand(1,5);
     let b=-(r1+r2), c=r1*r2;
@@ -163,36 +165,34 @@ if(topic=="quadratic"){
     calculatorAllowed=(diff=="hard");
 }
 
+/* Circle Area & Circumference - calculator allowed always */
 if(topic=="circle"){
     let r=rand(3,10);
     q.innerHTML=`Radius ${r}. Find area (2dp)`;
     answer=(Math.PI*r*r).toFixed(2);
     hint="Area = πr²";
     solution=`π × ${r}² = ${answer}`;
-    calculatorAllowed=(diff=="hard");
+    calculatorAllowed=true;
     drawCircle(r);
 }
 
+/* Sector / Arc Length - calculator allowed always */
 if(topic=="sector"){
     let r=rand(4,8),angle=rand(30,120);
     q.innerHTML=`Radius ${r}, angle ${angle}. Arc length?`;
     answer=((angle/360)*2*Math.PI*r).toFixed(2);
     hint="Arc = (θ/360)×2πr";
     solution=`(θ/360)×2π×${r} = ${answer}`;
-    calculatorAllowed=(diff=="hard");
+    calculatorAllowed=true;
     drawSector(r,angle);
 }
 
-if(calculatorAllowed){
-    inputField.style.display="inline-block";
-} else {
-    inputField.style.display="none";
+/* Default: show input only if calculator allowed or diff=hard */
+if(calculatorAllowed || diff=="hard"){ inputField.style.display="inline-block"; } 
+else{ inputField.style.display="none"; }
 }
 
-/* --- Add other topics similarly with calculatorAllowed = true only if diff=="hard" --- */
-}
-
-/* CHECK ANSWER */
+/* Check Answer */
 function checkAnswer(){
 let user=document.getElementById("answer").value.replace(" ","");
 if(user==answer || Math.abs(user-answer)<0.01){correct();}
@@ -202,6 +202,7 @@ streak=0;
 document.getElementById("feedback").innerHTML="<span class='wrong'>Incorrect</span>";
 if(wrong>=3){document.getElementById("solution").innerHTML="<b>Solution:</b> "+solution;}
 updateStats();
+sendScoreOnline();
 }
 }
 
@@ -210,6 +211,7 @@ document.getElementById("feedback").innerHTML="<span class='correct'>Correct</sp
 score++;streak++;xp=parseInt(xp)+10;
 if(xp>=100){level++;xp=0;}
 updateStats();
+sendScoreOnline();
 }
 
 function showHint(){document.getElementById("hint").innerHTML="<b>Hint:</b> "+hint;}
@@ -224,7 +226,7 @@ document.getElementById("level").innerText=level;
 document.getElementById("streak").innerText=streak;
 }
 
-/* DRAWING FUNCTIONS */
+/* Drawing Functions */
 function drawCircle(r){
 let ctx=document.getElementById("diagram").getContext("2d");
 ctx.beginPath(); ctx.arc(250,160,r*10,0,2*Math.PI); ctx.stroke();
@@ -243,6 +245,25 @@ ctx.closePath(); ctx.stroke();
 }
 
 function gcd(a,b){return b==0?a:gcd(b,a%b);}
+
+/* Online Score Submission */
+function sendScoreOnline(){
+if(navigator.onLine){
+fetch("https://example.com/submit_score",{ // Replace with your server
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+username: localStorage.getItem("username")||"anonymous",
+score: score,
+xp: xp,
+streak: streak
+})
+})
+.then(res=>console.log("Score sent"))
+.catch(e=>console.log("Cannot send score", e));
+}
+}
+
 generateQuestion();
 </script>
 
