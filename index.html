@@ -1,212 +1,402 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Maths Revision</title>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    display: flex;
-    justify-content: center;
-    padding: 10px;
-    background-color: #f4f4f4;
-  }
-  .container {
-    max-width: 500px;
-    width: 100%;
-    background: white;
-    padding: 15px;
-    border-radius: 12px;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.2);
-  }
-  h1 {
-    text-align: center;
-  }
-  select, input, button {
-    width: 100%;
-    padding: 8px;
-    margin: 6px 0;
-    box-sizing: border-box;
-    border-radius: 5px;
-  }
-  #diagramImg {
-    width: 100%;
-    height: auto;
-    border:1px solid #ccc;
-    margin:10px 0;
-  }
-  #scoreBoard {
-    text-align: center;
-    margin-top: 10px;
-  }
-  .calculator {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 5px;
-    margin-top: 10px;
-  }
-  .calculator button {
-    padding: 15px;
-    font-size: 16px;
-  }
-  #calcDisplay {
-    grid-column: span 4;
-    padding: 10px;
-    font-size: 16px;
-    text-align: right;
-  }
+body{
+font-family:Arial;
+background:#eef2f8;
+text-align:center;
+padding:20px;
+}
+.container{
+background:white;
+max-width:1200px;
+margin:auto;
+padding:30px;
+border-radius:14px;
+box-shadow:0 8px 25px rgba(0,0,0,0.15);
+}
+select,input,button{
+padding:10px;
+margin:6px;
+font-size:16px;
+border-radius:6px;
+}
+.question{font-size:22px;margin:15px;}
+canvas{border:1px solid #ccc;margin-top:15px;}
+.correct{color:green;font-weight:bold}
+.wrong{color:red;font-weight:bold}
+.stats{font-size:18px;margin-top:10px;}
 </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>Maths Revision</h1>
+<h1>Maths Revision</h1>
 
-  <select id="topicSelect">
-    <option value="probTree">Probability Tree</option>
-    <option value="linearSeq">Linear Sequence</option>
-    <option value="nonLinearSeq">Non-linear Sequence</option>
-    <option value="graphs">Graphs & Charts</option>
-    <option value="circles">Circles & Areas</option>
-  </select>
+<label>Topic:</label>
+<select id="topic">
+<option value="expand">Expand Algebra</option>
+<option value="factor">Factorise</option>
+<option value="quadratic">Quadratics</option>
+<option value="function">Functions</option>
+<option value="manipulate">Manipulate Expression</option>
+<option value="solve">Solve / Rearrange</option>
+<option value="fraction">Simplify Fractions</option>
+<option value="ratio">Ratio & Proportion</option>
+<option value="percentage">Percentage</option>
+<option value="powers">Powers & Standard Form</option>
+<option value="rounding">Rounding & Bounds</option>
+<option value="linearSeq">Linear Sequence</option>
+<option value="nonlinearSeq">Nonlinear Sequence</option>
+<option value="similar">Similar Shapes</option>
+<option value="circle">Circle Area & Circumference</option>
+<option value="sector">Arc / Sector</option>
+<option value="pythagoras">Pythagoras</option>
+<option value="trig">Trigonometry</option>
+<option value="coordinates">Coordinates</option>
+<option value="graph">Graph Question</option>
+<option value="barchart">Bar Chart</option>
+<option value="piechart">Pie Chart</option>
+<option value="probability">Experimental Probability</option>
+<option value="tree">Probability Tree</option>
+</select>
 
-  <select id="difficultySelect">
-    <option value="easy">Easy</option>
-    <option value="medium">Medium</option>
-    <option value="hard">Hard</option>
-  </select>
+<label>Difficulty:</label>
+<select id="difficulty">
+<option value="easy">Easy</option>
+<option value="medium">Medium</option>
+<option value="hard">Hard</option>
+</select>
 
-  <button id="newQBtn">New Question</button>
+<br>
+<button onclick="generateQuestion()">New Question</button>
+<div class="question" id="question"></div>
+<canvas id="diagram" width="500" height="320"></canvas>
+<br>
+<input id="answer" placeholder="Answer">
+<br>
+<button onclick="checkAnswer()">Submit</button>
+<button onclick="showHint()">Hint</button>
+<div id="hint"></div>
+<div id="feedback"></div>
+<div id="solution"></div>
 
-  <img id="diagramImg" src="" alt="Math Diagram">
-
-  <div id="questionText" style="text-align:center; margin:10px 0;"></div>
-
-  <input type="text" id="answerInput" placeholder="Enter your answer">
-  <button onclick="checkAnswer()">Submit</button>
-  <button onclick="showHint()">Hint</button>
-
-  <div id="scoreBoard">
-    Score: <span id="score">0</span> | Level: <span id="level">1</span> | Streak: <span id="streak">0</span>
-  </div>
-
-  <!-- Calculator -->
-  <div class="calculator">
-    <input type="text" id="calcDisplay" disabled>
-    <button onclick="appendCalc('7')">7</button>
-    <button onclick="appendCalc('8')">8</button>
-    <button onclick="appendCalc('9')">9</button>
-    <button onclick="appendCalc('/')">/</button>
-
-    <button onclick="appendCalc('4')">4</button>
-    <button onclick="appendCalc('5')">5</button>
-    <button onclick="appendCalc('6')">6</button>
-    <button onclick="appendCalc('*')">*</button>
-
-    <button onclick="appendCalc('1')">1</button>
-    <button onclick="appendCalc('2')">2</button>
-    <button onclick="appendCalc('3')">3</button>
-    <button onclick="appendCalc('-')">-</button>
-
-    <button onclick="appendCalc('0')">0</button>
-    <button onclick="appendCalc('.')">.</button>
-    <button onclick="calculate()">=</button>
-    <button onclick="appendCalc('+')">+</button>
-
-    <button onclick="clearCalc()" style="grid-column: span 4; background:#f88;">Clear</button>
-  </div>
-
+<div class="stats">
+Score: <span id="score">0</span> |
+Level: <span id="level">1</span> |
+XP: <span id="xp">0</span> |
+🔥 Streak: <span id="streak">0</span>
+</div>
 </div>
 
 <script>
-// ========= GLOBAL VARIABLES =========
-let score = 0, level = 1, streak = 0;
-let currentAnswer = 0;
-let currentQuestion = null;
+let answer,hint,solution,wrong=0;
+let score=localStorage.getItem("score")||0;
+let xp=localStorage.getItem("xp")||0;
+let level=localStorage.getItem("level")||1;
+let streak=localStorage.getItem("streak")||0;
 
-// ========= QUESTIONS =========
-function generateQuestion() {
-    const topic = document.getElementById('topicSelect').value;
-    const difficulty = document.getElementById('difficultySelect').value;
-    const img = document.getElementById('diagramImg');
+updateStats();
 
-    if(topic === "probTree") {
-        const p = difficulty==="easy"?0.4:difficulty==="medium"?0.5:0.6;
-        currentAnswer = +(p*p).toFixed(2);
-        currentQuestion = {topic:"probTree", p};
-        document.getElementById('questionText').innerText = `Success probability = ${p}. Two successes?`;
-        img.src = "images/probability_tree.png";
-    }
-    else if(topic==="linearSeq") {
-        const start = Math.floor(Math.random()*10);
-        const diff = Math.floor(Math.random()*5)+1;
-        const n = 5;
-        currentAnswer = start + (n-1)*diff;
-        currentQuestion = {topic:"linearSeq", start, diff, n};
-        document.getElementById('questionText').innerText = `Find the ${n}th term of sequence starting at ${start} with difference ${diff}.`;
-        img.src = "images/linear_sequence.png";
-    }
-    else if(topic==="nonLinearSeq") {
-        const n = 4;
-        currentAnswer = n**2;
-        currentQuestion = {topic:"nonLinearSeq", n};
-        document.getElementById('questionText').innerText = `Find the ${n}th term of sequence n² (n=1,2,3...)`;
-        img.src = "images/nonlinear_sequence.png";
-    }
-    else if(topic==="graphs") {
-        const a = Math.floor(Math.random()*5)+1;
-        currentAnswer = a*2;
-        currentQuestion = {topic:"graphs", a};
-        document.getElementById('questionText').innerText = `y = ${a}x. Find y when x=2.`;
-        img.src = "images/graph_example.png";
-    }
-    else if(topic==="circles") {
-        const r = Math.floor(Math.random()*10)+1;
-        currentAnswer = +(Math.PI*r*r).toFixed(2);
-        currentQuestion = {topic:"circles", r};
-        document.getElementById('questionText').innerText = `Find area of circle with radius ${r} (π≈3.1416).`;
-        img.src = "images/circle.png";
-    }
+function rand(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+function clearCanvas(){let ctx=document.getElementById("diagram").getContext("2d");ctx.clearRect(0,0,500,320);}
+
+document.getElementById("topic").addEventListener("change",generateQuestion);
+document.getElementById("difficulty").addEventListener("change",generateQuestion);
+
+function generateQuestion(){
+wrong=0;
+clearCanvas();
+document.getElementById("hint").innerHTML="";
+document.getElementById("solution").innerHTML="";
+document.getElementById("feedback").innerHTML="";
+document.getElementById("answer").value="";
+let topic=document.getElementById("topic").value;
+let diff=document.getElementById("difficulty").value;
+let q=document.getElementById("question");
+
+/* ==== TOPICS ==== */
+if(topic=="expand"){
+let a=rand(1,5),b=rand(0,5),c=rand(1,5),d=rand(0,5);
+q.innerHTML=`Expand: (${a}x + ${b})(${c}x + ${d})`;
+answer=`${a*c}x^2+${a*d+b*c}x+${b*d}`;
+hint="Multiply brackets";
+solution=`${a*c}x² + ${a*d+b*c}x + ${b*d}`;
 }
 
-// ========= CHECK ANSWER =========
-function checkAnswer() {
-    const user = parseFloat(document.getElementById('answerInput').value);
-    if(Math.abs(user-currentAnswer)<0.01) {
-        alert("Correct!");
-        score += 10; streak += 1;
-    } else {
-        alert(`Wrong! Correct answer: ${currentAnswer}`);
-        streak = 0;
-    }
-    document.getElementById('score').innerText = score;
-    document.getElementById('streak').innerText = streak;
-    document.getElementById('level').innerText = 1 + Math.floor(score/50);
-    document.getElementById('answerInput').value = '';
-    generateQuestion();
+if(topic=="factor"){
+let a=rand(2,5),b=rand(1,5);
+q.innerHTML=`Factorise: ${a*b}x + ${a*b*2}`;
+answer=`${a}(${b}x + ${b*2})`;
+hint="Take out common factor";
+solution=`${a}(${b}x + ${b*2})`;
 }
 
-// ========= HINT =========
-function showHint() {
-    const t = currentQuestion.topic;
-    if(t==="probTree") alert("Hint: multiply probabilities along the branches.");
-    else if(t==="linearSeq") alert("Hint: nth term = first term + (n-1)×difference.");
-    else if(t==="nonLinearSeq") alert("Hint: nth term = n²");
-    else if(t==="graphs") alert("Hint: plug x into y=ax");
-    else if(t==="circles") alert("Hint: Area = πr²");
+if(topic=="quadratic"){
+let r1=rand(1,5),r2=rand(1,5);
+let b=-(r1+r2),c=r1*r2;
+q.innerHTML=`Solve: x² ${b>=0?"+":""}${b}x + ${c}=0`;
+answer=`${r1},${r2}`;
+hint="Factorise quadratic";
+solution=`(x-${r1})(x-${r2})=0`;
 }
 
-// ========= CALCULATOR =========
-const calcDisplay = document.getElementById('calcDisplay');
-function appendCalc(val){calcDisplay.value+=val;}
-function clearCalc(){calcDisplay.value='';}
-function calculate(){try{calcDisplay.value=eval(calcDisplay.value)}catch{calcDisplay.value='Error';}}
+if(topic=="function"){
+let x=rand(2,6);
+q.innerHTML=`f(x)=x²+2x+1. Find f(${x})`;
+answer=x*x+2*x+1;
+hint="Substitute x";
+solution=`${x}² + 2(${x}) + 1 = ${answer}`;
+}
 
-// ========= INITIALIZE =========
-document.getElementById('newQBtn').addEventListener('click', generateQuestion);
+if(topic=="manipulate"){
+let a=rand(2,10),b=rand(1,10);
+q.innerHTML=`Simplify: ${a}x + ${b} - ${b}`;
+answer=`${a}x`;
+hint="Combine like terms";
+solution=`${a}x + ${b} - ${b} = ${answer}`;
+}
+
+if(topic=="solve"){
+let a=rand(2,10),b=rand(1,10);
+q.innerHTML=`Solve: ${a}x + ${b} = ${b*2}`;
+answer=(b*2-b)/a;
+hint="Subtract then divide";
+solution=`(${b*2}-${b})/${a} = ${answer}`;
+}
+
+if(topic=="fraction"){
+let n=rand(10,50),d=rand(2,10),g=gcd(n,d);
+q.innerHTML=`Simplify ${n}/${d}`;
+answer=`${n/g}/${d/g}`;
+hint="Divide by highest common factor";
+solution=`HCF=${g}, so ${answer}`;
+}
+
+if(topic=="ratio"){
+let a=rand(2,5),b=rand(2,5);
+q.innerHTML=`Share 60 in ratio ${a}:${b}. First person gets?`;
+answer=(60*a/(a+b)).toFixed(2);
+hint="Find total parts";
+solution=`60 × ${a}/(${a+b}) = ${answer}`;
+}
+
+if(topic=="percentage"){
+let p=rand(10,50);
+q.innerHTML=`Find ${p}% of 200`;
+answer=(200*p/100).toFixed(2);
+hint="Multiply by p/100";
+solution=`200 × ${p}/100 = ${answer}`;
+}
+
+if(topic=="powers"){
+let a=rand(2,5),b=rand(2,5);
+q.innerHTML=`Calculate ${a}^${b}`;
+answer=Math.pow(a,b);
+hint="Multiply by itself b times";
+solution=`${a}^${b} = ${answer}`;
+}
+
+if(topic=="rounding"){
+let n=rand(100,999);
+q.innerHTML=`Round ${n} to nearest 10`;
+answer=Math.round(n/10)*10;
+hint="Look at units digit";
+solution=`Round ${n} → ${answer}`;
+}
+
+if(topic=="linearSeq"){
+let a=rand(1,5),d=rand(2,6);
+q.innerHTML=`${a}, ${a+d}, ${a+2*d}, ... Find 10th term`;
+answer=a+9*d;
+hint="Use a+(n-1)d";
+solution=`${a}+9×${d} = ${answer}`;
+}
+
+if(topic=="nonlinearSeq"){
+q.innerHTML="1,4,9,16,... Find 12th term";
+answer=144;
+hint="Square numbers";
+solution="12²=144";
+}
+
+if(topic=="similar"){
+let scale=rand(2,5),length=rand(4,10);
+q.innerHTML=`Scale factor ${scale}, original ${length}cm. Find new length`;
+answer=length*scale;
+hint="Multiply by scale factor";
+solution=`${length} × ${scale} = ${answer}`;
+}
+
+if(topic=="circle"){
+let r=rand(3,10);
+q.innerHTML=`Radius ${r}. Find area (2dp)`;
+answer=(Math.PI*r*r).toFixed(2);
+hint="Area = πr²";
+solution=`π × ${r}² = ${answer}`;
+drawCircle(r);
+}
+
+if(topic=="sector"){
+let r=rand(4,8),angle=rand(30,120);
+q.innerHTML=`Radius ${r}, angle ${angle}. Arc length?`;
+answer=((angle/360)*2*Math.PI*r).toFixed(2);
+hint="Arc = (θ/360)×2πr";
+solution=`(θ/360)×2π×${r} = ${answer}`;
+drawSector(r,angle);
+}
+
+if(topic=="pythagoras"){
+let a=rand(3,8),b=rand(3,8);
+q.innerHTML=`Sides ${a},${b}. Hypotenuse?`;
+answer=Math.sqrt(a*a+b*b).toFixed(2);
+hint="a²+b²=c²";
+solution=`√(${a}²+${b}²) = ${answer}`;
+drawTriangle(a,b);
+}
+
+if(topic=="trig"){
+let adj=rand(4,10),hyp=rand(adj+1,15);
+q.innerHTML=`adj=${adj}, hyp=${hyp}. cosθ?`;
+answer=(adj/hyp).toFixed(2);
+hint="cosθ = adj/hyp";
+solution=`${adj}/${hyp} = ${answer}`;
+drawTriangle(adj,Math.sqrt(hyp*hyp-adj*adj));
+}
+
+if(topic=="coordinates"){
+let x=rand(1,5),y=rand(1,5);
+q.innerHTML=`Plot point (${x},${y}) on grid`;
+answer=`${x},${y}`;
+drawGrid();
+}
+
+if(topic=="graph"){
+drawGrid();
+let x=rand(1,5),y=2*x+1;
+answer=`${x},${y}`;
+q.innerHTML=`Click point (${x},${y})`;
+document.getElementById("diagram").onclick=function(e){
+let rect=this.getBoundingClientRect();
+let cx=Math.round((e.clientX-rect.left-250)/20);
+let cy=Math.round((150-(e.clientY-rect.top))/20);
+if(cx==x && cy==y){correct();}
+}
+hint="Coordinates (x,y)";
+solution=`Point is (${x},${y})`;
+}
+
+if(topic=="barchart"){
+let values=[rand(2,10),rand(2,10),rand(2,10)];
+drawBars(values);
+q.innerHTML="Total of bars?";
+answer=values[0]+values[1]+values[2];
+hint="Add values";
+solution=`${values[0]}+${values[1]}+${values[2]} = ${answer}`;
+}
+
+if(topic=="piechart"){
+drawPie();
+q.innerHTML="If total=80, quarter section?";
+answer=20;
+hint="Divide by 4";
+solution="80/4";
+}
+
+if(topic=="probability"){
+let s=rand(3,10),t=rand(10,20);
+q.innerHTML=`${s} successes in ${t}. Probability?`;
+answer=(s/t).toFixed(2);
+hint="success/total";
+solution=`${s}/${t} = ${answer}`;
+}
+
+if(topic=="tree"){
+let p=0.4;
+q.innerHTML="Success probability = 0.4. Two successes?";
+answer=(p*p).toFixed(2);
+hint="Multiply probabilities";
+solution="0.4×0.4";
+drawTree();
+}
+}
+
+/* CHECK ANSWER */
+function checkAnswer(){
+let user=document.getElementById("answer").value.replace(" ","");
+if(user==answer || Math.abs(user-answer)<0.01){correct();}
+else{
+wrong++;
+streak=0;
+document.getElementById("feedback").innerHTML="<span class='wrong'>Incorrect</span>";
+if(wrong>=3){document.getElementById("solution").innerHTML="<b>Solution:</b> "+solution;}
+updateStats();
+}
+}
+
+function correct(){
+document.getElementById("feedback").innerHTML="<span class='correct'>Correct</span>";
+score++;streak++;xp=parseInt(xp)+10;
+if(xp>=100){level++;xp=0;}
+updateStats();
+}
+
+function showHint(){document.getElementById("hint").innerHTML="<b>Hint:</b> "+hint;}
+function updateStats(){
+localStorage.setItem("score",score);
+localStorage.setItem("xp",xp);
+localStorage.setItem("level",level);
+localStorage.setItem("streak",streak);
+document.getElementById("score").innerText=score;
+document.getElementById("xp").innerText=xp;
+document.getElementById("level").innerText=level;
+document.getElementById("streak").innerText=streak;
+}
+
+/* DRAWING FUNCTIONS */
+function drawCircle(r){
+let ctx=document.getElementById("diagram").getContext("2d");
+ctx.beginPath();
+ctx.arc(250,160,r*10,0,2*Math.PI);
+ctx.stroke();
+}
+function drawSector(r,a){
+let ctx=document.getElementById("diagram").getContext("2d");
+ctx.beginPath();
+ctx.moveTo(250,160);
+ctx.arc(250,160,r*10,0,a*Math.PI/180);
+ctx.closePath();ctx.stroke();
+}
+function drawTriangle(a,b){
+let ctx=document.getElementById("diagram").getContext("2d");
+ctx.beginPath();
+ctx.moveTo(100,250);
+ctx.lineTo(100+a*20,250);
+ctx.lineTo(100+a*20,250-b*20);
+ctx.closePath();ctx.stroke();
+}
+function drawBars(v){
+let ctx=document.getElementById("diagram").getContext("2d");
+for(let i=0;i<v.length;i++){ctx.fillRect(150+i*80,260-v[i]*15,50,v[i]*15);}
+}
+function drawPie(){
+let ctx=document.getElementById("diagram").getContext("2d");
+ctx.beginPath();ctx.moveTo(250,160);ctx.arc(250,160,100,0,Math.PI/2);ctx.closePath();ctx.fill();
+ctx.beginPath();ctx.arc(250,160,100,0,2*Math.PI);ctx.stroke();
+}
+function drawGrid(){
+let ctx=document.getElementById("diagram").getContext("2d");
+for(let i=0;i<500;i+=20){ctx.moveTo(i,0);ctx.lineTo(i,320);ctx.stroke();ctx.moveTo(0,i);ctx.lineTo(500,i);ctx.stroke();}
+}
+function drawTree(){
+let ctx=document.getElementById("diagram").getContext("2d");
+ctx.moveTo(120,160);ctx.lineTo(220,100);ctx.moveTo(120,160);ctx.lineTo(220,220);ctx.stroke();
+}
+function gcd(a,b){return b==0?a:gcd(b,a%b);}
 generateQuestion();
 </script>
-
 </body>
 </html>
