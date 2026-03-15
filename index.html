@@ -4,31 +4,37 @@
 <meta charset="UTF-8">
 <title>Maths Revision</title>
 <style>
-body{
-font-family:Arial;
-background:#eef2f8;
-text-align:center;
-padding:20px;
+body {
+    font-family: Arial, sans-serif;
+    background: #eef2f8;
+    text-align: center;
+    padding: 20px;
 }
-.container{
-background:white;
-max-width:1200px;
-margin:auto;
-padding:30px;
-border-radius:14px;
-box-shadow:0 8px 25px rgba(0,0,0,0.15);
+.container {
+    background: white;
+    max-width: 1200px;
+    margin: auto;
+    padding: 30px;
+    border-radius: 14px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
 }
-select,input,button{
-padding:10px;
-margin:6px;
-font-size:16px;
-border-radius:6px;
+select, input, button {
+    padding: 10px;
+    margin: 6px;
+    font-size: 16px;
+    border-radius: 6px;
 }
-.question{font-size:22px;margin:15px;}
-canvas{border:1px solid #ccc;margin-top:15px;}
-.correct{color:green;font-weight:bold}
-.wrong{color:red;font-weight:bold}
-.stats{font-size:18px;margin-top:10px;}
+.question {
+    font-size: 22px;
+    margin: 15px;
+}
+canvas {
+    border: 1px solid #ccc;
+    margin-top: 15px;
+}
+.correct { color: green; font-weight: bold; }
+.wrong { color: red; font-weight: bold; }
+.stats { font-size: 18px; margin-top: 10px; }
 </style>
 </head>
 <body>
@@ -73,13 +79,16 @@ canvas{border:1px solid #ccc;margin-top:15px;}
 
 <br>
 <button onclick="generateQuestion()">New Question</button>
+
 <div class="question" id="question"></div>
 <canvas id="diagram" width="500" height="320"></canvas>
 <br>
+
 <input id="answer" placeholder="Answer">
 <br>
 <button onclick="checkAnswer()">Submit</button>
 <button onclick="showHint()">Hint</button>
+
 <div id="hint"></div>
 <div id="feedback"></div>
 <div id="solution"></div>
@@ -93,7 +102,7 @@ XP: <span id="xp">0</span> |
 </div>
 
 <script>
-let answer,hint,solution,wrong=0;
+let answer, hint, solution, wrong=0, calculatorAllowed=false;
 let score=localStorage.getItem("score")||0;
 let xp=localStorage.getItem("xp")||0;
 let level=localStorage.getItem("level")||1;
@@ -101,8 +110,8 @@ let streak=localStorage.getItem("streak")||0;
 
 updateStats();
 
-function rand(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
-function clearCanvas(){let ctx=document.getElementById("diagram").getContext("2d");ctx.clearRect(0,0,500,320);}
+function rand(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function clearCanvas(){ let ctx=document.getElementById("diagram").getContext("2d"); ctx.clearRect(0,0,500,320); }
 
 document.getElementById("topic").addEventListener("change",generateQuestion);
 document.getElementById("difficulty").addEventListener("change",generateQuestion);
@@ -114,214 +123,179 @@ document.getElementById("hint").innerHTML="";
 document.getElementById("solution").innerHTML="";
 document.getElementById("feedback").innerHTML="";
 document.getElementById("answer").value="";
+
 let topic=document.getElementById("topic").value;
 let diff=document.getElementById("difficulty").value;
 let q=document.getElementById("question");
 
-/* ==== TOPICS ==== */
+calculatorAllowed=false; // default: hide input
+let inputField=document.getElementById("answer");
+inputField.style.display="none"; // hide by default
+
+/* ==== QUESTIONS ==== */
+
 if(topic=="expand"){
-let a=rand(1,5),b=rand(0,5),c=rand(1,5),d=rand(0,5);
-q.innerHTML=`Expand: (${a}x + ${b})(${c}x + ${d})`;
-answer=`${a*c}x^2+${a*d+b*c}x+${b*d}`;
-hint="Multiply brackets";
-solution=`${a*c}x² + ${a*d+b*c}x + ${b*d}`;
+    let a=rand(1,5),b=rand(0,5),c=rand(1,5),d=rand(0,5);
+    q.innerHTML=`Expand: (${a}x + ${b})(${c}x + ${d})`;
+    answer=`${a*c}x^2+${a*d+b*c}x+${b*d}`;
+    hint="Multiply brackets";
+    solution=`${a*c}x² + ${a*d+b*c}x + ${b*d}`;
+    calculatorAllowed=false;
 }
 
 if(topic=="factor"){
-let a=rand(2,5),b=rand(1,5);
-q.innerHTML=`Factorise: ${a*b}x + ${a*b*2}`;
-answer=`${a}(${b}x + ${b*2})`;
-hint="Take out common factor";
-solution=`${a}(${b}x + ${b*2})`;
+    let a=rand(2,5),b=rand(1,5);
+    q.innerHTML=`Factorise: ${a*b}x + ${a*b*2}`;
+    answer=`${a}(${b}x + ${b*2})`;
+    hint="Take out common factor";
+    solution=`${a}(${b}x + ${b*2})`;
+    calculatorAllowed=false;
 }
 
 if(topic=="quadratic"){
-let r1=rand(1,5),r2=rand(1,5);
-let b=-(r1+r2),c=r1*r2;
-q.innerHTML=`Solve: x² ${b>=0?"+":""}${b}x + ${c}=0`;
-answer=`${r1},${r2}`;
-hint="Factorise quadratic";
-solution=`(x-${r1})(x-${r2})=0`;
+    let r1=rand(1,5), r2=rand(1,5);
+    let b=-(r1+r2), c=r1*r2;
+    q.innerHTML=`Solve: x² ${b>=0?"+":""}${b}x + ${c}=0`;
+    answer=`${r1},${r2}`;
+    hint="Factorise quadratic";
+    solution=`(x-${r1})(x-${r2})=0`;
+    calculatorAllowed=false;
 }
 
 if(topic=="function"){
-let x=rand(2,6);
-q.innerHTML=`f(x)=x²+2x+1. Find f(${x})`;
-answer=x*x+2*x+1;
-hint="Substitute x";
-solution=`${x}² + 2(${x}) + 1 = ${answer}`;
+    let x=rand(2,6);
+    q.innerHTML=`f(x)=x²+2x+1. Find f(${x})`;
+    answer=x*x+2*x+1;
+    hint="Substitute x";
+    solution=`${x}² + 2(${x}) + 1 = ${answer}`;
+    calculatorAllowed=false;
 }
 
 if(topic=="manipulate"){
-let a=rand(2,10),b=rand(1,10);
-q.innerHTML=`Simplify: ${a}x + ${b} - ${b}`;
-answer=`${a}x`;
-hint="Combine like terms";
-solution=`${a}x + ${b} - ${b} = ${answer}`;
+    let a=rand(2,10),b=rand(1,10);
+    q.innerHTML=`Simplify: ${a}x + ${b} - ${b}`;
+    answer=`${a}x`;
+    hint="Combine like terms";
+    solution=`${a}x + ${b} - ${b} = ${answer}`;
+    calculatorAllowed=false;
 }
 
 if(topic=="solve"){
-let a=rand(2,10),b=rand(1,10);
-q.innerHTML=`Solve: ${a}x + ${b} = ${b*2}`;
-answer=(b*2-b)/a;
-hint="Subtract then divide";
-solution=`(${b*2}-${b})/${a} = ${answer}`;
+    let a=rand(2,10),b=rand(1,10);
+    q.innerHTML=`Solve: ${a}x + ${b} = ${b*2}`;
+    answer=(b*2-b)/a;
+    hint="Subtract then divide";
+    solution=`(${b*2}-${b})/${a} = ${answer}`;
+    calculatorAllowed=true;
 }
 
 if(topic=="fraction"){
-let n=rand(10,50),d=rand(2,10),g=gcd(n,d);
-q.innerHTML=`Simplify ${n}/${d}`;
-answer=`${n/g}/${d/g}`;
-hint="Divide by highest common factor";
-solution=`HCF=${g}, so ${answer}`;
+    let n=rand(10,50),d=rand(2,10),g=gcd(n,d);
+    q.innerHTML=`Simplify ${n}/${d}`;
+    answer=`${n/g}/${d/g}`;
+    hint="Divide by highest common factor";
+    solution=`HCF=${g}, so ${answer}`;
+    calculatorAllowed=false;
 }
 
 if(topic=="ratio"){
-let a=rand(2,5),b=rand(2,5);
-q.innerHTML=`Share 60 in ratio ${a}:${b}. First person gets?`;
-answer=(60*a/(a+b)).toFixed(2);
-hint="Find total parts";
-solution=`60 × ${a}/(${a+b}) = ${answer}`;
+    let a=rand(2,5),b=rand(2,5);
+    q.innerHTML=`Share 60 in ratio ${a}:${b}. First person gets?`;
+    answer=(60*a/(a+b)).toFixed(2);
+    hint="Find total parts";
+    solution=`60 × ${a}/(${a+b}) = ${answer}`;
+    calculatorAllowed=true;
 }
 
 if(topic=="percentage"){
-let p=rand(10,50);
-q.innerHTML=`Find ${p}% of 200`;
-answer=(200*p/100).toFixed(2);
-hint="Multiply by p/100";
-solution=`200 × ${p}/100 = ${answer}`;
+    let p=rand(10,50);
+    q.innerHTML=`Find ${p}% of 200`;
+    answer=(200*p/100).toFixed(2);
+    hint="Multiply by p/100";
+    solution=`200 × ${p}/100 = ${answer}`;
+    calculatorAllowed=true;
 }
 
 if(topic=="powers"){
-let a=rand(2,5),b=rand(2,5);
-q.innerHTML=`Calculate ${a}^${b}`;
-answer=Math.pow(a,b);
-hint="Multiply by itself b times";
-solution=`${a}^${b} = ${answer}`;
+    let a=rand(2,5),b=rand(2,5);
+    q.innerHTML=`Calculate ${a}^${b}`;
+    answer=Math.pow(a,b);
+    hint="Multiply by itself b times";
+    solution=`${a}^${b} = ${answer}`;
+    calculatorAllowed=true;
 }
 
 if(topic=="rounding"){
-let n=rand(100,999);
-q.innerHTML=`Round ${n} to nearest 10`;
-answer=Math.round(n/10)*10;
-hint="Look at units digit";
-solution=`Round ${n} → ${answer}`;
+    let n=rand(100,999);
+    q.innerHTML=`Round ${n} to nearest 10`;
+    answer=Math.round(n/10)*10;
+    hint="Look at units digit";
+    solution=`Round ${n} → ${answer}`;
+    calculatorAllowed=false;
 }
 
 if(topic=="linearSeq"){
-let a=rand(1,5),d=rand(2,6);
-q.innerHTML=`${a}, ${a+d}, ${a+2*d}, ... Find 10th term`;
-answer=a+9*d;
-hint="Use a+(n-1)d";
-solution=`${a}+9×${d} = ${answer}`;
+    let a=rand(1,5), d=rand(2,6);
+    q.innerHTML=`${a}, ${a+d}, ${a+2*d}, ... Find 10th term`;
+    answer=a+9*d;
+    hint="Use a+(n-1)d";
+    solution=`${a}+9×${d} = ${answer}`;
+    calculatorAllowed=false;
 }
 
 if(topic=="nonlinearSeq"){
-q.innerHTML="1,4,9,16,... Find 12th term";
-answer=144;
-hint="Square numbers";
-solution="12²=144";
+    q.innerHTML="1,4,9,16,... Find 12th term";
+    answer=144;
+    hint="Square numbers";
+    solution="12²=144";
+    calculatorAllowed=false;
 }
 
 if(topic=="similar"){
-let scale=rand(2,5),length=rand(4,10);
-q.innerHTML=`Scale factor ${scale}, original ${length}cm. Find new length`;
-answer=length*scale;
-hint="Multiply by scale factor";
-solution=`${length} × ${scale} = ${answer}`;
+    let scale=rand(2,5),length=rand(4,10);
+    q.innerHTML=`Scale factor ${scale}, original ${length}cm. Find new length`;
+    answer=length*scale;
+    hint="Multiply by scale factor";
+    solution=`${length} × ${scale} = ${answer}`;
+    calculatorAllowed=false;
 }
 
 if(topic=="circle"){
-let r=rand(3,10);
-q.innerHTML=`Radius ${r}. Find area (2dp)`;
-answer=(Math.PI*r*r).toFixed(2);
-hint="Area = πr²";
-solution=`π × ${r}² = ${answer}`;
-drawCircle(r);
+    let r=rand(3,10);
+    q.innerHTML=`Radius ${r}. Find area (2dp)`;
+    answer=(Math.PI*r*r).toFixed(2);
+    hint="Area = πr²";
+    solution=`π × ${r}² = ${answer}`;
+    calculatorAllowed=true;
+    drawCircle(r);
 }
 
 if(topic=="sector"){
-let r=rand(4,8),angle=rand(30,120);
-q.innerHTML=`Radius ${r}, angle ${angle}. Arc length?`;
-answer=((angle/360)*2*Math.PI*r).toFixed(2);
-hint="Arc = (θ/360)×2πr";
-solution=`(θ/360)×2π×${r} = ${answer}`;
-drawSector(r,angle);
+    let r=rand(4,8),angle=rand(30,120);
+    q.innerHTML=`Radius ${r}, angle ${angle}. Arc length?`;
+    answer=((angle/360)*2*Math.PI*r).toFixed(2);
+    hint="Arc = (θ/360)×2πr";
+    solution=`(θ/360)×2π×${r} = ${answer}`;
+    calculatorAllowed=true;
+    drawSector(r,angle);
 }
 
 if(topic=="pythagoras"){
-let a=rand(3,8),b=rand(3,8);
-q.innerHTML=`Sides ${a},${b}. Hypotenuse?`;
-answer=Math.sqrt(a*a+b*b).toFixed(2);
-hint="a²+b²=c²";
-solution=`√(${a}²+${b}²) = ${answer}`;
-drawTriangle(a,b);
+    let a=rand(3,8),b=rand(3,8);
+    q.innerHTML=`Sides ${a},${b}. Hypotenuse?`;
+    answer=Math.sqrt(a*a+b*b).toFixed(2);
+    hint="a²+b²=c²";
+    solution=`√(${a}²+${b}²) = ${answer}`;
+    calculatorAllowed=true;
+    drawTriangle(a,b);
 }
 
-if(topic=="trig"){
-let adj=rand(4,10),hyp=rand(adj+1,15);
-q.innerHTML=`adj=${adj}, hyp=${hyp}. cosθ?`;
-answer=(adj/hyp).toFixed(2);
-hint="cosθ = adj/hyp";
-solution=`${adj}/${hyp} = ${answer}`;
-drawTriangle(adj,Math.sqrt(hyp*hyp-adj*adj));
+if(calculatorAllowed){
+    inputField.style.display="inline-block";
+} else {
+    inputField.style.display="none";
 }
 
-if(topic=="coordinates"){
-let x=rand(1,5),y=rand(1,5);
-q.innerHTML=`Plot point (${x},${y}) on grid`;
-answer=`${x},${y}`;
-drawGrid();
-}
-
-if(topic=="graph"){
-drawGrid();
-let x=rand(1,5),y=2*x+1;
-answer=`${x},${y}`;
-q.innerHTML=`Click point (${x},${y})`;
-document.getElementById("diagram").onclick=function(e){
-let rect=this.getBoundingClientRect();
-let cx=Math.round((e.clientX-rect.left-250)/20);
-let cy=Math.round((150-(e.clientY-rect.top))/20);
-if(cx==x && cy==y){correct();}
-}
-hint="Coordinates (x,y)";
-solution=`Point is (${x},${y})`;
-}
-
-if(topic=="barchart"){
-let values=[rand(2,10),rand(2,10),rand(2,10)];
-drawBars(values);
-q.innerHTML="Total of bars?";
-answer=values[0]+values[1]+values[2];
-hint="Add values";
-solution=`${values[0]}+${values[1]}+${values[2]} = ${answer}`;
-}
-
-if(topic=="piechart"){
-drawPie();
-q.innerHTML="If total=80, quarter section?";
-answer=20;
-hint="Divide by 4";
-solution="80/4";
-}
-
-if(topic=="probability"){
-let s=rand(3,10),t=rand(10,20);
-q.innerHTML=`${s} successes in ${t}. Probability?`;
-answer=(s/t).toFixed(2);
-hint="success/total";
-solution=`${s}/${t} = ${answer}`;
-}
-
-if(topic=="tree"){
-let p=0.4;
-q.innerHTML="Success probability = 0.4. Two successes?";
-answer=(p*p).toFixed(2);
-hint="Multiply probabilities";
-solution="0.4×0.4";
-drawTree();
-}
 }
 
 /* CHECK ANSWER */
@@ -359,16 +333,11 @@ document.getElementById("streak").innerText=streak;
 /* DRAWING FUNCTIONS */
 function drawCircle(r){
 let ctx=document.getElementById("diagram").getContext("2d");
-ctx.beginPath();
-ctx.arc(250,160,r*10,0,2*Math.PI);
-ctx.stroke();
+ctx.beginPath(); ctx.arc(250,160,r*10,0,2*Math.PI); ctx.stroke();
 }
 function drawSector(r,a){
 let ctx=document.getElementById("diagram").getContext("2d");
-ctx.beginPath();
-ctx.moveTo(250,160);
-ctx.arc(250,160,r*10,0,a*Math.PI/180);
-ctx.closePath();ctx.stroke();
+ctx.beginPath(); ctx.moveTo(250,160); ctx.arc(250,160,r*10,0,a*Math.PI/180); ctx.closePath(); ctx.stroke();
 }
 function drawTriangle(a,b){
 let ctx=document.getElementById("diagram").getContext("2d");
@@ -376,27 +345,12 @@ ctx.beginPath();
 ctx.moveTo(100,250);
 ctx.lineTo(100+a*20,250);
 ctx.lineTo(100+a*20,250-b*20);
-ctx.closePath();ctx.stroke();
+ctx.closePath(); ctx.stroke();
 }
-function drawBars(v){
-let ctx=document.getElementById("diagram").getContext("2d");
-for(let i=0;i<v.length;i++){ctx.fillRect(150+i*80,260-v[i]*15,50,v[i]*15);}
-}
-function drawPie(){
-let ctx=document.getElementById("diagram").getContext("2d");
-ctx.beginPath();ctx.moveTo(250,160);ctx.arc(250,160,100,0,Math.PI/2);ctx.closePath();ctx.fill();
-ctx.beginPath();ctx.arc(250,160,100,0,2*Math.PI);ctx.stroke();
-}
-function drawGrid(){
-let ctx=document.getElementById("diagram").getContext("2d");
-for(let i=0;i<500;i+=20){ctx.moveTo(i,0);ctx.lineTo(i,320);ctx.stroke();ctx.moveTo(0,i);ctx.lineTo(500,i);ctx.stroke();}
-}
-function drawTree(){
-let ctx=document.getElementById("diagram").getContext("2d");
-ctx.moveTo(120,160);ctx.lineTo(220,100);ctx.moveTo(120,160);ctx.lineTo(220,220);ctx.stroke();
-}
+
 function gcd(a,b){return b==0?a:gcd(b,a%b);}
 generateQuestion();
 </script>
+
 </body>
 </html>
