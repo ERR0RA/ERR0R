@@ -26,19 +26,35 @@
   select, input, button {
     width: 100%;
     padding: 8px;
-    margin: 8px 0;
+    margin: 6px 0;
     box-sizing: border-box;
     border-radius: 5px;
   }
-  canvas {
+  #diagramImg {
     width: 100%;
     height: auto;
-    border: 1px solid #ccc;
-    margin: 10px 0;
+    border:1px solid #ccc;
+    margin:10px 0;
   }
   #scoreBoard {
     text-align: center;
     margin-top: 10px;
+  }
+  .calculator {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
+    margin-top: 10px;
+  }
+  .calculator button {
+    padding: 15px;
+    font-size: 16px;
+  }
+  #calcDisplay {
+    grid-column: span 4;
+    padding: 10px;
+    font-size: 16px;
+    text-align: right;
   }
 </style>
 </head>
@@ -63,7 +79,7 @@
 
   <button id="newQBtn">New Question</button>
 
-  <canvas id="diagramCanvas"></canvas>
+  <img id="diagramImg" src="" alt="Math Diagram">
 
   <div id="questionText" style="text-align:center; margin:10px 0;"></div>
 
@@ -74,116 +90,92 @@
   <div id="scoreBoard">
     Score: <span id="score">0</span> | Level: <span id="level">1</span> | Streak: <span id="streak">0</span>
   </div>
+
+  <!-- Calculator -->
+  <div class="calculator">
+    <input type="text" id="calcDisplay" disabled>
+    <button onclick="appendCalc('7')">7</button>
+    <button onclick="appendCalc('8')">8</button>
+    <button onclick="appendCalc('9')">9</button>
+    <button onclick="appendCalc('/')">/</button>
+
+    <button onclick="appendCalc('4')">4</button>
+    <button onclick="appendCalc('5')">5</button>
+    <button onclick="appendCalc('6')">6</button>
+    <button onclick="appendCalc('*')">*</button>
+
+    <button onclick="appendCalc('1')">1</button>
+    <button onclick="appendCalc('2')">2</button>
+    <button onclick="appendCalc('3')">3</button>
+    <button onclick="appendCalc('-')">-</button>
+
+    <button onclick="appendCalc('0')">0</button>
+    <button onclick="appendCalc('.')">.</button>
+    <button onclick="calculate()">=</button>
+    <button onclick="appendCalc('+')">+</button>
+
+    <button onclick="clearCalc()" style="grid-column: span 4; background:#f88;">Clear</button>
+  </div>
+
 </div>
 
 <script>
-// ========== GLOBAL VARIABLES ==========
+// ========= GLOBAL VARIABLES =========
 let score = 0, level = 1, streak = 0;
 let currentAnswer = 0;
-
-// Canvas
-const canvas = document.getElementById('diagramCanvas');
-const ctx = canvas.getContext('2d');
-
-function resizeCanvas() {
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetWidth * 0.6;
-    if(currentQuestion) drawDiagram(currentQuestion);
-}
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
-
-// ========== QUESTIONS ==========
 let currentQuestion = null;
 
+// ========= QUESTIONS =========
 function generateQuestion() {
     const topic = document.getElementById('topicSelect').value;
     const difficulty = document.getElementById('difficultySelect').value;
+    const img = document.getElementById('diagramImg');
 
     if(topic === "probTree") {
-        // Example: probability tree
-        const p = difficulty === "easy" ? 0.4 : difficulty === "medium" ? 0.5 : 0.6;
-        currentAnswer = +(p*p).toFixed(2); // two successes
+        const p = difficulty==="easy"?0.4:difficulty==="medium"?0.5:0.6;
+        currentAnswer = +(p*p).toFixed(2);
         currentQuestion = {topic:"probTree", p};
         document.getElementById('questionText').innerText = `Success probability = ${p}. Two successes?`;
+        img.src = "images/probability_tree.png";
     }
-    else if(topic === "linearSeq") {
+    else if(topic==="linearSeq") {
         const start = Math.floor(Math.random()*10);
         const diff = Math.floor(Math.random()*5)+1;
         const n = 5;
         currentAnswer = start + (n-1)*diff;
         currentQuestion = {topic:"linearSeq", start, diff, n};
         document.getElementById('questionText').innerText = `Find the ${n}th term of sequence starting at ${start} with difference ${diff}.`;
+        img.src = "images/linear_sequence.png";
     }
-    else if(topic === "nonLinearSeq") {
-        const start = 1;
+    else if(topic==="nonLinearSeq") {
         const n = 4;
-        currentAnswer = start**n;
-        currentQuestion = {topic:"nonLinearSeq", start, n};
-        document.getElementById('questionText').innerText = `Find the ${n}th term of sequence n^2 (n=1,2,3...)`;
+        currentAnswer = n**2;
+        currentQuestion = {topic:"nonLinearSeq", n};
+        document.getElementById('questionText').innerText = `Find the ${n}th term of sequence n² (n=1,2,3...)`;
+        img.src = "images/nonlinear_sequence.png";
     }
-    else if(topic === "graphs") {
+    else if(topic==="graphs") {
         const a = Math.floor(Math.random()*5)+1;
-        currentAnswer = a*2; // example
+        currentAnswer = a*2;
         currentQuestion = {topic:"graphs", a};
         document.getElementById('questionText').innerText = `y = ${a}x. Find y when x=2.`;
+        img.src = "images/graph_example.png";
     }
-    else if(topic === "circles") {
+    else if(topic==="circles") {
         const r = Math.floor(Math.random()*10)+1;
-        currentAnswer = +(Math.PI*r*r).toFixed(2); // area
+        currentAnswer = +(Math.PI*r*r).toFixed(2);
         currentQuestion = {topic:"circles", r};
         document.getElementById('questionText').innerText = `Find area of circle with radius ${r} (π≈3.1416).`;
-    }
-
-    drawDiagram(currentQuestion);
-}
-
-// ========== DRAW DIAGRAM ==========
-function drawDiagram(q) {
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    if(!q) return;
-    if(q.topic==="probTree") {
-        const w = canvas.width, h = canvas.height;
-        ctx.beginPath();
-        ctx.moveTo(w*0.3,h*0.2);
-        ctx.lineTo(w*0.5,h*0.4);
-        ctx.moveTo(w*0.3,h*0.2);
-        ctx.lineTo(w*0.5,h*0.6);
-        ctx.stroke();
-    }
-    else if(q.topic==="linearSeq") {
-        ctx.font = "16px Arial";
-        ctx.fillText("Linear sequence diagram", 10, 30);
-    }
-    else if(q.topic==="nonLinearSeq") {
-        ctx.font = "16px Arial";
-        ctx.fillText("Non-linear sequence diagram", 10, 30);
-    }
-    else if(q.topic==="graphs") {
-        ctx.beginPath();
-        ctx.moveTo(20,canvas.height-20);
-        ctx.lineTo(canvas.width-20,canvas.height-20);
-        ctx.moveTo(20,canvas.height-20);
-        ctx.lineTo(20,20);
-        ctx.stroke();
-        ctx.font = "14px Arial";
-        ctx.fillText("Graph example", 30, 30);
-    }
-    else if(q.topic==="circles") {
-        ctx.beginPath();
-        ctx.arc(canvas.width/2, canvas.height/2, 50, 0, Math.PI*2);
-        ctx.stroke();
-        ctx.fillText(`Radius = ${q.r}`, canvas.width/2 - 30, canvas.height/2 - 60);
+        img.src = "images/circle.png";
     }
 }
 
-// ========== CHECK ANSWER ==========
+// ========= CHECK ANSWER =========
 function checkAnswer() {
     const user = parseFloat(document.getElementById('answerInput').value);
     if(Math.abs(user-currentAnswer)<0.01) {
         alert("Correct!");
-        score += 10;
-        streak += 1;
+        score += 10; streak += 1;
     } else {
         alert(`Wrong! Correct answer: ${currentAnswer}`);
         streak = 0;
@@ -195,25 +187,25 @@ function checkAnswer() {
     generateQuestion();
 }
 
-// ========== HINT ==========
+// ========= HINT =========
 function showHint() {
-    if(currentQuestion.topic==="probTree") {
-        alert("Hint: multiply probabilities along the branches.");
-    } else if(currentQuestion.topic==="linearSeq") {
-        alert("Hint: nth term = first term + (n-1)×difference.");
-    } else if(currentQuestion.topic==="nonLinearSeq") {
-        alert("Hint: nth term = n squared.");
-    } else if(currentQuestion.topic==="graphs") {
-        alert("Hint: plug x value into y = ax.");
-    } else if(currentQuestion.topic==="circles") {
-        alert("Hint: Area = πr²");
-    }
+    const t = currentQuestion.topic;
+    if(t==="probTree") alert("Hint: multiply probabilities along the branches.");
+    else if(t==="linearSeq") alert("Hint: nth term = first term + (n-1)×difference.");
+    else if(t==="nonLinearSeq") alert("Hint: nth term = n²");
+    else if(t==="graphs") alert("Hint: plug x into y=ax");
+    else if(t==="circles") alert("Hint: Area = πr²");
 }
 
-// ========== INITIALIZE ==========
+// ========= CALCULATOR =========
+const calcDisplay = document.getElementById('calcDisplay');
+function appendCalc(val){calcDisplay.value+=val;}
+function clearCalc(){calcDisplay.value='';}
+function calculate(){try{calcDisplay.value=eval(calcDisplay.value)}catch{calcDisplay.value='Error';}}
+
+// ========= INITIALIZE =========
 document.getElementById('newQBtn').addEventListener('click', generateQuestion);
 generateQuestion();
-
 </script>
 
 </body>
