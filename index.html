@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html>
+
 <head>
+
 <meta charset="UTF-8">
-<title>Ultimate GCSE Maths Trainer</title>
+<title>Maths Revision</title>
 
 <style>
 
 body{
 font-family:Arial;
-background:#e8eef7;
+background:#eef2f8;
 text-align:center;
 padding:20px;
 }
@@ -29,10 +31,6 @@ font-size:16px;
 border-radius:6px;
 }
 
-button{
-cursor:pointer;
-}
-
 .question{
 font-size:22px;
 margin:15px;
@@ -51,10 +49,6 @@ font-size:18px;
 margin-top:10px;
 }
 
-#solution{
-margin-top:20px;
-}
-
 </style>
 
 </head>
@@ -63,18 +57,49 @@ margin-top:20px;
 
 <div class="container">
 
-<h1>Ultimate GCSE Maths Trainer</h1>
+<h1>Maths Revision</h1>
 
 <select id="topic">
 
+<option value="expand">Expand Algebra</option>
+<option value="factor">Factorise</option>
+<option value="quadratic">Quadratic Roots</option>
+
+<option value="fraction">Simplify Fractions</option>
+<option value="ratio">Ratio</option>
+
+<option value="linearSeq">Linear Sequence</option>
+<option value="nonlinearSeq">Nonlinear Sequence</option>
+
+<option value="similar">Similar Shapes</option>
+<option value="circle">Circle Area</option>
+<option value="sector">Arc Length</option>
+
 <option value="pythagoras">Pythagoras</option>
 <option value="trig">Trigonometry</option>
-<option value="quadratic">Quadratic Equations</option>
-<option value="probability">Probability Tree</option>
-<option value="graphClick">Click Graph Point</option>
-<option value="functions">Functions</option>
+
+<option value="probability">Experimental Probability</option>
+<option value="tree">Probability Tree</option>
+
+<option value="barchart">Bar Chart</option>
+<option value="piechart">Pie Chart</option>
+
+<option value="graph">Graph Question</option>
+<option value="function">Functions</option>
 
 </select>
+
+<label>Difficulty</label>
+
+<select id="difficulty">
+
+<option value="easy">Easy</option>
+<option value="medium">Medium</option>
+<option value="hard">Hard</option>
+
+</select>
+
+<br>
 
 <button onclick="generateQuestion()">New Question</button>
 
@@ -96,10 +121,12 @@ margin-top:20px;
 <div id="solution"></div>
 
 <div class="stats">
+
 Score: <span id="score">0</span> |
 Level: <span id="level">1</span> |
 XP: <span id="xp">0</span> |
 🔥 Streak: <span id="streak">0</span>
+
 </div>
 
 </div>
@@ -111,57 +138,208 @@ XP: <span id="xp">0</span> |
 let answer
 let hint
 let solution
-let wrongAttempts=0
+let wrong=0
 
 let score=localStorage.getItem("score")||0
 let xp=localStorage.getItem("xp")||0
 let level=localStorage.getItem("level")||1
 let streak=localStorage.getItem("streak")||0
 
-document.getElementById("score").innerText=score
-document.getElementById("xp").innerText=xp
-document.getElementById("level").innerText=level
-document.getElementById("streak").innerText=streak
+updateStats()
 
 function rand(min,max){
 return Math.floor(Math.random()*(max-min+1))+min
 }
 
 function clearCanvas(){
-let c=document.getElementById("diagram")
-let ctx=c.getContext("2d")
-ctx.clearRect(0,0,c.width,c.height)
+let ctx=document.getElementById("diagram").getContext("2d")
+ctx.clearRect(0,0,500,320)
 }
 
-/* GENERATE QUESTION */
+/* GENERATE */
 
 function generateQuestion(){
 
-wrongAttempts=0
-document.getElementById("feedback").innerHTML=""
-document.getElementById("solution").innerHTML=""
-document.getElementById("hint").innerHTML=""
-document.getElementById("answer").value=""
-
+wrong=0
 clearCanvas()
+
+document.getElementById("hint").innerHTML=""
+document.getElementById("solution").innerHTML=""
+document.getElementById("feedback").innerHTML=""
+document.getElementById("answer").value=""
 
 let topic=document.getElementById("topic").value
 let q=document.getElementById("question")
+
+/* EXPAND */
+
+if(topic=="expand"){
+
+let a=rand(1,5)
+let b=rand(1,5)
+
+q.innerHTML=`Expand: (${a}x + ${b})²`
+
+answer=`${a*a}x^2+${2*a*b}x+${b*b}`
+
+hint="Use (a+b)² formula."
+
+solution=`${a*a}x² + ${2*a*b}x + ${b*b}`
+
+}
+
+/* FACTOR */
+
+if(topic=="factor"){
+
+let a=rand(2,5)
+let b=rand(2,5)
+
+q.innerHTML=`Factorise: ${a*b}x + ${a*b*2}`
+
+answer=`${a}(${b}x+${b*2})`
+
+hint="Find common factor."
+
+solution=`${a}(${b}x + ${b*2})`
+
+}
+
+/* FRACTION */
+
+if(topic=="fraction"){
+
+let n=rand(10,40)
+let d=rand(2,10)
+
+let g=gcd(n,d)
+
+q.innerHTML=`Simplify ${n}/${d}`
+
+answer=`${n/g}/${d/g}`
+
+hint="Divide by the highest common factor."
+
+solution=`HCF=${g}`
+
+}
+
+/* RATIO */
+
+if(topic=="ratio"){
+
+let a=rand(2,5)
+let b=rand(2,5)
+
+q.innerHTML=`Share 60 in ratio ${a}:${b}`
+
+answer=(60*a/(a+b)).toFixed(2)
+
+hint="Find total parts."
+
+solution=`60 × ${a}/(${a+b})`
+
+}
+
+/* LINEAR SEQ */
+
+if(topic=="linearSeq"){
+
+let a=rand(1,5)
+let d=rand(2,6)
+
+q.innerHTML=`${a}, ${a+d}, ${a+2*d}, ... Find 10th term`
+
+answer=a+9*d
+
+hint="Use a+(n-1)d"
+
+solution=`${a}+9×${d}`
+
+}
+
+/* NONLINEAR */
+
+if(topic=="nonlinearSeq"){
+
+q.innerHTML="1,4,9,16... Find 12th term"
+
+answer=144
+
+hint="Square numbers"
+
+solution="12²=144"
+
+}
+
+/* SIMILAR */
+
+if(topic=="similar"){
+
+let scale=rand(2,5)
+let length=rand(4,10)
+
+q.innerHTML=`Scale factor ${scale}, original ${length}cm`
+
+answer=(length*scale)
+
+hint="Multiply by scale factor"
+
+solution=`${length}×${scale}`
+
+}
+
+/* CIRCLE */
+
+if(topic=="circle"){
+
+let r=rand(3,10)
+
+q.innerHTML=`Radius ${r}. Find area (2dp)`
+
+answer=(Math.PI*r*r).toFixed(2)
+
+hint="πr²"
+
+solution=`π × ${r}²`
+
+drawCircle(r)
+
+}
+
+/* ARC */
+
+if(topic=="sector"){
+
+let r=rand(4,8)
+let angle=rand(30,120)
+
+q.innerHTML=`Radius ${r}, angle ${angle}. Arc length?`
+
+answer=((angle/360)*2*Math.PI*r).toFixed(2)
+
+hint="(θ/360)×2πr"
+
+solution="Arc formula"
+
+drawSector(r,angle)
+
+}
 
 /* PYTHAGORAS */
 
 if(topic=="pythagoras"){
 
-let a=rand(3,10)
-let b=rand(3,10)
+let a=rand(3,8)
+let b=rand(3,8)
 
-q.innerHTML=`Right triangle sides ${a} and ${b}. Find hypotenuse.`
+q.innerHTML=`Sides ${a},${b}. Hypotenuse?`
 
 answer=Math.sqrt(a*a+b*b).toFixed(2)
 
-hint="Use a² + b² = c²"
+hint="a²+b²=c²"
 
-solution=`√(${a}² + ${b}²) = ${answer}`
+solution="Use square root"
 
 drawTriangle(a,b)
 
@@ -174,60 +352,53 @@ if(topic=="trig"){
 let adj=rand(4,10)
 let hyp=rand(adj+1,15)
 
-q.innerHTML=`Adjacent=${adj}, Hypotenuse=${hyp}. Find cos θ.`
+q.innerHTML=`adj=${adj}, hyp=${hyp}. cosθ?`
 
 answer=(adj/hyp).toFixed(2)
 
-hint="cosθ = adjacent/hypotenuse"
+hint="cos=adj/hyp"
 
-solution=`${adj}/${hyp} = ${answer}`
-
-drawTriangle(adj,Math.sqrt(hyp*hyp-adj*adj))
+solution=`${adj}/${hyp}`
 
 }
 
-/* QUADRATIC */
+/* BAR CHART */
 
-if(topic=="quadratic"){
+if(topic=="barchart"){
 
-let r1=rand(1,5)
-let r2=rand(1,5)
+let values=[rand(2,10),rand(2,10),rand(2,10)]
 
-let b=-(r1+r2)
-let c=r1*r2
+drawBars(values)
 
-q.innerHTML=`Solve x² ${b>=0?"+":""}${b}x + ${c} = 0`
+q.innerHTML="Total of bars?"
 
-answer=`${r1},${r2}`
+answer=values[0]+values[1]+values[2]
 
-hint="Factorise the quadratic."
+hint="Add values"
 
-solution=`(x-${r1})(x-${r2}) = 0`
+solution=answer
 
 }
 
-/* PROBABILITY TREE */
+/* PIE */
 
-if(topic=="probability"){
+if(topic=="piechart"){
 
-let p=rand(2,8)/10
+drawPie()
 
-q.innerHTML=`Probability of success = ${p}.  
-Find probability of two successes.`
+q.innerHTML="If total=80, quarter section?"
 
-answer=(p*p).toFixed(2)
+answer=20
 
-hint="Multiply probabilities."
+hint="Divide by 4"
 
-solution=`${p} × ${p} = ${answer}`
-
-drawTree()
+solution="80/4"
 
 }
 
-/* GRAPH CLICK */
+/* GRAPH */
 
-if(topic=="graphClick"){
+if(topic=="graph"){
 
 drawGrid()
 
@@ -236,7 +407,7 @@ let y=2*x+1
 
 answer=`${x},${y}`
 
-q.innerHTML=`Click the point (${x},${y}) on the graph.`
+q.innerHTML=`Click point (${x},${y})`
 
 document.getElementById("diagram").onclick=function(e){
 
@@ -246,40 +417,67 @@ let cx=Math.round((e.clientX-rect.left-250)/20)
 let cy=Math.round((150-(e.clientY-rect.top))/20)
 
 if(cx==x && cy==y){
-
 correct()
-
 }
-
-}
-
-hint="Use coordinates (x,y)."
-
-solution=`Point is (${x},${y})`
-
-}
-
-/* FUNCTIONS */
-
-if(topic=="functions"){
-
-let x=rand(2,6)
-
-q.innerHTML=`f(x)=x²+2x+1. Find f(${x}).`
-
-answer=(x*x+2*x+1)
-
-hint="Substitute x."
-
-solution=`${x}² + 2(${x}) +1 = ${answer}`
-
-drawParabola()
 
 }
 
 }
 
-/* CHECK ANSWER */
+/* FUNCTION */
+
+if(topic=="function"){
+
+let x=rand(2,5)
+
+q.innerHTML=`f(x)=x²+3. f(${x})?`
+
+answer=x*x+3
+
+hint="Substitute x"
+
+solution=answer
+
+}
+
+/* PROBABILITY */
+
+if(topic=="probability"){
+
+let s=rand(3,10)
+let t=rand(10,20)
+
+q.innerHTML=`${s} successes in ${t}. Probability?`
+
+answer=(s/t).toFixed(2)
+
+hint="success/total"
+
+solution=`${s}/${t}`
+
+}
+
+/* TREE */
+
+if(topic=="tree"){
+
+let p=0.4
+
+q.innerHTML="Success probability=0.4. Two successes?"
+
+answer=(p*p).toFixed(2)
+
+hint="Multiply probabilities"
+
+solution="0.4×0.4"
+
+drawTree()
+
+}
+
+}
+
+/* CHECK */
 
 function checkAnswer(){
 
@@ -291,16 +489,16 @@ correct()
 
 }else{
 
-wrongAttempts++
+wrong++
 streak=0
 
 document.getElementById("feedback").innerHTML="<span class='wrong'>Incorrect</span>"
 
-if(wrongAttempts>=3){
-document.getElementById("solution").innerHTML="<b>Solution:</b><br>"+solution
+if(wrong>=3){
+document.getElementById("solution").innerHTML="<b>Solution:</b> "+solution
 }
 
-saveStats()
+updateStats()
 
 }
 
@@ -319,19 +517,15 @@ level++
 xp=0
 }
 
-saveStats()
+updateStats()
 
 }
-
-/* HINT */
 
 function showHint(){
 document.getElementById("hint").innerHTML="<b>Hint:</b> "+hint
 }
 
-/* SAVE */
-
-function saveStats(){
+function updateStats(){
 
 localStorage.setItem("score",score)
 localStorage.setItem("xp",xp)
@@ -345,17 +539,65 @@ document.getElementById("streak").innerText=streak
 
 }
 
-/* DRAWING FUNCTIONS */
+/* DRAWING */
+
+function drawCircle(r){
+
+let ctx=document.getElementById("diagram").getContext("2d")
+
+ctx.beginPath()
+ctx.arc(250,160,r*10,0,2*Math.PI)
+ctx.stroke()
+
+}
+
+function drawSector(r,a){
+
+let ctx=document.getElementById("diagram").getContext("2d")
+
+ctx.beginPath()
+ctx.moveTo(250,160)
+ctx.arc(250,160,r*10,0,a*Math.PI/180)
+ctx.closePath()
+ctx.stroke()
+
+}
 
 function drawTriangle(a,b){
 
 let ctx=document.getElementById("diagram").getContext("2d")
 
 ctx.beginPath()
-ctx.moveTo(80,250)
-ctx.lineTo(80+a*15,250)
-ctx.lineTo(80+a*15,250-b*15)
+ctx.moveTo(100,250)
+ctx.lineTo(100+a*20,250)
+ctx.lineTo(100+a*20,250-b*20)
 ctx.closePath()
+ctx.stroke()
+
+}
+
+function drawBars(v){
+
+let ctx=document.getElementById("diagram").getContext("2d")
+
+for(let i=0;i<v.length;i++){
+ctx.fillRect(150+i*80,260-v[i]*15,50,v[i]*15)
+}
+
+}
+
+function drawPie(){
+
+let ctx=document.getElementById("diagram").getContext("2d")
+
+ctx.beginPath()
+ctx.moveTo(250,160)
+ctx.arc(250,160,100,0,Math.PI/2)
+ctx.closePath()
+ctx.fill()
+
+ctx.beginPath()
+ctx.arc(250,160,100,0,2*Math.PI)
 ctx.stroke()
 
 }
@@ -378,50 +620,22 @@ ctx.stroke()
 
 }
 
-function drawParabola(){
-
-let ctx=document.getElementById("diagram").getContext("2d")
-
-ctx.beginPath()
-
-for(let x=-10;x<=10;x++){
-
-let y=x*x
-
-ctx.lineTo(250+x*20,250-y*2)
-
-}
-
-ctx.stroke()
-
-}
-
 function drawTree(){
 
 let ctx=document.getElementById("diagram").getContext("2d")
 
-ctx.beginPath()
+ctx.moveTo(120,160)
+ctx.lineTo(220,100)
 
-ctx.moveTo(100,150)
-ctx.lineTo(200,100)
-
-ctx.moveTo(100,150)
-ctx.lineTo(200,200)
-
-ctx.moveTo(200,100)
-ctx.lineTo(300,70)
-
-ctx.moveTo(200,100)
-ctx.lineTo(300,130)
-
-ctx.moveTo(200,200)
-ctx.lineTo(300,170)
-
-ctx.moveTo(200,200)
-ctx.lineTo(300,230)
+ctx.moveTo(120,160)
+ctx.lineTo(220,220)
 
 ctx.stroke()
 
+}
+
+function gcd(a,b){
+return b==0?a:gcd(b,a%b)
 }
 
 generateQuestion()
@@ -429,4 +643,5 @@ generateQuestion()
 </script>
 
 </body>
+
 </html>
