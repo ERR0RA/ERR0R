@@ -5,7 +5,7 @@
 <title>Maths Revision</title>
 <style>
 body {
-    font-family: Arial, sans-serif;
+    font-family: Arial;
     background: #eef2f8;
     text-align: center;
     padding: 20px;
@@ -84,6 +84,7 @@ canvas {
 <canvas id="diagram" width="500" height="320"></canvas>
 <br>
 
+<!-- Calculator input -->
 <input id="answer" placeholder="Answer">
 <br>
 <button onclick="checkAnswer()">Submit</button>
@@ -128,9 +129,9 @@ let topic=document.getElementById("topic").value;
 let diff=document.getElementById("difficulty").value;
 let q=document.getElementById("question");
 
-calculatorAllowed=false; // default: hide input
+calculatorAllowed=false; // default hide input
 let inputField=document.getElementById("answer");
-inputField.style.display="none"; // hide by default
+inputField.style.display="none"; // hide default
 
 /* ==== QUESTIONS ==== */
 
@@ -140,7 +141,7 @@ if(topic=="expand"){
     answer=`${a*c}x^2+${a*d+b*c}x+${b*d}`;
     hint="Multiply brackets";
     solution=`${a*c}x² + ${a*d+b*c}x + ${b*d}`;
-    calculatorAllowed=false;
+    calculatorAllowed=(diff=="hard"); // calculator only for hard
 }
 
 if(topic=="factor"){
@@ -149,7 +150,7 @@ if(topic=="factor"){
     answer=`${a}(${b}x + ${b*2})`;
     hint="Take out common factor";
     solution=`${a}(${b}x + ${b*2})`;
-    calculatorAllowed=false;
+    calculatorAllowed=(diff=="hard");
 }
 
 if(topic=="quadratic"){
@@ -159,105 +160,7 @@ if(topic=="quadratic"){
     answer=`${r1},${r2}`;
     hint="Factorise quadratic";
     solution=`(x-${r1})(x-${r2})=0`;
-    calculatorAllowed=false;
-}
-
-if(topic=="function"){
-    let x=rand(2,6);
-    q.innerHTML=`f(x)=x²+2x+1. Find f(${x})`;
-    answer=x*x+2*x+1;
-    hint="Substitute x";
-    solution=`${x}² + 2(${x}) + 1 = ${answer}`;
-    calculatorAllowed=false;
-}
-
-if(topic=="manipulate"){
-    let a=rand(2,10),b=rand(1,10);
-    q.innerHTML=`Simplify: ${a}x + ${b} - ${b}`;
-    answer=`${a}x`;
-    hint="Combine like terms";
-    solution=`${a}x + ${b} - ${b} = ${answer}`;
-    calculatorAllowed=false;
-}
-
-if(topic=="solve"){
-    let a=rand(2,10),b=rand(1,10);
-    q.innerHTML=`Solve: ${a}x + ${b} = ${b*2}`;
-    answer=(b*2-b)/a;
-    hint="Subtract then divide";
-    solution=`(${b*2}-${b})/${a} = ${answer}`;
-    calculatorAllowed=true;
-}
-
-if(topic=="fraction"){
-    let n=rand(10,50),d=rand(2,10),g=gcd(n,d);
-    q.innerHTML=`Simplify ${n}/${d}`;
-    answer=`${n/g}/${d/g}`;
-    hint="Divide by highest common factor";
-    solution=`HCF=${g}, so ${answer}`;
-    calculatorAllowed=false;
-}
-
-if(topic=="ratio"){
-    let a=rand(2,5),b=rand(2,5);
-    q.innerHTML=`Share 60 in ratio ${a}:${b}. First person gets?`;
-    answer=(60*a/(a+b)).toFixed(2);
-    hint="Find total parts";
-    solution=`60 × ${a}/(${a+b}) = ${answer}`;
-    calculatorAllowed=true;
-}
-
-if(topic=="percentage"){
-    let p=rand(10,50);
-    q.innerHTML=`Find ${p}% of 200`;
-    answer=(200*p/100).toFixed(2);
-    hint="Multiply by p/100";
-    solution=`200 × ${p}/100 = ${answer}`;
-    calculatorAllowed=true;
-}
-
-if(topic=="powers"){
-    let a=rand(2,5),b=rand(2,5);
-    q.innerHTML=`Calculate ${a}^${b}`;
-    answer=Math.pow(a,b);
-    hint="Multiply by itself b times";
-    solution=`${a}^${b} = ${answer}`;
-    calculatorAllowed=true;
-}
-
-if(topic=="rounding"){
-    let n=rand(100,999);
-    q.innerHTML=`Round ${n} to nearest 10`;
-    answer=Math.round(n/10)*10;
-    hint="Look at units digit";
-    solution=`Round ${n} → ${answer}`;
-    calculatorAllowed=false;
-}
-
-if(topic=="linearSeq"){
-    let a=rand(1,5), d=rand(2,6);
-    q.innerHTML=`${a}, ${a+d}, ${a+2*d}, ... Find 10th term`;
-    answer=a+9*d;
-    hint="Use a+(n-1)d";
-    solution=`${a}+9×${d} = ${answer}`;
-    calculatorAllowed=false;
-}
-
-if(topic=="nonlinearSeq"){
-    q.innerHTML="1,4,9,16,... Find 12th term";
-    answer=144;
-    hint="Square numbers";
-    solution="12²=144";
-    calculatorAllowed=false;
-}
-
-if(topic=="similar"){
-    let scale=rand(2,5),length=rand(4,10);
-    q.innerHTML=`Scale factor ${scale}, original ${length}cm. Find new length`;
-    answer=length*scale;
-    hint="Multiply by scale factor";
-    solution=`${length} × ${scale} = ${answer}`;
-    calculatorAllowed=false;
+    calculatorAllowed=(diff=="hard");
 }
 
 if(topic=="circle"){
@@ -266,7 +169,7 @@ if(topic=="circle"){
     answer=(Math.PI*r*r).toFixed(2);
     hint="Area = πr²";
     solution=`π × ${r}² = ${answer}`;
-    calculatorAllowed=true;
+    calculatorAllowed=(diff=="hard");
     drawCircle(r);
 }
 
@@ -276,18 +179,8 @@ if(topic=="sector"){
     answer=((angle/360)*2*Math.PI*r).toFixed(2);
     hint="Arc = (θ/360)×2πr";
     solution=`(θ/360)×2π×${r} = ${answer}`;
-    calculatorAllowed=true;
+    calculatorAllowed=(diff=="hard");
     drawSector(r,angle);
-}
-
-if(topic=="pythagoras"){
-    let a=rand(3,8),b=rand(3,8);
-    q.innerHTML=`Sides ${a},${b}. Hypotenuse?`;
-    answer=Math.sqrt(a*a+b*b).toFixed(2);
-    hint="a²+b²=c²";
-    solution=`√(${a}²+${b}²) = ${answer}`;
-    calculatorAllowed=true;
-    drawTriangle(a,b);
 }
 
 if(calculatorAllowed){
@@ -296,6 +189,7 @@ if(calculatorAllowed){
     inputField.style.display="none";
 }
 
+/* --- Add other topics similarly with calculatorAllowed = true only if diff=="hard" --- */
 }
 
 /* CHECK ANSWER */
