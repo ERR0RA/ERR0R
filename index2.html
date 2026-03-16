@@ -1,55 +1,45 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Snakes and Ladders</title>
+    <title>Snakes and Ladders - Pro</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
-
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; text-align: center; background: #f4f7f6; padding: 20px; }
         #board {
-            width: 500px;
-            height: 500px;
+            width: 500px; height: 500px;
             margin: 20px auto;
             display: grid;
             grid-template-columns: repeat(10, 1fr);
-            border: 3px solid black;
+            grid-template-rows: repeat(10, 1fr);
+            border: 5px solid #2c3e50;
+            background: white;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
-
         .cell {
-            border: 1px solid #999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            position: relative;
+            border: 1px solid #ddd;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: bold; position: relative;
         }
-
+        /* Color coding traps and boosts */
+        .is-snake { background: #ffebee; color: #c62828; }
+        .is-ladder { background: #e8f5e9; color: #2e7d32; }
+        
         .player1 {
-            width: 15px;
-            height: 15px;
-            background: red;
-            border-radius: 50%;
-            position: absolute;
-            bottom: 5px;
-            left: 5px;
+            width: 18px; height: 18px; background: #e74c3c;
+            border: 2px solid white; border-radius: 50%;
+            position: absolute; bottom: 5px; left: 5px; z-index: 10;
         }
-
         .player2 {
-            width: 15px;
-            height: 15px;
-            background: blue;
-            border-radius: 50%;
-            position: absolute;
-            bottom: 5px;
-            right: 5px;
+            width: 18px; height: 18px; background: #3498db;
+            border: 2px solid white; border-radius: 50%;
+            position: absolute; bottom: 5px; right: 5px; z-index: 10;
         }
-
+        #controls { margin-top: 20px; }
         button {
-            padding: 10px 20px;
-            font-size: 16px;
+            padding: 12px 25px; font-size: 18px; cursor: pointer;
+            background: #2c3e50; color: white; border: none; border-radius: 5px;
         }
+        button:hover { background: #34495e; }
+        #status { font-size: 20px; margin-top: 15px; color: #2c3e50; }
     </style>
 </head>
 <body>
@@ -57,55 +47,48 @@
 <h1>🐍 Snakes and Ladders</h1>
 <div id="board"></div>
 
-<button onclick="rollDice()">Roll Dice</button>
+<div id="controls">
+    <button onclick="rollDice()">🎲 Roll Dice</button>
+</div>
 <p id="status">Player 1's turn</p>
 
 <script>
-    const board = document.getElementById("board");
+    const boardElement = document.getElementById("board");
     const status = document.getElementById("status");
 
     let currentPlayer = 1;
     let positions = {1: 1, 2: 1};
+    let gameOver = false;
 
-    const snakes = {
-        16: 6,
-        47: 26,
-        49: 11,
-        56: 53,
-        62: 19,
-        64: 60,
-        87: 24,
-        93: 73,
-        95: 75,
-        98: 78
-    };
-
-    const ladders = {
-        1: 38,
-        4: 14,
-        9: 31,
-        21: 42,
-        28: 84,
-        36: 44,
-        51: 67,
-        71: 91,
-        80: 100
-    };
+    const snakes = { 16: 6, 47: 26, 49: 11, 56: 53, 62: 19, 64: 60, 87: 24, 93: 73, 95: 75, 98: 78 };
+    const ladders = { 1: 38, 4: 14, 9: 31, 21: 42, 28: 84, 36: 44, 51: 67, 71: 91, 80: 100 };
 
     function createBoard() {
-        for (let i = 100; i >= 1; i--) {
-            const cell = document.createElement("div");
-            cell.classList.add("cell");
-            cell.id = "cell-" + i;
-            cell.innerText = i;
-            board.appendChild(cell);
+        boardElement.innerHTML = '';
+        // Create the zigzag pattern
+        for (let row = 9; row >= 0; row--) {
+            if (row % 2 === 1) { // Odd rows go right-to-left
+                for (let col = 0; col <= 9; col++) { addCell(row, col); }
+            } else { // Even rows go left-to-right
+                for (let col = 9; col >= 0; col--) { addCell(row, col); }
+            }
         }
         updateBoard();
     }
 
+    function addCell(row, col) {
+        const i = row * 10 + col + 1;
+        const cell = document.createElement("div");
+        cell.classList.add("cell");
+        if (snakes[i]) cell.classList.add("is-snake");
+        if (ladders[i]) cell.classList.add("is-ladder");
+        cell.id = "cell-" + i;
+        cell.innerText = i;
+        boardElement.appendChild(cell);
+    }
+
     function updateBoard() {
         document.querySelectorAll(".player1, .player2").forEach(e => e.remove());
-
         for (let player in positions) {
             const cell = document.getElementById("cell-" + positions[player]);
             if (cell) {
@@ -117,33 +100,35 @@
     }
 
     function rollDice() {
+        if (gameOver) return;
+
         let dice = Math.floor(Math.random() * 6) + 1;
-        status.innerText = "Player " + currentPlayer + " rolled " + dice;
+        let pText = "Player " + currentPlayer + " rolled a " + dice + ". ";
 
         let newPosition = positions[currentPlayer] + dice;
 
         if (newPosition <= 100) {
             positions[currentPlayer] = newPosition;
-
             if (snakes[newPosition]) {
                 positions[currentPlayer] = snakes[newPosition];
-                status.innerText += " 🐍 Oh no! Snake!";
-            }
-
-            if (ladders[newPosition]) {
+                pText += "🐍 Oh no, a snake!";
+            } else if (ladders[newPosition]) {
                 positions[currentPlayer] = ladders[newPosition];
-                status.innerText += " 🪜 Yay! Ladder!";
+                pText += "🪜 Nice! A ladder!";
             }
+        } else {
+            pText += "Need exact roll to reach 100!";
         }
 
         if (positions[currentPlayer] === 100) {
-            status.innerText = "🎉 Player " + currentPlayer + " Wins!";
+            status.innerText = "🎉 Player " + currentPlayer + " wins the game!";
+            gameOver = true;
+            updateBoard();
             return;
         }
 
         currentPlayer = currentPlayer === 1 ? 2 : 1;
-        status.innerText += " | Player " + currentPlayer + "'s turn";
-
+        status.innerText = pText + " | Next: Player " + currentPlayer;
         updateBoard();
     }
 
