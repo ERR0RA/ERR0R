@@ -9,11 +9,11 @@
 <style>
 
 body{
-font-family: Arial;
+font-family:Arial;
 background:#f4f4f4;
-padding:10px;
 max-width:650px;
 margin:auto;
+padding:10px;
 }
 
 h1{
@@ -25,8 +25,8 @@ margin:10px 0;
 }
 
 .question{
-margin:20px 0;
 font-size:20px;
+margin:20px 0;
 }
 
 .formula{
@@ -45,7 +45,7 @@ margin-top:5px;
 button{
 padding:10px;
 font-size:16px;
-margin:3px;
+margin:4px;
 cursor:pointer;
 }
 
@@ -54,8 +54,8 @@ margin-top:10px;
 font-weight:bold;
 }
 
-.graph{
-max-width:100%;
+canvas{
+border:1px solid #888;
 margin-top:10px;
 }
 
@@ -76,6 +76,11 @@ gap:5px;
 .calc-grid button{
 height:45px;
 font-size:18px;
+}
+
+#hintBtn{
+display:none;
+background:#ffcc00;
 }
 
 </style>
@@ -103,16 +108,16 @@ Difficulty:
 </select>
 </div>
 
-<button id="start">Start Quiz</button>
+<button id="start">Start</button>
 
 <div class="question" id="question"></div>
 <div class="formula" id="formula"></div>
 
-<img id="graph" class="graph" style="display:none">
+<canvas id="graphCanvas" width="400" height="300" style="display:none"></canvas>
 
-<input id="answer" placeholder="Enter answer">
+<input id="answer" placeholder="Type your answer">
 
-<button id="submit">Submit</button>
+<button id="submit">Submit</button> <button id="newQuestion">New Question</button> <button id="hintBtn">Show Hint</button>
 
 <div class="feedback" id="feedback"></div>
 
@@ -143,52 +148,39 @@ Difficulty:
 const questions=[
 
 {topic:"circle area",difficulty:"easy",text:"Find area of circle radius 5",answer:78.54},
-{topic:"circle circumference",difficulty:"medium",text:"Circumference of circle radius 7",answer:43.98},
+{topic:"circle circumference",difficulty:"medium",text:"Circumference radius 7",answer:43.98},
 {topic:"volume cube",difficulty:"easy",text:"Volume of cube side 3",answer:27},
-
-{topic:"ratio",difficulty:"easy",text:"Simplify ratio 10:15",answer:"2:3"},
-
-{topic:"percentages",difficulty:"easy",text:"Find 25% of 200",answer:50},
-
+{topic:"ratio",difficulty:"easy",text:"Simplify 10:15",answer:"2:3"},
+{topic:"percentages",difficulty:"easy",text:"25% of 200",answer:50},
 {topic:"manipulating expressions",difficulty:"medium",text:"Simplify 3x + 5 - 2x + 7",answer:"x+12"},
-
 {topic:"one step equations",difficulty:"easy",text:"Solve 2x + 5 = 11",answer:3},
-
 {topic:"two step equations",difficulty:"medium",text:"Solve 3x - 7 = 8",answer:5},
-
-{topic:"pythagoras",difficulty:"medium",text:"Right triangle sides 3 and 4. Find hypotenuse.",answer:5},
-
-{topic:"bounds",difficulty:"medium",text:"Find lower and upper bounds of 4.5 ± 0.1 (format: lower,upper)",answer:[4.4,4.6]},
-
-{topic:"coordinates",difficulty:"easy",text:"Point A (2,3). Move 3 right and 2 up. New coordinates?",answer:"(5,5)"},
-
-{topic:"graphs",difficulty:"easy",text:"What shape is graph of y=x² ?",answer:"parabola",graph:"graph_x2.png"},
-
-{topic:"loci",difficulty:"easy",text:"Points 3cm from a fixed point form what shape?",answer:"circle",graph:"loci.png"}
+{topic:"pythagoras",difficulty:"medium",text:"Triangle sides 3 and 4. Hypotenuse?",answer:5},
+{topic:"bounds",difficulty:"medium",text:"Bounds of 4.5 ± 0.1 (lower,upper)",answer:[4.4,4.6]},
+{topic:"coordinates",difficulty:"easy",text:"Point (2,3) move 3 right 2 up",answer:"(5,5)"},
+{topic:"graphs",difficulty:"easy",text:"What shape is graph of y = x² ?",answer:"parabola"}
 
 ]
 
 const formulas={
-
 "circle area":"Area = πr²",
 "circle circumference":"Circumference = 2πr",
 "volume cube":"Volume = side³",
-"ratio":"Divide both numbers by their GCD",
-"percentages":"(percent ÷ 100) × number",
+"ratio":"Divide both numbers by GCD",
+"percentages":"(percent ÷100) × number",
 "manipulating expressions":"Combine like terms",
-"one step equations":"Use inverse operation",
-"two step equations":"Undo addition then division",
+"one step equations":"Use inverse operations",
+"two step equations":"Undo +/− then ×/÷",
 "pythagoras":"c² = a² + b²",
 "bounds":"lower=value-error upper=value+error",
-"coordinates":"Adjust x and y",
-"graphs":"Plot y against x",
-"loci":"Set of points meeting a condition"
-
+"coordinates":"Add movement to x and y",
+"graphs":"y=x² forms a parabola"
 }
 
 let filtered=[]
 let index=0
 let score=0
+let wrongCount=0
 
 const topicSelect=document.getElementById("topic")
 
@@ -218,6 +210,7 @@ return
 
 index=0
 score=0
+wrongCount=0
 
 show()
 
@@ -231,21 +224,56 @@ document.getElementById("question").textContent=q.text
 document.getElementById("formula").textContent=formulas[q.topic]||""
 document.getElementById("answer").value=""
 document.getElementById("feedback").textContent=""
+document.getElementById("hintBtn").style.display="none"
 
-let g=document.getElementById("graph")
+drawGraph(q)
 
-if(q.graph){
-g.src=q.graph
-g.style.display="block"
-}else{
-g.style.display="none"
-}
-
-if(q.difficulty==="hard"||typeof q.answer==="number"){
+if(typeof q.answer==="number"){
 document.getElementById("calculator").style.display="block"
 }else{
 document.getElementById("calculator").style.display="none"
 }
+
+}
+
+function drawGraph(q){
+
+const canvas=document.getElementById("graphCanvas")
+const ctx=canvas.getContext("2d")
+
+if(q.topic!=="graphs"){
+canvas.style.display="none"
+return
+}
+
+canvas.style.display="block"
+ctx.clearRect(0,0,400,300)
+
+ctx.beginPath()
+ctx.moveTo(0,150)
+ctx.lineTo(400,150)
+ctx.moveTo(200,0)
+ctx.lineTo(200,300)
+ctx.stroke()
+
+ctx.beginPath()
+
+for(let x=-10;x<=10;x+=0.1){
+
+let y=x*x
+
+let px=200+x*15
+let py=150-y*5
+
+if(x==-10){
+ctx.moveTo(px,py)
+}else{
+ctx.lineTo(px,py)
+}
+
+}
+
+ctx.stroke()
 
 }
 
@@ -268,7 +296,6 @@ Math.abs(parts[1]-q.answer[1])<0.01
 else if(typeof q.answer==="number"){
 
 let num=parseFloat(user)
-
 correct=Math.abs(num-q.answer)<0.01
 
 }
@@ -280,26 +307,44 @@ correct=user.replace(/\s/g,"").toLowerCase()===q.answer.toLowerCase()
 }
 
 if(correct){
+
 score++
+wrongCount=0
 document.getElementById("feedback").textContent="✅ Correct"
+
 }else{
+
+wrongCount++
 document.getElementById("feedback").textContent="❌ Correct answer: "+q.answer
+
+if(wrongCount>=2){
+document.getElementById("hintBtn").style.display="inline-block"
 }
+
+}
+
+}
+
+document.getElementById("newQuestion").onclick=()=>{
 
 index++
 
-if(index<filtered.length){
+if(index>=filtered.length){
 
-setTimeout(show,1200)
-
-}else{
-
-setTimeout(()=>{
 let percent=((score/filtered.length)*100).toFixed(1)
-alert("Quiz finished\nScore: "+score+"/"+filtered.length+" ("+percent+"%)")
-},1200)
+alert("Quiz finished\nScore "+score+"/"+filtered.length+" ("+percent+"%)")
+return
 
 }
+
+show()
+
+}
+
+document.getElementById("hintBtn").onclick=()=>{
+
+let q=filtered[index]
+alert("Hint: "+formulas[q.topic])
 
 }
 
@@ -314,15 +359,10 @@ document.getElementById("calcDisplay").value=""
 function calculate(){
 
 try{
-
 let result=eval(document.getElementById("calcDisplay").value)
-
 document.getElementById("calcDisplay").value=result.toFixed(2)
-
 }catch{
-
 document.getElementById("calcDisplay").value="Error"
-
 }
 
 }
