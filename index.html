@@ -3,18 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pro Math Quiz</title>
+<title>Math Quiz - Fixed</title>
 <style>
-    body { font-family: 'Segoe UI', sans-serif; padding: 20px; max-width: 800px; margin:auto; background: #f0f2f5; }
+    body { font-family: 'Segoe UI', sans-serif; padding: 20px; max-width: 600px; margin:auto; background: #f0f2f5; }
     .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
-    .controls { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
-    button { padding: 10px 16px; border: none; border-radius: 8px; background: #e8f0fe; color: #1a73e8; cursor: pointer; font-weight: 600; }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+    button { padding: 10px 14px; border: none; border-radius: 8px; background: #e8f0fe; color: #1a73e8; cursor: pointer; font-weight: 600; }
     button.active { background: #1a73e8; color: white; }
-    .answer-btn { display: block; width: 100%; text-align: left; margin: 10px 0; background: #f8f9fa; border: 1px solid #ddd; padding: 12px; border-radius: 8px; cursor: pointer; }
-    .answer-btn:hover { background: #eef; }
-    canvas { background: white; border: 1px solid #ccc; border-radius: 8px; width: 100%; max-width: 400px; display: block; margin: 20px auto; }
-    #solution { display: none; padding: 15px; background: #fff4e5; border-left: 5px solid #ffa000; margin-top: 15px; }
-    #feedback { font-weight: bold; text-align: center; height: 30px; font-size: 1.2em; }
+    .answer-btn { display: block; width: 100%; text-align: left; margin: 8px 0; background: #f8f9fa; border: 1px solid #ddd; padding: 15px; border-radius: 8px; font-size: 16px; cursor: pointer; transition: 0.2s; }
+    .correct { background: #d4edda !important; border-color: #28a745 !important; color: #155724; }
+    .wrong { background: #f8d7da !important; border-color: #dc3545 !important; color: #721c24; }
+    canvas { background: white; border: 1px solid #ccc; border-radius: 8px; width: 100%; display: block; margin: 20px auto; }
+    #solution { display: none; padding: 15px; background: #fff3cd; border-left: 5px solid #ffc107; margin-top: 15px; border-radius: 4px; }
+    #feedback { font-weight: bold; text-align: center; height: 30px; font-size: 1.2em; margin-bottom: 10px; }
 </style>
 </head>
 <body>
@@ -28,153 +29,124 @@
     <div class="controls" id="topic-btns">
         <button onclick="updateSettings('topic', 'arithmetic', this)" class="active">Arithmetic</button>
         <button onclick="updateSettings('topic', 'pythagoras', this)">Pythagoras</button>
-        <button onclick="updateSettings('topic', 'geometry', this)">Area/Circles</button>
-        <button onclick="updateSettings('topic', 'graphs', this)">Graphs</button>
+        <button onclick="updateSettings('topic', 'geometry', this)">Geometry</button>
     </div>
 </div>
 
 <div class="card">
     <div id="feedback"></div>
-    <h2 id="question-text">Loading...</h2>
+    <h2 id="question-text">Select a topic...</h2>
     <div id="answers"></div>
     <div id="solution"></div>
-    <button onclick="generateQuestion()" style="background:#6c757d; color:white; margin-top:10px; width:100%">Skip / New Question</button>
+    <button id="manual-next" onclick="generateQuestion()" style="display:none; background:#28a745; color:white; width:100%; margin-top:10px; padding:15px;">Next Question →</button>
 </div>
 
-<canvas id="mathCanvas" width="400" height="400"></canvas>
+<canvas id="mathCanvas" width="400" height="300"></canvas>
 
 <script>
-let currentTopic = 'arithmetic';
-let currentDiff = 'easy';
-let currentQuestion = null;
-let wrongCount = 0;
-let lastNumbers = []; // To prevent the exact same numbers back-to-back
+let currentTopic = 'arithmetic', currentDiff = 'easy', currentQuestion = null, wrongCount = 0;
 
 function updateSettings(type, val, btn) {
     if (type === 'diff') currentDiff = val;
     if (type === 'topic') currentTopic = val;
     
-    const parent = type === 'diff' ? 'diff-btns' : 'topic-btns';
-    document.querySelectorAll(`#${parent} button`).forEach(b => b.classList.remove('active'));
+    const parentId = type === 'diff' ? 'diff-btns' : 'topic-btns';
+    document.querySelectorAll(`#${parentId} button`).forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     
     generateQuestion();
 }
 
+function rand(min, max) { return Math.floor(Math.random() * (max - min + 1) + min); }
+
 function generateQuestion() {
     wrongCount = 0;
     document.getElementById('solution').style.display = 'none';
     document.getElementById('feedback').textContent = "";
+    document.getElementById('manual-next').style.display = 'none';
     
-    let qData = {};
+    let qData = { type: 'text' };
 
-    // PROCEDURAL GENERATION: Creates different numbers every time
     if (currentTopic === 'arithmetic') {
-        let n1, n2;
-        if (currentDiff === 'easy') { n1 = rand(2, 20); n2 = rand(2, 20); qData.q = `${n1} + ${n2} = ?`; qData.ans = n1 + n2; }
-        else if (currentDiff === 'medium') { n1 = rand(5, 15); n2 = rand(3, 9); qData.q = `${n1} × ${n2} = ?`; qData.ans = n1 * n2; }
-        else { n1 = rand(50, 200); n2 = rand(4, 12); qData.q = `${n1} ÷ ${n2} (Remainder?)`; qData.ans = n1 % n2; }
-        qData.type = 'text';
-        qData.sol = `Calculated result: ${qData.ans}`;
+        let n1 = rand(2, 50), n2 = rand(2, 50);
+        if (currentDiff === 'easy') { qData.q = `${n1} + ${n2} = ?`; qData.ans = n1 + n2; }
+        else if (currentDiff === 'medium') { n1 = rand(5, 12); n2 = rand(5, 12); qData.q = `${n1} × ${n2} = ?`; qData.ans = n1 * n2; }
+        else { n1 = rand(100, 500); n2 = rand(2, 9); qData.q = `Remainder of ${n1} ÷ ${n2}?`; qData.ans = n1 % n2; }
+        qData.sol = `The correct calculation is ${qData.ans}.`;
     } 
-    
     else if (currentTopic === 'pythagoras') {
-        let a = currentDiff === 'easy' ? 3 : rand(5, 10);
-        let b = currentDiff === 'easy' ? 4 : rand(11, 15);
-        let cSq = (a*a) + (b*b);
-        qData.ans = Math.sqrt(cSq).toFixed(1);
-        qData.q = `If a = ${a} and b = ${b}, find hypotenuse c (to 1 decimal).`;
+        let a = rand(3, 8), b = rand(4, 10);
+        qData.ans = Math.sqrt(a*a + b*b).toFixed(1);
+        qData.q = `In a right triangle, a=${a} and b=${b}. Find c (to 1 decimal).`;
         qData.type = 'pyth'; qData.a = a; qData.b = b;
-        qData.sol = `${a}² + ${b}² = ${a*a} + ${b*b} = ${cSq}. √${cSq} ≈ ${qData.ans}`;
+        qData.sol = `${a}² + ${b}² = ${a*a + b*b}. Square root is ${qData.ans}.`;
     }
-
     else if (currentTopic === 'geometry') {
-        let r = rand(3, 10);
-        qData.q = `Find the area of a circle with radius ${r}. (Use π ≈ 3.14, 1 decimal)`;
+        let r = rand(2, 10);
+        qData.q = `Find area of a circle with radius ${r} (Use π=3.14, 1 decimal).`;
         qData.ans = (3.14 * r * r).toFixed(1);
         qData.type = 'circle'; qData.r = r;
-        qData.sol = `Area = πr² → 3.14 × ${r}² = 3.14 × ${r*r} = ${qData.ans}`;
-    }
-
-    else if (currentTopic === 'graphs') {
-        let m = rand(1, 3); let b = rand(-2, 2);
-        qData.q = `What is the value of y when x = 2 for the graph y = ${m}x + ${b}?`;
-        qData.ans = (m * 2) + b;
-        qData.type = 'graph'; qData.m = m; qData.b = b;
-        qData.sol = `Substitute x=2: y = ${m}(2) + ${b} = ${m*2} + ${b} = ${qData.ans}`;
+        qData.sol = `Area = 3.14 × ${r}² = ${qData.ans}`;
     }
 
     currentQuestion = qData;
-    setupUI(qData);
+    renderUI(qData);
     draw(qData);
 }
 
-function setupUI(q) {
+function renderUI(q) {
     document.getElementById('question-text').textContent = q.q;
-    const ansDiv = document.getElementById('answers');
-    ansDiv.innerHTML = "";
+    const container = document.getElementById('answers');
+    container.innerHTML = "";
 
-    // Generate 1 correct and 3 wrong options
-    let options = [q.ans];
-    while(options.length < 4) {
-        let wrong = (parseFloat(q.ans) + (Math.random() > 0.5 ? rand(1, 5) : -rand(1, 5))).toFixed(currentTopic === 'arithmetic' ? 0 : 1);
-        if(!options.includes(wrong)) options.push(wrong);
+    let opts = [q.ans];
+    while(opts.length < 4) {
+        let offset = (Math.random() * 10 - 5).toFixed(q.type === 'text' ? 0 : 1);
+        let val = (parseFloat(q.ans) + parseFloat(offset)).toFixed(q.type === 'text' ? 0 : 1);
+        if(!opts.includes(val) && val >= 0) opts.push(val);
     }
-    options.sort(() => Math.random() - 0.5);
+    opts.sort(() => Math.random() - 0.5);
 
-    options.forEach(opt => {
-        const btn = document.createElement('button');
-        btn.className = 'answer-btn';
-        btn.textContent = opt;
-        btn.onclick = () => checkAnswer(opt, q.ans);
-        ansDiv.appendChild(btn);
+    opts.forEach(opt => {
+        const b = document.createElement('button');
+        b.className = 'answer-btn';
+        b.textContent = opt;
+        b.onclick = () => check(b, opt);
+        container.appendChild(b);
     });
 }
 
-function checkAnswer(chosen, correct) {
+function check(btn, val) {
     const fb = document.getElementById('feedback');
-    if (chosen == correct) {
-        fb.innerHTML = "<span style='color:green'>Correct! Well done.</span>";
-        setTimeout(generateQuestion, 1200);
+    // Prevent multiple clicks
+    if(fb.textContent.includes("Correct")) return;
+
+    if (val == currentQuestion.ans) {
+        btn.classList.add('correct');
+        fb.innerHTML = "<span style='color:green'>✅ Correct!</span>";
+        document.getElementById('manual-next').style.display = 'block';
+        setTimeout(generateQuestion, 1500); // Auto-load next
     } else {
+        btn.classList.add('wrong');
+        btn.disabled = true;
         wrongCount++;
-        fb.innerHTML = "<span style='color:red'>Not quite. Try again!</span>";
+        fb.innerHTML = "<span style='color:red'>❌ Try again</span>";
         if (wrongCount >= 2) {
             document.getElementById('solution').style.display = 'block';
-            document.getElementById('solution').innerHTML = `<strong>Step-by-step:</strong><br>${currentQuestion.sol}`;
+            document.getElementById('solution').innerHTML = `<b>Solution:</b> ${currentQuestion.sol}`;
         }
     }
 }
 
-function rand(min, max) { return Math.floor(Math.random() * (max - min + 1) + min); }
-
 function draw(q) {
-    const canvas = document.getElementById('mathCanvas');
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0,0,400,400);
-    ctx.lineWidth = 2;
-    ctx.font = "16px Arial";
-
-    if (q.type === 'pyth') {
-        ctx.beginPath();
-        ctx.moveTo(100, 300); ctx.lineTo(100, 150); ctx.lineTo(250, 300); ctx.closePath();
-        ctx.stroke();
-        ctx.fillText(`a = ${q.a}`, 50, 225); ctx.fillText(`b = ${q.b}`, 160, 330);
+    const c = document.getElementById('mathCanvas'), ctx = c.getContext('2d');
+    ctx.clearRect(0,0,400,300);
+    ctx.strokeStyle = "#333"; ctx.lineWidth = 3;
+    if(q.type === 'pyth') {
+        ctx.beginPath(); ctx.moveTo(150, 250); ctx.lineTo(150, 100); ctx.lineTo(250, 250); ctx.closePath(); ctx.stroke();
     } else if (q.type === 'circle') {
-        ctx.beginPath(); ctx.arc(200, 200, q.r * 10, 0, Math.PI*2); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(200,200); ctx.lineTo(200 + q.r*10, 200); ctx.stroke();
-        ctx.fillText(`r = ${q.r}`, 200 + (q.r*5), 190);
-    } else if (q.type === 'graph') {
-        ctx.strokeStyle = "#ccc";
-        ctx.beginPath(); ctx.moveTo(200,0); ctx.lineTo(200,400); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(0,200); ctx.lineTo(400,200); ctx.stroke();
-        ctx.strokeStyle = "blue";
-        ctx.beginPath();
-        for(let x = -5; x <= 5; x += 0.1) {
-            let y = q.m * x + q.b;
-            ctx.lineTo(200 + x*30, 200 - y*30);
-        }
-        ctx.stroke();
+        ctx.beginPath(); ctx.arc(200, 150, q.r*10, 0, Math.PI*2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(200,150); ctx.lineTo(200+q.r*10, 150); ctx.stroke();
     }
 }
 
@@ -182,6 +154,6 @@ generateQuestion();
 </script>
 </body>
 <body>
-    <H6>This website was ade using AI , but has been editted by a real human person</H6>
-</body>
+    <H7>This code has been made with a collab with AI and human(s).</H7>
+</body>body>
 </html>
