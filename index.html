@@ -3,223 +3,181 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Math Quiz Pro</title>
+<title>Interactive Math Quiz</title>
 <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; max-width: 700px; margin:auto; background: #f4f7f6; color: #333; }
-    h1 { text-align: center; color: #2c3e50; }
-    .section { background: #fff; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
-    button { padding: 10px 15px; margin: 5px; font-size: 14px; cursor: pointer; border: none; border-radius: 4px; background: #3498db; color: white; transition: 0.3s; }
-    button:hover { background: #2980b9; }
-    button.active { background: #2c3e50; font-weight: bold; }
-    .question-box { min-height: 100px; }
-    .answer-btn { display: block; width: 100%; text-align: left; background: #ecf0f1; color: #333; }
-    .answer-btn:hover { background: #bdc3c7; }
-    canvas { border: 1px solid #ddd; display: block; margin: 10px auto; background: #fff; border-radius: 8px; max-width: 100%; }
-    #calculator { display: flex; gap: 10px; margin-top: 10px; }
-    #calcInput { flex-grow: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
-    #solution { margin-top: 15px; background: #fdf2ce; padding: 15px; border-left: 5px solid #f1c40f; display: none; }
-    .status { font-weight: bold; margin-bottom: 10px; }
+    body { font-family: 'Segoe UI', sans-serif; padding: 20px; max-width: 800px; margin:auto; background: #f0f2f5; }
+    .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    h1 { text-align: center; color: #1a73e8; }
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+    button { padding: 10px 16px; border: none; border-radius: 8px; background: #e8f0fe; color: #1a73e8; cursor: pointer; font-weight: 600; transition: 0.2s; }
+    button:hover { background: #d2e3fc; }
+    button.active { background: #1a73e8; color: white; }
+    .answer-btn { display: block; width: 100%; text-align: left; margin: 10px 0; background: #f8f9fa; border: 1px solid #ddd; }
+    .answer-btn:hover { background: #e9ecef; border-color: #1a73e8; }
+    canvas { background: white; border: 1px solid #ccc; border-radius: 8px; width: 100%; max-width: 500px; display: block; margin: 20px auto; }
+    #solution { display: none; padding: 15px; background: #fff4e5; border-left: 5px solid #ffa000; color: #663c00; margin-top: 15px; line-height: 1.5; }
+    #feedback { font-weight: bold; text-align: center; height: 24px; margin: 10px 0; }
 </style>
 </head>
 <body>
 
-<h1>Math Quiz</h1>
+<h1>Math Master</h1>
 
-<div class="section">
-    <div id="mode-select">
-        <strong>Difficulty:</strong>
-        <button onclick="setDifficulty('easy', this)">Easy</button>
-        <button onclick="setDifficulty('medium', this)">Medium</button>
-        <button onclick="setDifficulty('hard', this)">Hard</button>
+<div class="card">
+    <div class="controls" id="diff-btns">
+        <button onclick="updateSettings('diff', 'easy', this)" class="active">Easy</button>
+        <button onclick="updateSettings('diff', 'medium', this)">Medium</button>
+        <button onclick="updateSettings('diff', 'hard', this)">Hard</button>
     </div>
-    <div id="topic-select" style="margin-top:10px;">
-        <strong>Topic:</strong>
-        <button onclick="setTopic('arithmetic', this)">Arithmetic</button>
-        <button onclick="setTopic('equations', this)">Equations</button>
-        <button onclick="setTopic('ratios', this)">Ratios</button>
-        <button onclick="setTopic('pythagoras', this)">Pythagoras</button>
-        <button onclick="setTopic('loci', this)">Loci</button>
-        <button onclick="setTopic('rounding_bounds', this)">Rounding</button>
+    <div class="controls" id="topic-btns">
+        <button onclick="updateSettings('topic', 'arithmetic', this)" class="active">Arithmetic</button>
+        <button onclick="updateSettings('topic', 'pythagoras', this)">Pythagoras</button>
+        <button onclick="updateSettings('topic', 'loci', this)">Loci/Circles</button>
+        <button onclick="updateSettings('topic', 'graphs', this)">Graphs</button>
+        <button onclick="updateSettings('topic', 'area', this)">Area</button>
     </div>
 </div>
 
-<div class="section question-box">
-    <div id="quiz-status" class="status">Please select options above</div>
-    <p id="question-text" style="font-size: 1.2em;"></p>
+<div class="card">
+    <div id="feedback"></div>
+    <h2 id="question-text">Select a topic to begin!</h2>
     <div id="answers"></div>
-    
-    <div id="calculator" style="display:none;">
-        <input type="number" id="calcInput" placeholder="Type numerical answer...">
-        <button onclick="submitCalcAnswer()">Submit</button>
-    </div>
+    <div id="solution"></div>
 </div>
 
-<canvas id="mathCanvas" width="500" height="300"></canvas>
-
-<div id="solution" class="section"></div>
-
-<div style="text-align:center;">
-    <button onclick="nextQuestion()" style="background: #27ae60;">Next Question</button>
-</div>
+<canvas id="mathCanvas" width="400" height="400"></canvas>
 
 <script>
-let currentTopic = null;
-let currentDifficulty = null;
-let currentQuestions = [];
-let askedIndexes = [];
+let currentTopic = 'arithmetic';
+let currentDiff = 'easy';
 let currentQuestion = null;
 let wrongCount = 0;
 
 const questions = {
     arithmetic: [
-        { q:"12 + 7 =", a:["18","19","20","21"], correct:1, difficulty:"easy", solution:"12 + 7 = 19" },
-        { q:"(5 + 3) * 2 =", a:["12","15","16","18"], correct:2, difficulty:"medium", solution:"Follow BODMAS: (5+3) = 8. Then 8 * 2 = 16" },
-        { q:"128 ÷ 8 =", a:["14","15","16","17"], correct:2, difficulty:"hard", solution:"128 divided by 8 is 16." }
-    ],
-    equations: [
-        { q:"x + 5 = 12, x = ?", a:["5","6","7","8"], correct:2, difficulty:"easy", solution:"Subtract 5 from both sides: 12 - 5 = 7" },
-        { q:"3x + 4 = 19, x = ?", a:["4","5","6","7"], correct:1, difficulty:"medium", solution:"3x = 19 - 4 -> 3x = 15 -> x = 5" },
-        { q:"2x + 7 = 19, x = ?", a:["5","6","7","8"], correct:1, difficulty:"hard", solution:"2x = 12 -> x = 6" }
-    ],
-    ratios: [
-        { q:"Ratio 2:3 is equivalent to x:12. Find x.", a:["7","8","9","10"], correct:1, difficulty:"easy", solution:"Multiply both sides by 4: (2*4):(3*4) = 8:12" },
-        { q:"Divide £90 in ratio 2:3. What is the larger share?", a:["£36","£54","£60","£45"], correct:1, difficulty:"hard", solution:"Total parts = 5. One part = 90/5 = 18. Large share = 3 * 18 = 54" }
+        { q: "What is 15% of 80?", a: ["10", "12", "15", "8"], c: 1, d: "medium", s: "10% of 80 is 8. 5% is half of that (4). 8 + 4 = 12." },
+        { q: "Calculate 12 * 12 - 10", a: ["134", "144", "154", "124"], c: 0, d: "easy", s: "12 * 12 = 144. 144 - 10 = 134." }
     ],
     pythagoras: [
-        { q:"Right triangle: a=3, b=4. Find hypotenuse c.", a:["5","6","7","12"], correct:0, difficulty:"easy", solution:"3² + 4² = 9 + 16 = 25. √25 = 5", isPyth: true },
-        { q:"Right triangle: a=5, b=12. Find hypotenuse c.", a:["13","14","15","17"], correct:0, difficulty:"medium", solution:"5² + 12² = 25 + 144 = 169. √169 = 13", isPyth: true }
+        { q: "Find the hypotenuse (c) where a=3 and b=4.", a: ["5", "6", "7", "25"], c: 0, d: "easy", s: "a² + b² = c². 3² + 4² = 9 + 16 = 25. √25 = 5.", type: 'pyth' },
+        { q: "Find c where a=5 and b=12.", a: ["13", "14", "15", "17"], c: 0, d: "medium", s: "5² + 12² = 25 + 144 = 169. √169 = 13.", type: 'pyth' }
     ],
     loci: [
-        { q:"Which shape represents points exactly 50 units from a center point?", a:["Square","Circle","Triangle","Line"], correct:1, difficulty:"easy", solution:"A locus of points at a fixed distance from a point is a circle.", isLoci: true }
+        { q: "Find the area of a circle with radius r=7.", a: ["153.9", "44", "49", "14"], c: 0, d: "medium", s: "Area = πr². π * 7² = 49π ≈ 153.9.", type: 'circle' }
     ],
-    rounding_bounds: [
-        { q:"Round 3.678 to 1 decimal place.", a:["3.6","3.7","3.8","4.0"], correct:1, difficulty:"easy", solution:"Look at the second decimal (7). Since it is 5 or above, round up: 3.7" },
-        { q:"Upper bound of 12.3 (measured to 1 dp)", a:["12.34","12.35","12.4","12.305"], correct:1, difficulty:"hard", solution:"For 1dp, the degree of accuracy is 0.1. Half of that is 0.05. Upper bound = 12.3 + 0.05 = 12.35" }
+    graphs: [
+        { q: "What is the y-intercept of y = 2x + 3?", a: ["2", "3", "0", "-3"], c: 1, d: "easy", s: "In y = mx + c, 'c' is the intercept. Here c = 3.", type: 'graph', m: 2, b: 3 }
+    ],
+    area: [
+        { q: "Area of a rectangle with width 5 and height 8.", a: ["13", "40", "26", "35"], c: 1, d: "easy", s: "Area = width * height. 5 * 8 = 40.", type: 'rect' }
     ]
 };
 
-function setDifficulty(diff, btn) {
-    currentDifficulty = diff;
-    updateActiveButton(btn, 'mode-select');
-    resetQuiz();
-}
-
-function setTopic(topic, btn) {
-    currentTopic = topic;
-    updateActiveButton(btn, 'topic-select');
-    resetQuiz();
-}
-
-function updateActiveButton(btn, parentId) {
-    document.querySelectorAll(`#${parentId} button`).forEach(b => b.classList.remove('active'));
+function updateSettings(type, val, btn) {
+    if (type === 'diff') currentDiff = val;
+    if (type === 'topic') currentTopic = val;
+    
+    // UI Highlight
+    const parent = type === 'diff' ? 'diff-btns' : 'topic-btns';
+    document.querySelectorAll(`#${parent} button`).forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
+    
+    generateQuestion();
 }
 
-function resetQuiz(){
-    if(!currentTopic || !currentDifficulty) return;
-    currentQuestions = questions[currentTopic].filter(q => q.difficulty === currentDifficulty);
-    
-    // Fallback if no specific difficulty question exists
-    if(currentQuestions.length === 0) currentQuestions = questions[currentTopic];
-    
-    askedIndexes = [];
-    nextQuestion();
-}
-
-function nextQuestion(){
-    const canvas = document.getElementById("mathCanvas");
-    const ctx = canvas.getContext("2d");
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    
-    document.getElementById('solution').style.display = 'none';
-    document.getElementById('calculator').style.display = 'none';
-    document.getElementById('answers').innerHTML = "";
+function generateQuestion() {
     wrongCount = 0;
-
-    if(!currentTopic || !currentDifficulty) return;
-
-    let index = Math.floor(Math.random() * currentQuestions.length);
-    currentQuestion = currentQuestions[index];
+    document.getElementById('solution').style.display = 'none';
+    document.getElementById('feedback').textContent = "";
     
-    document.getElementById("quiz-status").textContent = `Topic: ${currentTopic.toUpperCase()} (${currentDifficulty})`;
-    document.getElementById("question-text").textContent = currentQuestion.q;
-
-    if(currentQuestion.isPyth || currentQuestion.isLoci) {
-        drawOnCanvas(currentQuestion);
-    }
-
-    // Decide if we show Multiple Choice or Input
-    if(currentDifficulty === 'hard' && currentTopic !== 'rounding_bounds') {
-        document.getElementById('calculator').style.display = 'flex';
-    } else {
-        currentQuestion.a.forEach((ans, i) => {
-            const btn = document.createElement("button");
-            btn.textContent = ans;
-            btn.className = "answer-btn";
-            btn.onclick = () => checkAnswer(i);
-            document.getElementById('answers').appendChild(btn);
-        });
-    }
-}
-
-function checkAnswer(selectedIndex) {
-    if(selectedIndex === currentQuestion.correct) {
-        alert("✅ Correct!");
-        nextQuestion();
-    } else {
-        handleWrong();
-    }
-}
-
-function submitCalcAnswer() {
-    const val = document.getElementById('calcInput').value.trim();
-    const correctAnswer = currentQuestion.a[currentQuestion.correct].replace('£', '');
+    let pool = questions[currentTopic].filter(q => q.d === currentDiff);
+    if (pool.length === 0) pool = questions[currentTopic]; // Fallback if no specific difficulty exists
     
-    if(val == correctAnswer) {
-        alert("✅ Correct!");
-        document.getElementById('calcInput').value = "";
-        nextQuestion();
+    currentQuestion = pool[Math.floor(Math.random() * pool.length)];
+    
+    document.getElementById('question-text').textContent = currentQuestion.q;
+    const ansDiv = document.getElementById('answers');
+    ansDiv.innerHTML = "";
+    
+    currentQuestion.a.forEach((ans, i) => {
+        const b = document.createElement('button');
+        b.className = 'answer-btn';
+        b.textContent = ans;
+        b.onclick = () => checkAnswer(i);
+        ansDiv.appendChild(b);
+    });
+    
+    draw(currentQuestion);
+}
+
+function checkAnswer(idx) {
+    const feedback = document.getElementById('feedback');
+    if (idx === currentQuestion.c) {
+        feedback.style.color = "green";
+        feedback.textContent = "✅ Correct! Loading next...";
+        setTimeout(generateQuestion, 1500);
     } else {
-        handleWrong();
+        wrongCount++;
+        feedback.style.color = "red";
+        feedback.textContent = "❌ Incorrect. Try again!";
+        if (wrongCount >= 2) {
+            const sol = document.getElementById('solution');
+            sol.style.display = 'block';
+            sol.innerHTML = `<strong>Detailed Solution:</strong><br>${currentQuestion.s}`;
+        }
     }
 }
 
-function handleWrong() {
-    wrongCount++;
-    if(wrongCount >= 2) {
-        const sol = document.getElementById('solution');
-        sol.innerHTML = "<strong>Step-by-step Solution:</strong><br>" + currentQuestion.solution;
-        sol.style.display = 'block';
-    } else {
-        alert("❌ Not quite. Try again!");
-    }
-}
+function draw(q) {
+    const canvas = document.getElementById('mathCanvas');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0,0,400,400);
+    ctx.strokeStyle = "#333";
+    ctx.fillStyle = "#333";
+    ctx.lineWidth = 2;
 
-function drawOnCanvas(q) {
-    const canvas = document.getElementById("mathCanvas");
-    const ctx = canvas.getContext("2d");
-    ctx.strokeStyle = "#2c3e50";
-    ctx.lineWidth = 3;
-
-    if(q.isPyth) {
+    if (q.type === 'pyth') {
         ctx.beginPath();
-        ctx.moveTo(100, 250);
-        ctx.lineTo(100, 100); // Vertical
-        ctx.lineTo(300, 250); // Hypotenuse
-        ctx.closePath();
+        ctx.moveTo(100, 300); ctx.lineTo(100, 100); ctx.lineTo(300, 300); ctx.closePath();
         ctx.stroke();
-        ctx.font = "16px Arial";
-        ctx.fillText("a", 80, 175);
-        ctx.fillText("b", 200, 270);
-        ctx.fillText("c", 210, 170);
-    } else if(q.isLoci) {
+        ctx.fillText("a", 80, 200); ctx.fillText("b", 200, 320); ctx.fillText("c", 210, 200);
+    } else if (q.type === 'circle') {
         ctx.beginPath();
-        ctx.arc(250, 150, 50, 0, Math.PI * 2);
+        ctx.arc(200, 200, 70, 0, Math.PI*2);
         ctx.stroke();
-        ctx.fillStyle = "red";
-        ctx.fillRect(248, 148, 4, 4); // Center point
+        ctx.beginPath(); ctx.moveTo(200,200); ctx.lineTo(270,200); ctx.stroke();
+        ctx.fillText("r", 235, 190);
+    } else if (q.type === 'rect') {
+        ctx.strokeRect(100, 150, 200, 100);
+        ctx.fillText("width", 180, 270); ctx.fillText("height", 60, 205);
+    } else if (q.type === 'graph') {
+        // Draw Grid
+        ctx.strokeStyle = "#eee";
+        for(let i=0; i<=400; i+=40) {
+            ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,400); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(400,i); ctx.stroke();
+        }
+        // Draw Axis
+        ctx.strokeStyle = "#000";
+        ctx.beginPath(); ctx.moveTo(200,0); ctx.lineTo(200,400); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0,200); ctx.lineTo(400,200); ctx.stroke();
+        // Draw Line y = mx + b (transformed for canvas)
+        ctx.strokeStyle = "blue";
+        ctx.beginPath();
+        for(let x = -5; x <= 5; x += 0.1) {
+            let y = q.m * x + q.b;
+            ctx.lineTo(200 + x*40, 200 - y*40);
+        }
+        ctx.stroke();
     }
 }
+
+// Start first question
+generateQuestion();
 </script>
+</body>
+<body>
+    <hr>
+    <H7>This web was mainly made by AI but some of it has been editted by the owner<H7>
 </body>
 </html>
