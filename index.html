@@ -1,185 +1,333 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Maths revision</title>
+<title>Maths Revision App</title>
+
 <style>
-body { font-family: Arial; padding: 10px; max-width: 600px; margin: auto; background: #f7f7f7; }
-h1 { text-align: center; }
-.selector { margin: 10px 0; }
-.question { margin: 20px 0; }
-.formula { font-style: italic; color: #555; margin-bottom: 10px; }
-.calculator { display: none; margin: 10px 0; }
-input { padding: 8px; font-size: 16px; width: 100%; margin-bottom: 10px; }
-button { padding: 10px; font-size: 16px; cursor: pointer; margin: 2px; }
-.feedback { font-weight: bold; margin-top: 10px; }
-.graph-img { max-width: 100%; margin-top: 10px; }
+
+body{
+font-family: Arial;
+background:#f4f4f4;
+padding:10px;
+max-width:650px;
+margin:auto;
+}
+
+h1{
+text-align:center;
+}
+
+.selector{
+margin:10px 0;
+}
+
+.question{
+margin:20px 0;
+font-size:20px;
+}
+
+.formula{
+color:#555;
+font-style:italic;
+margin-bottom:10px;
+}
+
+input{
+width:100%;
+padding:10px;
+font-size:16px;
+margin-top:5px;
+}
+
+button{
+padding:10px;
+font-size:16px;
+margin:3px;
+cursor:pointer;
+}
+
+.feedback{
+margin-top:10px;
+font-weight:bold;
+}
+
+.graph{
+max-width:100%;
+margin-top:10px;
+}
+
+.calculator{
+display:none;
+margin-top:15px;
+background:#ddd;
+padding:10px;
+border-radius:10px;
+}
+
+.calc-grid{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:5px;
+}
+
+.calc-grid button{
+height:45px;
+font-size:18px;
+}
+
 </style>
+
 </head>
+
 <body>
 
-<h1>Maths revision</h1>
+<h1>Maths Revision</h1>
 
 <div class="selector">
-  <label for="topic-select">Choose Topic:</label>
-  <select id="topic-select"><option value="all">All Topics</option></select>
+Topic:
+<select id="topic">
+<option value="all">All</option>
+</select>
 </div>
 
 <div class="selector">
-  <label for="difficulty-select">Choose Difficulty:</label>
-  <select id="difficulty-select">
-    <option value="all">All</option>
-    <option value="easy">Easy</option>
-    <option value="medium">Medium</option>
-    <option value="hard">Hard</option>
-  </select>
+Difficulty:
+<select id="difficulty">
+<option value="all">All</option>
+<option value="easy">Easy</option>
+<option value="medium">Medium</option>
+<option value="hard">Hard</option>
+</select>
 </div>
 
-<button id="start-topic">Start</button>
+<button id="start">Start Quiz</button>
 
-<div id="question-container" class="question"></div>
-<div id="formula" class="formula"></div>
-<img id="graph-image" class="graph-img" src="" style="display:none;">
-<input type="text" id="answer-input" placeholder="Type your answer here">
-<button id="submit-answer">Submit Answer</button>
+<div class="question" id="question"></div>
+<div class="formula" id="formula"></div>
 
-<div class="calculator" id="calculator">
-<h3>Calculator</h3>
-<input type="text" id="calc-display" readonly><br>
-<button onclick="calcPress('1')">1</button>
-<button onclick="calcPress('2')">2</button>
-<button onclick="calcPress('3')">3</button>
-<button onclick="calcPress('+')">+</button><br>
-<button onclick="calcPress('4')">4</button>
-<button onclick="calcPress('5')">5</button>
-<button onclick="calcPress('6')">6</button>
-<button onclick="calcPress('-')">-</button><br>
-<button onclick="calcPress('7')">7</button>
-<button onclick="calcPress('8')">8</button>
-<button onclick="calcPress('9')">9</button>
-<button onclick="calcPress('*')">*</button><br>
-<button onclick="calcPress('0')">0</button>
-<button onclick="calcPress('/')">/</button>
-<button onclick="calcPress(Math.PI)">π</button>
-<button onclick="calcClear()">C</button>
-<button onclick="calcEvaluate()">=</button>
-</div>
+<img id="graph" class="graph" style="display:none">
+
+<input id="answer" placeholder="Enter answer">
+
+<button id="submit">Submit</button>
 
 <div class="feedback" id="feedback"></div>
 
+<div class="calculator" id="calculator">
+
+<h3>Calculator</h3>
+
+<input id="calcDisplay" readonly>
+
+<div class="calc-grid">
+
+<button onclick="press('7')">7</button> <button onclick="press('8')">8</button> <button onclick="press('9')">9</button> <button onclick="press('/')">÷</button>
+
+<button onclick="press('4')">4</button> <button onclick="press('5')">5</button> <button onclick="press('6')">6</button> <button onclick="press('*')">×</button>
+
+<button onclick="press('1')">1</button> <button onclick="press('2')">2</button> <button onclick="press('3')">3</button> <button onclick="press('-')">−</button>
+
+<button onclick="press('0')">0</button> <button onclick="press('.')">.</button> <button onclick="press('3.1416')">π</button> <button onclick="press('+')">+</button>
+
+<button onclick="clearCalc()">C</button> <button onclick="calculate()">=</button>
+
+</div>
+
+</div>
+
 <script>
-// ====== Question Data ======
-const questions = [
-    { text: "Find the area of a circle with radius 5", answer: 78.54, difficulty: "easy", topic: "circle area" },
-    { text: "Calculate the circumference of a circle with radius 7", answer: 43.96, difficulty: "medium", topic: "circle circumference" },
-    { text: "Volume of a cube with side 3", answer: 27, difficulty: "medium", topic: "volume cube" },
-    { text: "Simplify ratio 10:15", answer: 0.67, difficulty: "medium", topic: "ratio" },
-    { text: "Find 25% of 200", answer: 50, difficulty: "easy", topic: "percentages" },
-    { text: "Simplify 3x + 5 - 2x + 7", answer: "x + 12", difficulty: "medium", topic: "manipulating expressions" },
-    { text: "Solve 2x + 5 = 11", answer: 3, difficulty: "easy", topic: "one-step equations" },
-    { text: "Solve 3x - 7 = 8", answer: 5, difficulty: "medium", topic: "two-step equations" },
-    { text: "Find the hypotenuse of a right triangle with sides 3 and 4", answer: 5, difficulty: "medium", topic: "pythagoras" },
-    { text: "Find the upper and lower bounds of 4.5 ± 0.1", answer: [4.4,4.6], difficulty: "medium", topic: "bounds" },
-    { text: "Draw the graph of y = x²", answer: "", difficulty: "easy", topic: "graphs", graph: "graph_y_equals_x2.png" },
-    { text: "Point A is at (2,3). Find coordinates of B moved 3 right and 2 up.", answer: "(5,5)", difficulty: "medium", topic: "coordinates" },
-    { text: "Draw loci of points 3cm from a fixed point", answer: "", difficulty: "easy", topic: "loci", graph: "loci_circle.png" }
-];
 
-// ====== Formula hints ======
-const formulas = {
-    "circle area": "Area = π × r²",
-    "circle circumference": "Circumference = 2 × π × r",
-    "volume cube": "Volume = side³",
-    "ratio": "Simplify ratio a:b by dividing both by GCD",
-    "percentages": "Percentage × total ÷ 100",
-    "manipulating expressions": "Combine like terms, expand brackets",
-    "one-step equations": "x = value after inverse operation",
-    "two-step equations": "Undo addition/subtraction first, then multiplication/division",
-    "pythagoras": "c² = a² + b²",
-    "bounds": "Upper bound = value + error, Lower bound = value - error",
-    "loci": "Loci = set of points satisfying given conditions",
-    "graphs": "Plot y against x as per the function",
-    "coordinates": "Add/subtract x and y values as per movement"
-};
+const questions=[
 
-// ====== Calculator topics ======
-const calculatorTopics = ["area","circumference","perimeter","volume","surface area","algebra","ratio","percentages","manipulating expressions","one-step equations","two-step equations","pythagoras","bounds"];
+{topic:"circle area",difficulty:"easy",text:"Find area of circle radius 5",answer:78.54},
+{topic:"circle circumference",difficulty:"medium",text:"Circumference of circle radius 7",answer:43.98},
+{topic:"volume cube",difficulty:"easy",text:"Volume of cube side 3",answer:27},
 
-let filteredQuestions = [];
-let currentIndex = 0;
-let scores = [];
+{topic:"ratio",difficulty:"easy",text:"Simplify ratio 10:15",answer:"2:3"},
 
-// ====== Populate topic dropdown ======
-const topicSelect = document.getElementById("topic-select");
-[...new Set(questions.map(q=>q.topic))].forEach(t=>{
-    const option = document.createElement("option");
-    option.value = t;
-    option.innerText = t.charAt(0).toUpperCase() + t.slice(1);
-    topicSelect.appendChild(option);
-});
+{topic:"percentages",difficulty:"easy",text:"Find 25% of 200",answer:50},
 
-// ====== Start quiz by topic & difficulty ======
-document.getElementById("start-topic").addEventListener("click", ()=>{
-    const selectedTopic = topicSelect.value;
-    const selectedDifficulty = document.getElementById("difficulty-select").value;
-    filteredQuestions = questions.filter(q=>{
-        return (selectedTopic==="all" || q.topic===selectedTopic) &&
-               (selectedDifficulty==="all" || q.difficulty===selectedDifficulty);
-    });
-    if(filteredQuestions.length===0){ alert("No questions for this selection!"); return; }
-    currentIndex=0; scores=[];
-    showQuestion();
-});
+{topic:"manipulating expressions",difficulty:"medium",text:"Simplify 3x + 5 - 2x + 7",answer:"x+12"},
 
-// ====== Show question ======
-function showQuestion(){
-    const q = filteredQuestions[currentIndex];
-    document.getElementById("question-container").innerText = q.text;
-    document.getElementById("answer-input").value = "";
-    document.getElementById("feedback").innerText = "";
-    document.getElementById("formula").innerText = formulas[q.topic] || "";
-    const graphImg = document.getElementById("graph-image");
-    if(q.graph){ graphImg.src=q.graph; graphImg.style.display="block"; } 
-    else{ graphImg.style.display="none"; }
-    if(shouldShowCalculator(q)){ document.getElementById("calculator").style.display="block"; } 
-    else{ document.getElementById("calculator").style.display="none"; }
+{topic:"one step equations",difficulty:"easy",text:"Solve 2x + 5 = 11",answer:3},
+
+{topic:"two step equations",difficulty:"medium",text:"Solve 3x - 7 = 8",answer:5},
+
+{topic:"pythagoras",difficulty:"medium",text:"Right triangle sides 3 and 4. Find hypotenuse.",answer:5},
+
+{topic:"bounds",difficulty:"medium",text:"Find lower and upper bounds of 4.5 ± 0.1 (format: lower,upper)",answer:[4.4,4.6]},
+
+{topic:"coordinates",difficulty:"easy",text:"Point A (2,3). Move 3 right and 2 up. New coordinates?",answer:"(5,5)"},
+
+{topic:"graphs",difficulty:"easy",text:"What shape is graph of y=x² ?",answer:"parabola",graph:"graph_x2.png"},
+
+{topic:"loci",difficulty:"easy",text:"Points 3cm from a fixed point form what shape?",answer:"circle",graph:"loci.png"}
+
+]
+
+const formulas={
+
+"circle area":"Area = πr²",
+"circle circumference":"Circumference = 2πr",
+"volume cube":"Volume = side³",
+"ratio":"Divide both numbers by their GCD",
+"percentages":"(percent ÷ 100) × number",
+"manipulating expressions":"Combine like terms",
+"one step equations":"Use inverse operation",
+"two step equations":"Undo addition then division",
+"pythagoras":"c² = a² + b²",
+"bounds":"lower=value-error upper=value+error",
+"coordinates":"Adjust x and y",
+"graphs":"Plot y against x",
+"loci":"Set of points meeting a condition"
+
 }
 
-// ====== Calculator ======
-function calcPress(val){ document.getElementById("calc-display").value+=val; }
-function calcClear(){ document.getElementById("calc-display").value=""; }
-function calcEvaluate(){ 
-    try{ const result=eval(document.getElementById("calc-display").value); 
-        document.getElementById("calc-display").value=result.toFixed(2);
-    }catch{ document.getElementById("calc-display").value="Error"; }
-}
-function shouldShowCalculator(question){
-    if(question.difficulty==="hard") return true;
-    return calculatorTopics.some(topic=>question.text.toLowerCase().includes(topic));
+let filtered=[]
+let index=0
+let score=0
+
+const topicSelect=document.getElementById("topic")
+
+const topics=[...new Set(questions.map(q=>q.topic))]
+
+topics.forEach(t=>{
+let o=document.createElement("option")
+o.value=t
+o.textContent=t
+topicSelect.appendChild(o)
+})
+
+document.getElementById("start").onclick=()=>{
+
+let t=topicSelect.value
+let d=document.getElementById("difficulty").value
+
+filtered=questions.filter(q=>
+(t==="all"||q.topic===t)&&
+(d==="all"||q.difficulty===d)
+)
+
+if(filtered.length===0){
+alert("No questions")
+return
 }
 
-// ====== Submit answer ======
-document.getElementById("submit-answer").addEventListener("click", ()=>{
-    const q=filteredQuestions[currentIndex];
-    let userAnswer=document.getElementById("answer-input").value.trim();
-    if(Array.isArray(q.answer)){ userAnswer=userAnswer.split(',').map(n=>parseFloat(n.trim())); }
-    else if(typeof q.answer==="number"){ userAnswer=parseFloat(parseFloat(userAnswer).toFixed(2)); }
-    let correct=false;
-    if(Array.isArray(q.answer)){ correct=userAnswer.length===q.answer.length && userAnswer.every((n,i)=>Math.abs(n-q.answer[i])<0.01); }
-    else if(typeof q.answer==="number"){ correct=Math.abs(userAnswer-q.answer)<0.01; }
-    else{ correct=userAnswer.replace(/\s+/g,'')===q.answer.replace(/\s+/g,''); }
-    scores.push(correct?1:0);
-    document.getElementById("feedback").innerText=correct?"✅ Correct!":`❌ Wrong! Correct: ${Array.isArray(q.answer)?q.answer.join(', '):q.answer}`;
-    if(navigator.onLine) sendScoresToGitHub(scores);
-    currentIndex++;
-    if(currentIndex<filteredQuestions.length){ setTimeout(showQuestion,1000); }
-    else{ setTimeout(()=>{ const avg=(scores.reduce((a,b)=>a+b,0)/scores.length*100).toFixed(1); alert(`All done! Score: ${scores.length}/${filteredQuestions.length} (${avg}%)`); },1000); }
-});
+index=0
+score=0
 
-// ====== Dummy GitHub ======
-function sendScoresToGitHub(scores){ console.log("Sending scores to GitHub:", scores); }
+show()
+
+}
+
+function show(){
+
+let q=filtered[index]
+
+document.getElementById("question").textContent=q.text
+document.getElementById("formula").textContent=formulas[q.topic]||""
+document.getElementById("answer").value=""
+document.getElementById("feedback").textContent=""
+
+let g=document.getElementById("graph")
+
+if(q.graph){
+g.src=q.graph
+g.style.display="block"
+}else{
+g.style.display="none"
+}
+
+if(q.difficulty==="hard"||typeof q.answer==="number"){
+document.getElementById("calculator").style.display="block"
+}else{
+document.getElementById("calculator").style.display="none"
+}
+
+}
+
+document.getElementById("submit").onclick=()=>{
+
+let q=filtered[index]
+let user=document.getElementById("answer").value.trim()
+
+let correct=false
+
+if(Array.isArray(q.answer)){
+
+let parts=user.split(",").map(x=>parseFloat(x))
+correct=parts.length===2 &&
+Math.abs(parts[0]-q.answer[0])<0.01 &&
+Math.abs(parts[1]-q.answer[1])<0.01
+
+}
+
+else if(typeof q.answer==="number"){
+
+let num=parseFloat(user)
+
+correct=Math.abs(num-q.answer)<0.01
+
+}
+
+else{
+
+correct=user.replace(/\s/g,"").toLowerCase()===q.answer.toLowerCase()
+
+}
+
+if(correct){
+score++
+document.getElementById("feedback").textContent="✅ Correct"
+}else{
+document.getElementById("feedback").textContent="❌ Correct answer: "+q.answer
+}
+
+index++
+
+if(index<filtered.length){
+
+setTimeout(show,1200)
+
+}else{
+
+setTimeout(()=>{
+let percent=((score/filtered.length)*100).toFixed(1)
+alert("Quiz finished\nScore: "+score+"/"+filtered.length+" ("+percent+"%)")
+},1200)
+
+}
+
+}
+
+function press(v){
+document.getElementById("calcDisplay").value+=v
+}
+
+function clearCalc(){
+document.getElementById("calcDisplay").value=""
+}
+
+function calculate(){
+
+try{
+
+let result=eval(document.getElementById("calcDisplay").value)
+
+document.getElementById("calcDisplay").value=result.toFixed(2)
+
+}catch{
+
+document.getElementById("calcDisplay").value="Error"
+
+}
+
+}
 
 </script>
+
 </body>
 </html>
