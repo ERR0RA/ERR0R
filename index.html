@@ -5,118 +5,115 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Math Quiz</title>
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    padding: 20px;
-    max-width: 600px;
-    margin: auto;
-    background: #f0f0f0;
-  }
+  body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin:auto; background: #f0f0f0; }
   h1 { text-align: center; }
-  button {
-    padding: 10px 20px;
-    margin: 5px 0;
-    font-size: 16px;
-    cursor: pointer;
-  }
-  .question-box {
-    background: #fff;
-    padding: 15px;
-    border-radius: 10px;
-    box-shadow: 0 0 8px rgba(0,0,0,0.1);
-    margin-bottom: 10px;
-  }
-  .answer-btn {
-    display: block;
-    width: 100%;
-    margin: 5px 0;
-  }
-  #mode-select button { margin-right: 5px; }
-  canvas {
-    border: 1px solid #000;
-    margin-top: 10px;
-    background: #fff;
-  }
+  button { padding: 10px 20px; margin: 5px 0; font-size: 16px; cursor: pointer; }
+  .question-box { background: #fff; padding: 15px; border-radius: 10px; box-shadow: 0 0 8px rgba(0,0,0,0.1); margin-bottom: 10px; }
+  .answer-btn { display: block; width: 100%; margin: 5px 0; }
+  #topic-select button { margin-right: 5px; margin-bottom:5px; }
+  canvas { border: 1px solid #000; margin-top: 10px; background: #fff; }
+  #calculator { margin-top: 10px; }
+  #calculator input { width: 100%; padding: 8px; font-size:16px; margin-bottom:5px; }
+  #calculator button { width: 100%; padding: 8px; }
 </style>
 </head>
 <body>
 
 <h1>Math Quiz</h1>
 
-<div id="mode-select">
-  <button onclick="setMode('easy')">Easy</button>
-  <button onclick="setMode('medium')">Medium</button>
-  <button onclick="setMode('hard')">Hard</button>
+<div id="topic-select">
+  <p>Choose a topic:</p>
+  <button onclick="setTopic('arithmetic')">Arithmetic</button>
+  <button onclick="setTopic('equations')">Equations</button>
+  <button onclick="setTopic('ratios')">Ratios</button>
+  <button onclick="setTopic('similar_shapes')">Similar Shapes</button>
+  <button onclick="setTopic('pythagoras')">Pythagoras</button>
+  <button onclick="setTopic('loci')">Loci</button>
+  <button onclick="setTopic('rounding_bounds')">Rounding & Bounds</button>
+  <button onclick="setTopic('graphs')">Graphs</button>
 </div>
 
 <div class="question-box" id="question-box">
-  <p id="question-text">Select a mode to start!</p>
+  <p id="question-text">Select a topic to start!</p>
   <div id="answers"></div>
 </div>
 
 <button onclick="nextQuestion()">New Question</button>
 
+<!-- Canvas for graphs, Pythagoras, Loci -->
 <canvas id="mathCanvas" width="500" height="300"></canvas>
 
+<!-- Calculator -->
+<div id="calculator" style="display:none;">
+  <input type="text" id="calcInput" placeholder="Enter your answer">
+  <button onclick="submitCalcAnswer()">Submit</button>
+</div>
+
 <script>
-// Questions with variety and more questions
+// Topics and questions
 const questions = {
-  easy: [
-    { q: "2 + 3 =", a: ["4", "5", "6", "7"], correct: 1 },
-    { q: "5 - 2 =", a: ["2", "3", "4", "1"], correct: 1 },
-    { q: "1-step equation: x + 6 = 10, x = ?", a: ["2", "3", "4", "5"], correct: 2 },
-    { q: "Simplify: 2 + 2 * 2 =", a: ["6", "8", "4", "10"], correct: 0 },
-    { q: "Ratio: 3:4 = ? : 12", a: ["9", "8", "10", "7"], correct: 1 },
-    { q: "Find the missing number: 7 + ? = 15", a: ["8", "7", "9", "6"], correct: 0 },
+  arithmetic: [
+    { q:"12 + 7 =", a:["18","19","20","21"], correct:1, difficulty:"easy" },
+    { q:"15 - 9 =", a:["5","6","7","8"], correct:1, difficulty:"easy" },
+    { q:"(5+3)*2 =", a:["12","15","16","18"], correct:2, difficulty:"medium" },
+    { q:"128 ÷ 8 =", a:["14","15","16","17"], correct:2, difficulty:"hard" },
   ],
-  medium: [
-    { q: "12 ÷ 4 =", a: ["2", "3", "4", "6"], correct: 1 },
-    { q: "15 + 7 =", a: ["20", "22", "23", "21"], correct: 1 },
-    { q: "2-step equation: 3x + 4 = 16, x = ?", a: ["2", "3", "4", "5"], correct: 2 },
-    { q: "Pythagoras: Right triangle sides a=6, b=8, c=?", a: ["10", "12", "14", "15"], correct: 0 },
-    { q: "Simplify: 5 * (2 + 3) =", a: ["20", "25", "15", "10"], correct: 1 },
-    { q: "Ratio problem: 5:2 = ? : 16", a: ["6", "12", "10", "16"], correct: 2 },
+  equations: [
+    { q:"x + 5 = 12, x = ?", a:["5","6","7","8"], correct:2, difficulty:"easy" },
+    { q:"3x + 4 = 19, x = ?", a:["4","5","6","7"], correct:1, difficulty:"medium" },
+    { q:"2x + 7 = 19, x = ?", a:["5","6","7","8"], correct:0, difficulty:"hard" },
   ],
-  hard: [
-    { q: "Solve: 4x - 5 = 11", a: ["3", "4", "5", "6"], correct: 3 },
-    { q: "Factor: x^2 - 16", a: ["(x+4)(x-4)", "(x-16)(x+1)", "x(x-16)", "x^2-4"], correct: 0 },
-    { q: "Graph: y = x + 2", a: ["See canvas"], correct: 0, isGraph: true },
-    { q: "Loci: Draw points 50px from center", a: ["See canvas"], correct: 0, isGraph: true },
-    { q: "Pythagoras triangle: a=5, b=12, c=?", a: ["12", "13", "11", "14"], correct: 1 },
-    { q: "Two-step equation: 2x + 7 = 15", a: ["3", "4", "5", "6"], correct: 0 },
+  ratios: [
+    { q:"Ratio 2:3 = ? : 12", a:["7","8","9","10"], correct:2, difficulty:"easy" },
+    { q:"Ratio 5:4 = ? : 20", a:["15","16","25","18"], correct:1, difficulty:"hard" },
+  ],
+  similar_shapes: [
+    { q:"Scale factor 2, original 5cm, new = ?", a:["8","9","10","12"], correct:2, difficulty:"medium" },
+  ],
+  pythagoras: [
+    { q:"Right triangle a=3,b=4,c=?", a:["5","6","7","8"], correct:0, difficulty:"easy", calculator:true },
+    { q:"Right triangle a=5,b=12,c=?", a:["12","13","14","15"], correct:1, difficulty:"medium", calculator:true },
+    { q:"Right triangle a=7,b=24,c=?", a:["25","26","27","28"], correct:0, difficulty:"hard", calculator:true },
+  ],
+  loci: [
+    { q:"Draw all points 50px from center", a:["See canvas"], correct:0, difficulty:"easy", calculator:true, isGraph:true },
+    { q:"Draw all points 30px from corner", a:["See canvas"], correct:0, difficulty:"medium", calculator:true, isGraph:true },
+    { q:"Draw circle 70px radius from center", a:["See canvas"], correct:0, difficulty:"hard", calculator:true, isGraph:true },
+  ],
+  rounding_bounds: [
+    { q:"Round 3.678 to 1 dp", a:["3.6","3.7","3.8","3.9"], correct:2, difficulty:"easy" },
+    { q:"Upper bound of 12.34 (1 dp)", a:["12.3","12.4","12.35","12.5"], correct:3, difficulty:"hard" },
+  ],
+  graphs: [
+    { q:"Graph y = 2x +1", a:["See canvas"], correct:0, difficulty:"hard", isGraph:true },
   ]
 };
 
-let currentMode = null;
+let currentTopic = null;
 let currentQuestions = [];
 let askedIndexes = [];
+let currentCalcQuestion = null;
 
-function setMode(mode) {
-  currentMode = mode;
-  currentQuestions = [...questions[mode]];
+function setTopic(topic) {
+  currentTopic = topic;
+  currentQuestions = [...questions[topic]];
   askedIndexes = [];
+  document.getElementById('calculator').style.display = 'none';
   nextQuestion();
 }
 
 function nextQuestion() {
   const canvas = document.getElementById("mathCanvas");
   const ctx = canvas.getContext("2d");
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  document.getElementById('calculator').style.display = 'none';
 
-  if (!currentMode) {
-    alert("Please select a mode first!");
-    return;
-  }
-
-  if (askedIndexes.length >= currentQuestions.length) {
-    alert("You've completed all questions in this mode! Restarting...");
-    askedIndexes = [];
-  }
+  if (!currentTopic) { alert("Select a topic first!"); return; }
+  if (askedIndexes.length >= currentQuestions.length) askedIndexes = [];
 
   let index;
-  do {
-    index = Math.floor(Math.random() * currentQuestions.length);
-  } while (askedIndexes.includes(index));
+  do { index = Math.floor(Math.random() * currentQuestions.length); }
+  while (askedIndexes.includes(index));
 
   askedIndexes.push(index);
   showQuestion(currentQuestions[index]);
@@ -128,23 +125,46 @@ function showQuestion(qObj) {
   qText.textContent = qObj.q;
   answersDiv.innerHTML = "";
 
-  qObj.a.forEach((ans, i) => {
-    const btn = document.createElement("button");
-    btn.textContent = ans;
-    btn.className = "answer-btn";
-    btn.onclick = () => checkAnswer(i, qObj.correct);
-    answersDiv.appendChild(btn);
-  });
+  // Show calculator input if needed
+  if (qObj.calculator || (qObj.difficulty==="hard" && !qObj.calculator && currentTopic!=="pythagoras" && currentTopic!=="loci")) {
+    document.getElementById('calculator').style.display = 'block';
+    currentCalcQuestion = qObj;
+  } else { currentCalcQuestion = null; }
 
-  if (qObj.isGraph) drawOnCanvas(qObj.q);
+  if (!qObj.isGraph && !qObj.calculator) {
+    qObj.a.forEach((ans,i)=>{
+      const btn = document.createElement("button");
+      btn.textContent = ans;
+      btn.className="answer-btn";
+      btn.onclick = ()=>checkAnswer(i,qObj.correct);
+      answersDiv.appendChild(btn);
+    });
+  }
+
+  if (qObj.isGraph || qObj.calculator) drawOnCanvas(qObj.q);
 }
 
 function checkAnswer(selected, correct) {
-  if (selected === correct) {
-    alert("✅ Correct!");
-  } else {
-    alert("❌ Wrong! Try again or press New Question.");
+  if (selected===correct) alert("✅ Correct!");
+  else alert("❌ Wrong! Try again or press New Question.");
+}
+
+function submitCalcAnswer() {
+  const val = document.getElementById('calcInput').value.trim();
+  if (!val) { alert("Enter an answer"); return; }
+  const q = currentCalcQuestion;
+  let correct = false;
+
+  // Check answer numerically for Pythagoras/Loci
+  if (q.topic==="pythagoras" || q.topic==="loci" || q.calculator || q.difficulty==="hard") {
+    // check if answer matches correct choice
+    correct = val==q.a[q.correct];
   }
+
+  if (correct) alert("✅ Correct!");
+  else alert("❌ Wrong! Try again or press New Question.");
+
+  document.getElementById('calcInput').value="";
 }
 
 function drawOnCanvas(question) {
@@ -153,35 +173,21 @@ function drawOnCanvas(question) {
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
   if (question.includes("Graph")) {
-    // Draw simple y=x+2 line
     ctx.beginPath();
-    ctx.moveTo(0, canvas.height - 2); 
-    ctx.lineTo(canvas.width, canvas.height - (canvas.width/50 +2));
-    ctx.strokeStyle = "blue";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.font = "14px Arial";
-    ctx.fillText("Graph y = x + 2", 10, 20);
+    ctx.moveTo(0, canvas.height-1); 
+    ctx.lineTo(canvas.width, canvas.height-(2*canvas.width/50+1));
+    ctx.strokeStyle="blue"; ctx.lineWidth=2; ctx.stroke();
+    ctx.font="14px Arial"; ctx.fillText("Graph y=2x+1",10,20);
   } else if (question.includes("Loci")) {
-    // Draw circle with radius 50
     ctx.beginPath();
     ctx.arc(canvas.width/2, canvas.height/2, 50, 0, Math.PI*2);
-    ctx.strokeStyle = "green";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.font = "14px Arial";
-    ctx.fillText("Locus: 50px from center", 10, 20);
+    ctx.strokeStyle="green"; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillText("Locus: 50px from center",10,20);
   } else if (question.includes("Pythagoras")) {
-    // Draw right triangle 5-12-13
     ctx.beginPath();
-    ctx.moveTo(50, 250);
-    ctx.lineTo(50, 250-5*10);
-    ctx.lineTo(50+12*10, 250);
-    ctx.closePath();
-    ctx.strokeStyle = "red";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.fillText("Right triangle: 5-12-13", 10, 20);
+    ctx.moveTo(50,250); ctx.lineTo(50,250-3*30); ctx.lineTo(50+4*30,250); ctx.closePath();
+    ctx.strokeStyle="red"; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillText("Right triangle: 3-4-5",10,20);
   }
 }
 </script>
