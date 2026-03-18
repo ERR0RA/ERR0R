@@ -2,13 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Multiplayer Fighter Prototype</title>
+  <title>Multiplayer Fighter – Weapons, Punch Anim, Heal Bars</title>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       background: #111;
@@ -22,16 +18,22 @@
     }
 
     h1 {
-      margin: 10px 0;
+      margin: 10px 0 4px;
       letter-spacing: 2px;
       text-transform: uppercase;
+    }
+
+    #subtitle {
+      font-size: 13px;
+      color: #aaa;
+      margin-bottom: 6px;
     }
 
     #game-container {
       position: relative;
       border: 3px solid #444;
       box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
-      margin-top: 10px;
+      margin-top: 6px;
     }
 
     canvas {
@@ -48,28 +50,80 @@
       font-size: 14px;
     }
 
-    .health-bar-container {
-      width: 45%;
-      height: 20px;
-      border: 2px solid #555;
-      background: #222;
-      position: relative;
-      overflow: hidden;
+    .player-panel {
+      width: 48%;
     }
 
-    .health-bar {
-      position: absolute;
-      top: 0;
-      left: 0;
-      height: 100%;
-      background: linear-gradient(90deg, #0f0, #ff0, #f00);
-      transform-origin: left center;
+    .player-panel.right {
+      text-align: right;
     }
 
     .player-label {
       margin-bottom: 4px;
       font-weight: bold;
       text-shadow: 0 0 5px #000;
+    }
+
+    .bar-stack {
+      margin-top: 2px;
+    }
+
+    .bar-label {
+      font-size: 11px;
+      color: #ccc;
+      margin-bottom: 1px;
+    }
+
+    .bar-container {
+      width: 100%;
+      height: 16px;
+      border: 2px solid #555;
+      background: #222;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 3px;
+    }
+
+    .bar-fill {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      transform-origin: left center;
+    }
+
+    .bar-health {
+      background: linear-gradient(90deg, #0f0, #ff0, #f00);
+    }
+
+    .bar-heal {
+      background: linear-gradient(90deg, #0ff, #0f0);
+    }
+
+    #scoreboard {
+      width: 800px;
+      margin-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 15px;
+      font-weight: bold;
+    }
+
+    .score {
+      padding: 4px 8px;
+      background: #222;
+      border-radius: 4px;
+      border: 1px solid #444;
+      text-shadow: 0 0 4px #000;
+    }
+
+    #round-message {
+      width: 800px;
+      margin-top: 6px;
+      text-align: center;
+      font-size: 14px;
+      color: #ffd966;
+      min-height: 18px;
     }
 
     #info {
@@ -95,50 +149,76 @@
   </style>
 </head>
 <body>
-  <h1>Multiplayer Fighter Prototype</h1>
+  <h1>Multiplayer Fighter</h1>
+  <div id="subtitle">Weapons • Punch animation • Heal bars • Points</div>
 
   <div id="game-container">
     <canvas id="game" width="800" height="450"></canvas>
   </div>
 
   <div id="hud">
-    <div>
-      <div class="player-label">Player 1 (A/D to move, W to jump, F to punch)</div>
-      <div class="health-bar-container">
-        <div id="healthP1" class="health-bar"></div>
+    <div class="player-panel">
+      <div class="player-label">
+        Player 1 – Move: A/D, Jump: W, Punch: F, Heal: R
+      </div>
+      <div class="bar-stack">
+        <div class="bar-label">Health</div>
+        <div class="bar-container">
+          <div id="healthP1" class="bar-fill bar-health"></div>
+        </div>
+        <div class="bar-label">Heal Energy</div>
+        <div class="bar-container">
+          <div id="healP1" class="bar-fill bar-heal"></div>
+        </div>
       </div>
     </div>
-    <div style="text-align: right;">
-      <div class="player-label">Player 2 (←/→ to move, ↑ to jump, K to punch)</div>
-      <div class="health-bar-container">
-        <div id="healthP2" class="health-bar"></div>
+
+    <div class="player-panel right">
+      <div class="player-label">
+        Player 2 – Move: ←/→, Jump: ↑, Punch: K, Heal: L
+      </div>
+      <div class="bar-stack">
+        <div class="bar-label">Health</div>
+        <div class="bar-container">
+          <div id="healthP2" class="bar-fill bar-health"></div>
+        </div>
+        <div class="bar-label">Heal Energy</div>
+        <div class="bar-container">
+          <div id="healP2" class="bar-fill bar-heal"></div>
+        </div>
       </div>
     </div>
   </div>
 
+  <div id="scoreboard">
+    <div class="score" id="scoreP1">Player 1: 0 pts</div>
+    <div class="score" id="scoreP2">Player 2: 0 pts</div>
+  </div>
+
+  <div id="round-message"></div>
+
   <div id="info">
     <p>
-      This is a <strong>local multiplayer</strong> prototype. To turn it into an online game,
-      connect the <code>Network</code> object to a WebSocket server and sync player states.
+      Each KO gives the other player <strong>1 point</strong>. Players have weapons with different
+      damage/range/cooldown and a heal bar they can spend to restore health.
     </p>
     <p>
-      Ideas to make it “highly realistic”:
-      use high‑res sprite sheets, skeletal animation (e.g. Spine), dynamic lighting,
-      hit sparks, camera shake, and sound effects.
+      Player 1 starts with a <code>sword</code>, Player 2 with a <code>hammer</code>.
+      Change weapons in code via <code>equipWeapon("fists" | "sword" | "hammer" | "dagger")</code>.
     </p>
     <div id="status">Status: Local mode (no server connected)</div>
   </div>
 
   <script>
     // =========================
-    // Utility helpers
+    // Utility
     // =========================
     function clamp(v, min, max) {
       return Math.max(min, Math.min(max, v));
     }
 
     // =========================
-    // Input handling
+    // Input
     // =========================
     const keys = {};
     window.addEventListener("keydown", (e) => {
@@ -152,25 +232,18 @@
     // Network placeholder
     // =========================
     const Network = {
-      mode: "local", // "local" or "online"
+      mode: "local",
       connected: false,
       lastSnapshot: null,
-
       connect() {
-        // In a real game, you’d open a WebSocket here.
-        // For now, we just simulate local mode.
         this.mode = "local";
         this.connected = false;
         updateStatus("Status: Local mode (no server connected)");
       },
-
       sendState(state) {
-        // In online mode, serialize and send to server.
         this.lastSnapshot = state;
       },
-
       receiveState() {
-        // In online mode, this would be called when server sends updates.
         return this.lastSnapshot;
       },
     };
@@ -181,7 +254,7 @@
     }
 
     // =========================
-    // Game constants
+    // Canvas & constants
     // =========================
     const canvas = document.getElementById("game");
     const ctx = canvas.getContext("2d");
@@ -191,12 +264,17 @@
     const FRICTION = 0.8;
     const MOVE_SPEED = 4;
     const JUMP_FORCE = -14;
-    const PUNCH_RANGE = 60;
-    const PUNCH_COOLDOWN = 400; // ms
-    const DAMAGE = 10;
+
+    // Weapons
+    const weapons = {
+      fists:  { name: "Fists",  damage: 10, range: 60,  cooldown: 350 },
+      sword:  { name: "Sword",  damage: 22, range: 110, cooldown: 450 },
+      hammer: { name: "Hammer", damage: 30, range: 80,  cooldown: 600 },
+      dagger: { name: "Dagger", damage: 14, range: 55,  cooldown: 250 },
+    };
 
     // =========================
-    // Fighter class
+    // Fighter
     // =========================
     class Fighter {
       constructor(options) {
@@ -205,15 +283,32 @@
         this.width = 50;
         this.height = 100;
         this.color = options.color;
-        this.facing = options.facing || 1; // 1 = right, -1 = left
+        this.facing = options.facing || 1;
         this.vx = 0;
         this.vy = 0;
         this.onGround = false;
-        this.health = 100;
+
         this.maxHealth = 100;
+        this.health = this.maxHealth;
+
+        this.maxHealEnergy = 100;
+        this.healEnergy = this.maxHealEnergy;
+
+        this.weapon = weapons[options.weapon] || weapons.fists;
+
         this.isPunching = false;
+        this.punchAnim = 0;
+        this.punchAnimSpeed = 0.25;
         this.lastPunchTime = 0;
+        this.punchHitRegistered = false;
+
         this.name = options.name || "Fighter";
+      }
+
+      equipWeapon(name) {
+        if (weapons[name]) {
+          this.weapon = weapons[name];
+        }
       }
 
       getHitbox() {
@@ -228,44 +323,52 @@
       getPunchBox() {
         const hb = this.getHitbox();
         const dir = this.facing;
+        const range = this.weapon.range;
         return {
-          x: dir === 1 ? hb.x + hb.width : hb.x - PUNCH_RANGE,
+          x: dir === 1 ? hb.x + hb.width : hb.x - range,
           y: hb.y + hb.height * 0.3,
-          width: PUNCH_RANGE,
+          width: range,
           height: hb.height * 0.4,
         };
+      }
+
+      canPunch() {
+        const now = performance.now();
+        return now - this.lastPunchTime > this.weapon.cooldown;
+      }
+
+      punch() {
+        if (!this.canPunch()) return;
+        this.isPunching = true;
+        this.punchAnim = 1;
+        this.lastPunchTime = performance.now();
+        this.punchHitRegistered = false;
+
+        setTimeout(() => {
+          this.isPunching = false;
+        }, 120);
+      }
+
+      tryHeal() {
+        const healAmount = 15;
+        const cost = 25;
+        if (this.healEnergy >= cost && this.health < this.maxHealth) {
+          this.healEnergy -= cost;
+          this.health = clamp(this.health + healAmount, 0, this.maxHealth);
+        }
       }
 
       takeDamage(amount) {
         this.health = clamp(this.health - amount, 0, this.maxHealth);
       }
 
-      canPunch() {
-        const now = performance.now();
-        return now - this.lastPunchTime > PUNCH_COOLDOWN;
-      }
-
-      punch() {
-        if (!this.canPunch()) return;
-        this.isPunching = true;
-        this.lastPunchTime = performance.now();
-        setTimeout(() => {
-          this.isPunching = false;
-        }, 120);
-      }
-
       updatePhysics() {
-        // Apply gravity
         this.vy += GRAVITY;
-
-        // Apply friction
         this.vx *= FRICTION;
 
-        // Integrate
         this.x += this.vx;
         this.y += this.vy;
 
-        // Floor collision
         if (this.y > FLOOR_Y) {
           this.y = FLOOR_Y;
           this.vy = 0;
@@ -274,8 +377,14 @@
           this.onGround = false;
         }
 
-        // World bounds
         this.x = clamp(this.x, 50, canvas.width - 50);
+
+        if (this.punchAnim > 0) {
+          this.punchAnim -= this.punchAnimSpeed;
+          if (this.punchAnim < 0) this.punchAnim = 0;
+        }
+
+        this.healEnergy = clamp(this.healEnergy + 0.05, 0, this.maxHealEnergy);
       }
 
       draw(ctx) {
@@ -325,27 +434,40 @@
         ctx.fill();
         ctx.stroke();
 
-        // Simple face
+        // Eye
         ctx.fillStyle = "#000";
         const eyeOffsetX = 6 * this.facing;
         ctx.beginPath();
         ctx.arc(this.x + eyeOffsetX, hb.y - 22, 3, 0, Math.PI * 2);
         ctx.fill();
 
-        // Punch effect
-        if (this.isPunching) {
+        // Weapon indicator (small icon on body)
+        ctx.fillStyle = "#ffd966";
+        ctx.font = "10px system-ui";
+        ctx.textAlign = "center";
+        ctx.fillText(this.weapon.name, this.x, hb.y + hb.height + 10);
+
+        // Punch animation
+        if (this.isPunching || this.punchAnim > 0) {
           const pb = this.getPunchBox();
+          const extend = this.punchAnim * 25;
+          const dir = this.facing;
+
+          const x = dir === 1 ? pb.x : pb.x - extend;
+          const w = pb.width + extend;
+
           const punchGrad = ctx.createLinearGradient(
-            pb.x,
+            x,
             pb.y,
-            pb.x + pb.width,
+            x + w,
             pb.y + pb.height
           );
           punchGrad.addColorStop(0, "rgba(255,255,255,0.8)");
-          punchGrad.addColorStop(1, "rgba(255,200,0,0.2)");
+          punchGrad.addColorStop(1, "rgba(255,200,0,0.1)");
+
           ctx.fillStyle = punchGrad;
           ctx.beginPath();
-          ctx.roundRect(pb.x, pb.y, pb.width, pb.height, 8);
+          ctx.roundRect(x, pb.y, w, pb.height, 8);
           ctx.fill();
         }
 
@@ -362,6 +484,7 @@
       color: "#3af",
       facing: 1,
       name: "Player 1",
+      weapon: "sword",
     });
 
     const player2 = new Fighter({
@@ -370,7 +493,26 @@
       color: "#f33",
       facing: -1,
       name: "Player 2",
+      weapon: "hammer",
     });
+
+    let scoreP1 = 0;
+    let scoreP2 = 0;
+    let roundOver = false;
+    let roundMessageTimeout = null;
+
+    function updateScoreboard() {
+      const s1 = document.getElementById("scoreP1");
+      const s2 = document.getElementById("scoreP2");
+      if (s1) s1.textContent = `Player 1: ${scoreP1} pts`;
+      if (s2) s2.textContent = `Player 2: ${scoreP2} pts`;
+    }
+
+    function setRoundMessage(msg) {
+      const el = document.getElementById("round-message");
+      if (!el) return;
+      el.textContent = msg || "";
+    }
 
     function resetRound() {
       player1.x = 200;
@@ -378,14 +520,23 @@
       player1.vx = 0;
       player1.vy = 0;
       player1.health = player1.maxHealth;
+      player1.healEnergy = player1.maxHealEnergy;
       player1.facing = 1;
+      player1.isPunching = false;
+      player1.punchAnim = 0;
 
       player2.x = 600;
       player2.y = FLOOR_Y;
       player2.vx = 0;
       player2.vy = 0;
       player2.health = player2.maxHealth;
+      player2.healEnergy = player2.maxHealEnergy;
       player2.facing = -1;
+      player2.isPunching = false;
+      player2.punchAnim = 0;
+
+      roundOver = false;
+      setRoundMessage("");
     }
 
     // =========================
@@ -401,10 +552,12 @@
     }
 
     // =========================
-    // Input → movement
+    // Input → movement & actions
     // =========================
     function handleInput() {
-      // Player 1: A/D move, W jump, F punch
+      if (roundOver) return;
+
+      // Player 1
       if (keys["KeyA"]) {
         player1.vx = -MOVE_SPEED;
         player1.facing = -1;
@@ -421,7 +574,11 @@
         player1.punch();
       }
 
-      // Player 2: ArrowLeft/Right move, ArrowUp jump, KeyK punch
+      if (keys["KeyR"]) {
+        player1.tryHeal();
+      }
+
+      // Player 2
       if (keys["ArrowLeft"]) {
         player2.vx = -MOVE_SPEED;
         player2.facing = -1;
@@ -437,16 +594,21 @@
       if (keys["KeyK"]) {
         player2.punch();
       }
+
+      if (keys["KeyL"]) {
+        player2.tryHeal();
+      }
     }
 
     // =========================
-    // Combat logic
+    // Combat + points
     // =========================
     function handleCombat() {
+      if (roundOver) return;
+
       const hb1 = player1.getHitbox();
       const hb2 = player2.getHitbox();
 
-      // Keep fighters from overlapping too much
       const minDistance = 40;
       const dx = player2.x - player1.x;
       if (Math.abs(dx) < minDistance) {
@@ -460,26 +622,43 @@
         }
       }
 
-      // Punch detection
-      if (player1.isPunching && player1.canPunch() === false) {
+      // Player 1 punch
+      if (player1.isPunching && !player1.punchHitRegistered) {
         const pb1 = player1.getPunchBox();
         if (rectsOverlap(pb1, hb2)) {
-          player2.takeDamage(DAMAGE);
+          player2.takeDamage(player1.weapon.damage);
+          player1.punchHitRegistered = true;
         }
       }
 
-      if (player2.isPunching && player2.canPunch() === false) {
+      // Player 2 punch
+      if (player2.isPunching && !player2.punchHitRegistered) {
         const pb2 = player2.getPunchBox();
         if (rectsOverlap(pb2, hb1)) {
-          player1.takeDamage(DAMAGE);
+          player1.takeDamage(player2.weapon.damage);
+          player2.punchHitRegistered = true;
         }
       }
 
-      // Round end
       if (player1.health <= 0 || player2.health <= 0) {
-        setTimeout(() => {
+        roundOver = true;
+
+        if (player1.health <= 0 && player2.health <= 0) {
+          setRoundMessage("Double KO! No points awarded.");
+        } else if (player1.health <= 0) {
+          scoreP2 += 1;
+          setRoundMessage("Player 2 scores a point!");
+        } else if (player2.health <= 0) {
+          scoreP1 += 1;
+          setRoundMessage("Player 1 scores a point!");
+        }
+
+        updateScoreboard();
+
+        if (roundMessageTimeout) clearTimeout(roundMessageTimeout);
+        roundMessageTimeout = setTimeout(() => {
           resetRound();
-        }, 1000);
+        }, 1300);
       }
     }
 
@@ -487,7 +666,6 @@
     // Rendering
     // =========================
     function drawBackground() {
-      // Sky gradient
       const skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
       skyGrad.addColorStop(0, "#1b1f3b");
       skyGrad.addColorStop(0.5, "#222");
@@ -495,7 +673,6 @@
       ctx.fillStyle = skyGrad;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Distant city silhouettes
       ctx.save();
       ctx.fillStyle = "#181818";
       for (let i = 0; i < 10; i++) {
@@ -507,20 +684,13 @@
       }
       ctx.restore();
 
-      // Floor
       ctx.save();
-      const floorGrad = ctx.createLinearGradient(
-        0,
-        FLOOR_Y,
-        0,
-        canvas.height
-      );
+      const floorGrad = ctx.createLinearGradient(0, FLOOR_Y, 0, canvas.height);
       floorGrad.addColorStop(0, "#333");
       floorGrad.addColorStop(1, "#111");
       ctx.fillStyle = floorGrad;
       ctx.fillRect(0, FLOOR_Y, canvas.width, canvas.height - FLOOR_Y);
 
-      // Floor lines
       ctx.strokeStyle = "rgba(255,255,255,0.05)";
       ctx.lineWidth = 1;
       for (let i = 0; i < 10; i++) {
@@ -531,7 +701,6 @@
       }
       ctx.restore();
 
-      // Spotlights
       ctx.save();
       ctx.globalCompositeOperation = "lighter";
       const spotlight = ctx.createRadialGradient(
@@ -566,17 +735,25 @@
       ctx.restore();
     }
 
-    function updateHealthBars() {
-      const p1Bar = document.getElementById("healthP1");
-      const p2Bar = document.getElementById("healthP2");
-      if (!p1Bar || !p2Bar) return;
+    function updateBars() {
+      const h1 = document.getElementById("healthP1");
+      const h2 = document.getElementById("healthP2");
+      const e1 = document.getElementById("healP1");
+      const e2 = document.getElementById("healP2");
+      if (!h1 || !h2 || !e1 || !e2) return;
 
-      const p1Ratio = player1.health / player1.maxHealth;
-      const p2Ratio = player2.health / player2.maxHealth;
+      const p1HealthRatio = player1.health / player1.maxHealth;
+      const p2HealthRatio = player2.health / player2.maxHealth;
+      const p1HealRatio = player1.healEnergy / player1.maxHealEnergy;
+      const p2HealRatio = player2.healEnergy / player2.maxHealEnergy;
 
-      p1Bar.style.transform = `scaleX(${p1Ratio})`;
-      p2Bar.style.transform = `scaleX(${p2Ratio})`;
-      p2Bar.style.transformOrigin = "right center";
+      h1.style.transform = `scaleX(${p1HealthRatio})`;
+      h2.style.transform = `scaleX(${p2HealthRatio})`;
+      e1.style.transform = `scaleX(${p1HealRatio})`;
+      e2.style.transform = `scaleX(${p2HealRatio})`;
+
+      h2.style.transformOrigin = "right center";
+      e2.style.transformOrigin = "right center";
     }
 
     // =========================
@@ -593,7 +770,6 @@
       player2.updatePhysics();
       handleCombat();
 
-      // Networking placeholder
       Network.sendState({
         p1: { x: player1.x, y: player1.y, health: player1.health },
         p2: { x: player2.x, y: player2.y, health: player2.health },
@@ -602,7 +778,7 @@
       drawBackground();
       player1.draw(ctx);
       player2.draw(ctx);
-      updateHealthBars();
+      updateBars();
 
       requestAnimationFrame(gameLoop);
     }
@@ -611,6 +787,7 @@
     // Init
     // =========================
     resetRound();
+    updateScoreboard();
     Network.connect();
     requestAnimationFrame(gameLoop);
   </script>
