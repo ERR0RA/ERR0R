@@ -2,65 +2,65 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Fighter: Ultimate Armory</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>3D Fighter: Mobile Master Armory</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; overflow: hidden; background: #000; font-family: 'Orbitron', sans-serif; user-select: none; }
-        #lobby { position: absolute; inset: 0; background: radial-gradient(circle, #1a1a1a, #000); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; color: white; padding: 20px; text-align: center; }
-        .setup-grid { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
-        .player-setup { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; width: 280px; border: 1px solid #444; }
-        select, button { width: 100%; padding: 10px; margin: 5px 0; border-radius: 5px; font-family: 'Orbitron'; cursor: pointer; border: none; background: #222; color: white; }
-        #start-btn { background: #00f2ff; color: #000; font-size: 1.5rem; font-weight: 900; margin-top: 20px; box-shadow: 0 0 20px #00f2ff; }
-        .mode-select { background: #333; padding: 10px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #00f2ff; }
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Orbitron', sans-serif; user-select: none; touch-action: none; }
+        #lobby { position: absolute; inset: 0; background: radial-gradient(circle, #1a1a1a, #000); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; color: white; padding: 10px; text-align: center; }
+        .setup-grid { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; max-height: 60vh; overflow-y: auto; }
+        .player-setup { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; width: 260px; border: 1px solid #444; }
+        select, button { width: 100%; padding: 12px; margin: 5px 0; border-radius: 8px; font-family: 'Orbitron'; cursor: pointer; border: none; background: #222; color: white; -webkit-appearance: none; }
+        #start-btn { background: #00f2ff; color: #000; font-size: 1.2rem; font-weight: 900; box-shadow: 0 0 15px #00f2ff; }
         
-        #ui { position: absolute; top: 20px; width: 100%; padding: 0 50px; display: flex; justify-content: space-between; box-sizing: border-box; z-index: 10; visibility: hidden; pointer-events: none; }
-        .bar-container { width: 300px; text-align: center; }
-        .bar-bg { width: 100%; height: 20px; background: #111; border: 1px solid #555; position: relative; }
-        .hp-fill { height: 100%; width: 100%; background: #00f2ff; transition: width 0.2s; box-shadow: 0 0 10px #00f2ff; }
-        #ko-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 100px; font-weight: 900; color: #fff; z-index: 150; transition: 0.3s; pointer-events: none; text-shadow: 0 0 20px #00f2ff; }
+        /* Mobile HUD */
+        #ui { position: absolute; top: 10px; width: 100%; padding: 0 20px; display: flex; justify-content: space-between; box-sizing: border-box; z-index: 10; visibility: hidden; pointer-events: none; }
+        .bar-container { width: 40%; }
+        .bar-bg { width: 100%; height: 12px; background: #111; border: 1px solid #555; position: relative; }
+        .hp-fill { height: 100%; width: 100%; background: #00f2ff; transition: width 0.2s; }
+        
+        /* Touch Controls */
+        #touch-controls { position: absolute; bottom: 30px; width: 100%; display: none; justify-content: space-between; padding: 0 30px; box-sizing: border-box; z-index: 100; pointer-events: none; }
+        .touch-btn { width: 70px; height: 70px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; pointer-events: auto; user-select: none; -webkit-user-select: none; }
+        .touch-btn:active { background: rgba(0, 242, 255, 0.4); border-color: #00f2ff; }
+        .dpad { display: flex; gap: 15px; }
+        #atk-btn { width: 90px; height: 90px; background: rgba(255, 0, 85, 0.2); border-color: #ff0055; font-size: 1.2rem; }
+
+        #ko-msg { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 60px; font-weight: 900; color: #fff; z-index: 150; transition: 0.3s; pointer-events: none; text-shadow: 0 0 20px #00f2ff; }
     </style>
 </head>
 <body>
 
 <div id="lobby">
-    <h1 style="letter-spacing: 4px;">ULTIMATE ARMORY</h1>
-    
-    <div class="mode-select">
-        MODE: <select id="game-mode" style="width: 120px; display: inline-block;"><option value="bot">VS BOT</option><option value="pvp">PVP</option></select>
-    </div>
-
+    <h1 style="font-size: 1.5rem;">MASTER ARMORY</h1>
+    <select id="game-mode" style="width: 200px; margin-bottom: 15px;"><option value="bot">SINGLE PLAYER (VS BOT)</option><option value="pvp">2 PLAYER (LOCAL)</option></select>
     <div class="setup-grid">
         <div class="player-setup">
-            <h3 style="color:#00f2ff">P1 (A/D/W/F)</h3>
-            SKIN: <select id="p1-skin"><option value="0xffdbac">Human</option><option value="0x333333">Shadow</option><option value="0x00ffcc">Android</option></select>
-            WEAPON: <select id="p1-wep">
-                <option value="katana">Katana (Balanced)</option>
-                <option value="executioner">Executioner (Heavy)</option>
-                <option value="rapier">Rapier (Fast/Long)</option>
-                <option value="plague">Plague Blade (Medium)</option>
-                <option value="dagger">Twin Dagger (Ultra Fast)</option>
-            </select>
-        </div>
-        <div class="player-setup">
-            <h3 style="color:#ff0055">P2 (Arrows/K)</h3>
-            SKIN: <select id="p2-skin"><option value="0x333333">Shadow</option><option value="0xffdbac">Human</option><option value="0xff0055">Demon</option></select>
-            WEAPON: <select id="p2-wep">
+            <h3 style="color:#00f2ff; margin:5px;">P1 SETUP</h3>
+            <select id="p1-skin"><option value="0xffdbac">Human</option><option value="0x00ffcc">Android</option></select>
+            <select id="p1-wep">
                 <option value="katana">Katana</option>
                 <option value="executioner">Executioner</option>
                 <option value="rapier">Rapier</option>
-                <option value="plague">Plague Blade</option>
-                <option value="claymore">Claymore (Huge)</option>
             </select>
         </div>
     </div>
-    <button id="start-btn">START DUEL</button>
+    <button id="start-btn">ENGAGE</button>
 </div>
 
 <div id="ko-msg">K.O.</div>
+
 <div id="ui">
-    <div class="bar-container"><div class="bar-bg"><div id="hp1" class="hp-fill"></div></div><div id="p1-label">P1</div></div>
-    <div class="bar-container"><div class="bar-bg"><div id="hp2" class="hp-fill" style="background:#ff0055; box-shadow:0 0 10px #ff0055;"></div></div><div id="p2-label">P2</div></div>
+    <div class="bar-container"><div class="bar-bg"><div id="hp1" class="hp-fill"></div></div></div>
+    <div class="bar-container"><div class="bar-bg"><div id="hp2" class="hp-fill" style="background:#ff0055;"></div></div></div>
+</div>
+
+<div id="touch-controls">
+    <div class="dpad">
+        <div class="touch-btn" id="left-btn">◀</div>
+        <div class="touch-btn" id="right-btn">▶</div>
+    </div>
+    <div class="touch-btn" id="atk-btn">HIT</div>
 </div>
 
 <script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }</script>
@@ -69,12 +69,9 @@
     import * as THREE from 'three';
 
     const WEAPONS = {
-        katana:      { dmg: 14, speed: 0.22, range: 2.3, scale: [0.06, 2.3, 0.06], color: 0xcccccc },
-        executioner: { dmg: 40, speed: 0.08, range: 3.0, scale: [0.4, 3.0, 0.2],   color: 0x444444 },
-        rapier:      { dmg: 10, speed: 0.35, range: 3.6, scale: [0.03, 3.6, 0.03], color: 0x00f2ff },
-        plague:      { dmg: 18, speed: 0.18, range: 2.5, scale: [0.12, 2.5, 0.12], color: 0x33ff33 },
-        dagger:      { dmg: 8,  speed: 0.5,  range: 1.4, scale: [0.05, 1.3, 0.05], color: 0xffaa00 },
-        claymore:    { dmg: 32, speed: 0.1,  range: 3.8, scale: [0.25, 3.8, 0.1],  color: 0x8800ff }
+        katana:      { dmg: 14, speed: 0.2, range: 2.3, scale: [0.06, 2.3, 0.06], color: 0xcccccc },
+        executioner: { dmg: 40, speed: 0.07, range: 3.0, scale: [0.35, 3.0, 0.15], color: 0x444444 },
+        rapier:      { dmg: 10, speed: 0.3, range: 3.6, scale: [0.03, 3.6, 0.03], color: 0x00f2ff }
     };
 
     let roundActive = false, isBot = false;
@@ -82,11 +79,12 @@
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     document.body.appendChild(renderer.domElement);
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.4));
-    const sun = new THREE.PointLight(0xffffff, 100); sun.position.set(0, 10, 10); scene.add(sun);
-    scene.add(new THREE.GridHelper(100, 50, 0x222222, 0x111111));
+    scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+    const light = new THREE.PointLight(0xffffff, 100); light.position.set(0, 10, 5); scene.add(light);
+    scene.add(new THREE.GridHelper(50, 25, 0x444444, 0x222222));
 
     class Fighter {
         constructor(x, id) {
@@ -97,11 +95,10 @@
         }
         init(skin, wepKey) {
             this.group.clear(); this.hp = 100; this.wep = WEAPONS[wepKey];
-            const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.5, 1.2), new THREE.MeshStandardMaterial({color: parseInt(skin)}));
-            body.position.y = 1.1; this.group.add(body);
-            
-            this.pivot = new THREE.Group(); this.pivot.position.set(0.6, 1.4, 0);
-            const blade = new THREE.Mesh(new THREE.BoxGeometry(...this.wep.scale), new THREE.MeshStandardMaterial({color: this.wep.color, emissive: this.wep.color, emissiveIntensity: 0.5}));
+            const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.4, 1), new THREE.MeshStandardMaterial({color: parseInt(skin)}));
+            body.position.y = 0.9; this.group.add(body);
+            this.pivot = new THREE.Group(); this.pivot.position.set(0.5, 1.2, 0);
+            const blade = new THREE.Mesh(new THREE.BoxGeometry(...this.wep.scale), new THREE.MeshStandardMaterial({color: this.wep.color}));
             blade.position.y = this.wep.scale[1]/2; this.pivot.add(blade);
             this.group.add(this.pivot);
         }
@@ -112,12 +109,25 @@
             } else { this.pivot.rotation.z = 0; }
             this.group.position.x += this.vel.x;
             this.vel.x *= 0.8;
-            this.group.position.x = Math.max(-18, Math.min(18, this.group.position.x));
+            this.group.position.x = Math.max(-12, Math.min(12, this.group.position.x));
         }
     }
 
-    const p1 = new Fighter(-7, 1);
-    const p2 = new Fighter(7, 2);
+    const p1 = new Fighter(-5, 1);
+    const p2 = new Fighter(5, 2);
+    const inputs = { left: false, right: false, atk: false };
+
+    // Touch Event Listeners
+    const setupTouch = (id, key) => {
+        const el = document.getElementById(id);
+        el.addEventListener('touchstart', (e) => { e.preventDefault(); inputs[key] = true; });
+        el.addEventListener('touchend', (e) => { e.preventDefault(); inputs[key] = false; });
+    };
+    setupTouch('left-btn', 'left');
+    setupTouch('right-btn', 'right');
+    setupTouch('atk-btn', 'atk');
+
+    // Desktop Key Listeners
     const keys = {};
     window.onkeydown = (e) => keys[e.code] = true;
     window.onkeyup = (e) => keys[e.code] = false;
@@ -125,43 +135,39 @@
     document.getElementById('start-btn').onclick = () => {
         isBot = document.getElementById('game-mode').value === 'bot';
         p1.init(document.getElementById('p1-skin').value, document.getElementById('p1-wep').value);
-        p2.init(document.getElementById('p2-skin').value, document.getElementById('p2-wep').value);
+        p2.init("0x333333", "katana"); // Default P2/Bot
         document.getElementById('lobby').style.display = 'none';
         document.getElementById('ui').style.visibility = 'visible';
+        document.getElementById('touch-controls').style.display = 'flex';
         roundActive = true;
         animate();
     };
-
-    function botAI() {
-        const gap = p2.group.position.x - p1.group.position.x;
-        if (Math.abs(gap) > p2.wep.range * 0.9) p2.vel.x = gap > 0 ? -0.12 : 0.12;
-        if (Math.abs(gap) < p2.wep.range && p2.atkPhase <= 0) { p2.atkPhase = 1; p2.hitMark = false; }
-    }
 
     function animate() {
         if (!roundActive) return;
         requestAnimationFrame(animate);
 
-        if (keys['KeyA']) p1.vel.x = -0.18;
-        if (keys['KeyD']) p1.vel.x = 0.18;
-        if (keys['KeyF'] && p1.atkPhase <= 0) { p1.atkPhase = 1; p1.hitMark = false; }
+        // Movement Logic (Combines Touch + Keyboard)
+        if (inputs.left || keys['KeyA']) p1.vel.x = -0.15;
+        if (inputs.right || keys['KeyD']) p1.vel.x = 0.15;
+        if ((inputs.atk || keys['KeyF']) && p1.atkPhase <= 0) { p1.atkPhase = 1; p1.hitMark = false; }
 
-        if (isBot) botAI();
-        else {
-            if (keys['ArrowLeft']) p2.vel.x = -0.18;
-            if (keys['ArrowRight']) p2.vel.x = 0.18;
-            if (keys['KeyK'] && p2.atkPhase <= 0) { p2.atkPhase = 1; p2.hitMark = false; }
+        if (isBot) {
+            const gap = p2.group.position.x - p1.group.position.x;
+            if (Math.abs(gap) > 1.8) p2.vel.x = gap > 0 ? -0.08 : 0.08;
+            if (Math.abs(gap) < 2.2 && p2.atkPhase <= 0) { p2.atkPhase = 1; p2.hitMark = false; }
         }
 
         p1.update(); p2.update();
 
-        const dist = Math.abs(p1.group.position.x - p2.group.position.x);
+        // Combat Collision
+        const d = Math.abs(p1.group.position.x - p2.group.position.x);
         [p1, p2].forEach((atk, i) => {
             const def = i === 0 ? p2 : p1;
-            if (atk.atkPhase > 0.4 && atk.atkPhase < 0.7 && !atk.hitMark && dist < atk.wep.range) {
+            if (atk.atkPhase > 0.4 && atk.atkPhase < 0.7 && !atk.hitMark && d < atk.wep.range) {
                 def.hp -= atk.wep.dmg;
                 atk.hitMark = true;
-                def.vel.x = (atk.group.position.x < def.group.position.x ? 1 : -1) * 0.5;
+                def.vel.x = (atk.group.position.x < def.group.position.x ? 1 : -1) * 0.4;
             }
         });
 
@@ -174,10 +180,16 @@
             setTimeout(() => location.reload(), 3000);
         }
 
-        camera.position.set((p1.group.position.x + p2.group.position.x)/2, 6, 16);
-        camera.lookAt((p1.group.position.x + p2.group.position.x)/2, 2, 0);
+        camera.position.set((p1.group.position.x + p2.group.position.x)/2, 4, 12);
+        camera.lookAt((p1.group.position.x + p2.group.position.x)/2, 1.5, 0);
         renderer.render(scene, camera);
     }
+
+    window.onresize = () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    };
 </script>
 </body>
 </html>
