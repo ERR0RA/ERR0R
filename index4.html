@@ -3,216 +3,310 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Math Wars: Battle Arena</title>
+<title>Math Wars: 3D Ultra</title>
 <style>
-    :root { --p1-color: #1a73e8; --p2-color: #e91e63; --bot-color: #4caf50; }
-    body { font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: white; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-    .game-container { background: #16213e; padding: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 100%; max-width: 800px; }
-    
-    /* Battle UI */
-    .battle-floor { display: flex; justify-content: space-between; margin-bottom: 20px; padding: 20px; background: #0f3460; border-radius: 10px; position: relative; }
-    .fighter { text-align: center; width: 45%; }
-    .hp-bar { height: 20px; background: #444; border-radius: 10px; overflow: hidden; margin-top: 10px; border: 2px solid #fff; }
-    .hp-fill { height: 100%; width: 100%; transition: width 0.3s ease; }
-    #p1-hp { background: var(--p1-color); }
-    #p2-hp { background: var(--p2-color); }
-    
-    .controls { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; justify-content: center; }
-    button { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; background: #e8f0fe; }
-    button.active { background: #4ecca3; color: #1a1a2e; }
-    
-    .quiz-box { background: white; color: #333; padding: 20px; border-radius: 10px; text-align: center; }
-    .answer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-    .ans-btn { padding: 15px; border: 2px solid #ddd; border-radius: 8px; font-size: 1.1em; cursor: pointer; background: #f8f9fa; transition: 0.2s; }
-    .ans-btn:hover { background: #eee; }
+    :root {
+        --p1-color: #00f2ff;
+        --p2-color: #ff007b;
+        --bg-dark: #050505;
+        --card-bg: rgba(255, 255, 255, 0.05);
+    }
 
-    #weapon-fx { position: absolute; width: 100%; text-align: center; top: 40%; font-size: 2em; pointer-events: none; opacity: 0; transition: 0.5s; }
-    .weapon-select { margin-top: 10px; font-size: 0.8em; }
+    body {
+        font-family: 'Orbitron', sans-serif;
+        background: radial-gradient(circle at center, #1a1a2e 0%, #050505 100%);
+        color: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        perspective: 1000px;
+        min-height: 100vh;
+        margin: 0;
+        overflow-x: hidden;
+    }
+
+    /* 3D Realism Containers */
+    .game-viewport {
+        transform: rotateX(10deg);
+        transform-style: preserve-3d;
+        width: 100%;
+        max-width: 800px;
+        margin-top: 30px;
+    }
+
+    .glass-card {
+        background: var(--card-bg);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        margin-bottom: 20px;
+    }
+
+    /* Arena & HP Bars */
+    .arena {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+    }
+
+    .player-unit {
+        flex: 1;
+        text-align: center;
+        padding: 15px;
+        border-radius: 15px;
+        transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .player-unit.active {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateZ(30px);
+        box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+    }
+
+    .hp-track {
+        height: 25px;
+        background: #111;
+        border-radius: 50px;
+        overflow: hidden;
+        border: 2px solid #333;
+        box-shadow: inset 0 2px 5px rgba(0,0,0,0.8);
+    }
+
+    .hp-fill {
+        height: 100%;
+        width: 100%;
+        transition: width 0.5s ease;
+        background: linear-gradient(90deg, #fff 0%, transparent 100%);
+    }
+
+    /* Skins & Customization */
+    .skin-neon { color: var(--p1-color); text-shadow: 0 0 10px var(--p1-color); }
+    .skin-obsidian { color: #555; text-shadow: 0 0 5px #000; }
+    .skin-gold { color: #ffd700; text-shadow: 0 0 10px #ffaa00; }
+
+    /* Controls */
+    .control-row { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+    button {
+        padding: 10px 15px;
+        border: none;
+        border-radius: 8px;
+        background: #222;
+        color: #eee;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.2s;
+    }
+
+    button.active { background: #00d2ff; color: #000; box-shadow: 0 0 15px #00d2ff; }
+
+    /* Quiz Area */
+    .quiz-area {
+        background: white;
+        color: #111;
+        border-radius: 15px;
+        padding: 30px;
+        text-align: center;
+        transform: translateZ(10px);
+    }
+
+    .ans-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+    .ans-btn {
+        padding: 20px;
+        font-size: 1.2em;
+        background: #f0f0f0;
+        border: 3px solid transparent;
+        border-radius: 10px;
+    }
+    .ans-btn:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+
+    #fx-text {
+        position: fixed;
+        top: 40%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 5em;
+        pointer-events: none;
+        z-index: 100;
+        opacity: 0;
+    }
 </style>
 </head>
 <body>
 
-<div class="game-container">
-    <div class="controls">
-        <button id="mode-bot" class="active" onclick="setMode('bot')">vs Bot</button>
-        <button id="mode-pvp" onclick="setMode('pvp')">Local PvP</button>
-        |
-        <span id="bot-settings">
-            <button class="active" onclick="setBotDiff(3000, 0.3)">Noob Bot</button>
-            <button onclick="setBotDiff(1500, 0.1)">Pro Bot</button>
-        </span>
-    </div>
-
-    <div class="battle-floor">
-        <div class="fighter">
-            <h3 id="p1-label" style="color:var(--p1-color)">Player 1</h3>
-            <div class="hp-bar"><div id="p1-hp" class="hp-fill"></div></div>
-            <div class="weapon-select">
-                Weapon: <select id="p1-weapon"><option value="⚔️">Sword (10 DMG)</option><option value="🔥">Fireball (15 DMG)</option><option value="⚡">Lightning (20 DMG)</option></select>
-            </div>
-        </div>
-        
-        <div id="weapon-fx">⚡</div>
-
-        <div class="fighter">
-            <h3 id="p2-label" style="color:var(--p2-color)">Bot</h3>
-            <div class="hp-bar"><div id="p2-hp" class="hp-fill"></div></div>
-            <div class="weapon-select" id="p2-weapon-area" style="display:none">
-                Weapon: <select id="p2-weapon"><option value="🏹">Arrow</option><option value="❄️">Ice</option></select>
-            </div>
+<div class="game-viewport">
+    <div class="glass-card">
+        <div class="control-row">
+            <button id="mode-pvp" class="active" onclick="setMode('pvp')">Local PvP</button>
+            <button id="mode-bot" onclick="setMode('bot')">vs Bot</button>
+            <select id="bot-diff" onchange="resetGame()" style="background:#222; color:white; border:none; padding:10px; border-radius:8px;">
+                <option value="3000|0.4">Noob Bot</option>
+                <option value="1500|0.15" selected>Pro Bot</option>
+                <option value="600|0.02">God Bot</option>
+            </select>
         </div>
     </div>
 
-    <div class="quiz-box">
-        <h2 id="turn-indicator" style="font-size: 0.9em; color: #666;">Player 1's Turn</h2>
-        <h1 id="question">Ready?</h1>
-        <div class="answer-grid" id="answer-grid"></div>
+    <div class="glass-card arena">
+        <div id="unit-1" class="player-unit active">
+            <h3 class="skin-neon" id="p1-name">P1: Neon Knight</h3>
+            <div class="hp-track"><div id="p1-hp" class="hp-fill" style="background-color:var(--p1-color)"></div></div>
+            <select id="p1-wpn" class="wpn-sel">
+                <option value="10|⚔️">Blade (10)</option>
+                <option value="15|🔥">Fire (15)</option>
+                <option value="25|⚛️">Nuke (25)</option>
+                <option value="30|⚡">Tesla (30)</option>
+            </select>
+            <select onchange="applySkin(1, this.value)">
+                <option value="skin-neon">Neon Skin</option>
+                <option value="skin-gold">Gold Skin</option>
+                <option value="skin-obsidian">Obsidian</option>
+            </select>
+        </div>
+
+        <div id="unit-2" class="player-unit">
+            <h3 class="skin-neon" id="p2-name">P2: Shadow</h3>
+            <div class="hp-track"><div id="p2-hp" class="hp-fill" style="background-color:var(--p2-color)"></div></div>
+            <select id="p2-wpn" class="wpn-sel">
+                <option value="10|🏹">Bow (10)</option>
+                <option value="20|❄️">Frost (20)</option>
+                <option value="28|☄️">Meteor (28)</option>
+                <option value="40|☣️">Biolite (40)</option>
+            </select>
+            <select onchange="applySkin(2, this.value)">
+                <option value="skin-neon">Neon Skin</option>
+                <option value="skin-gold">Gold Skin</option>
+                <option value="skin-obsidian">Obsidian</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="quiz-area">
+        <h2 id="turn-label">Player 1 Strike!</h2>
+        <h1 id="question-text" style="font-size: 3em; margin: 10px 0;">-- x --</h1>
+        <div class="ans-grid" id="ans-grid"></div>
     </div>
 </div>
 
+<div id="fx-text">💥</div>
+
 <script>
-let gameState = {
-    mode: 'bot', // 'bot' or 'pvp'
+let state = {
+    mode: 'pvp',
     turn: 1,
     p1HP: 100,
     p2HP: 100,
-    botDelay: 3000,
-    botMissChance: 0.3,
-    currentAns: null,
-    isGameOver: false
+    ans: 0,
+    active: true
 };
 
+function applySkin(p, skinClass) {
+    const el = document.getElementById(`p${p}-name`);
+    el.className = skinClass;
+}
+
 function setMode(m) {
-    gameState.mode = m;
-    document.getElementById('mode-bot').className = m === 'bot' ? 'active' : '';
+    state.mode = m;
     document.getElementById('mode-pvp').className = m === 'pvp' ? 'active' : '';
-    document.getElementById('p2-label').textContent = m === 'bot' ? 'Bot' : 'Player 2';
-    document.getElementById('bot-settings').style.display = m === 'bot' ? 'inline' : 'none';
-    document.getElementById('p2-weapon-area').style.display = m === 'pvp' ? 'block' : 'none';
+    document.getElementById('mode-bot').className = m === 'bot' ? 'active' : '';
+    document.getElementById('p2-name').textContent = m === 'bot' ? 'Master Bot' : 'P2: Shadow';
     resetGame();
 }
 
-function setBotDiff(delay, miss) {
-    gameState.botDelay = delay;
-    gameState.botMissChance = miss;
-}
-
 function resetGame() {
-    gameState.p1HP = 100;
-    gameState.p2HP = 100;
-    gameState.turn = 1;
-    gameState.isGameOver = false;
+    state.p1HP = 100; state.p2HP = 100; state.turn = 1; state.active = true;
     updateUI();
-    nextQuestion();
+    generateQ();
 }
 
 function updateUI() {
-    document.getElementById('p1-hp').style.width = gameState.p1HP + '%';
-    document.getElementById('p2-hp').style.width = gameState.p2HP + '%';
-    document.getElementById('turn-indicator').textContent = gameState.turn === 1 ? "Player 1's Turn" : (gameState.mode === 'bot' ? "Bot is thinking..." : "Player 2's Turn");
+    document.getElementById('p1-hp').style.width = state.p1HP + '%';
+    document.getElementById('p2-hp').style.width = state.p2HP + '%';
+    document.getElementById('unit-1').classList.toggle('active', state.turn === 1);
+    document.getElementById('unit-2').classList.toggle('active', state.turn === 2);
+    document.getElementById('turn-label').textContent = state.turn === 1 ? "Player 1's Turn" : "Enemy Turn!";
 }
 
-function nextQuestion() {
-    if(gameState.isGameOver) return;
-    
+function generateQ() {
+    if(!state.active) return;
     const n1 = Math.floor(Math.random() * 12) + 2;
     const n2 = Math.floor(Math.random() * 12) + 2;
-    gameState.currentAns = n1 * n2;
-    
-    document.getElementById('question').textContent = `${n1} × ${n2} = ?`;
-    
-    // Generate options
-    let opts = [gameState.currentAns];
+    state.ans = n1 * n2;
+    document.getElementById('question-text').textContent = `${n1} × ${n2}`;
+
+    let opts = [state.ans];
     while(opts.length < 4) {
-        let f = gameState.currentAns + (Math.floor(Math.random() * 10) - 5);
-        if(!opts.includes(f) && f > 0) opts.push(f);
+        let fake = state.ans + (Math.floor(Math.random() * 20) - 10);
+        if(!opts.includes(fake) && fake > 0) opts.push(fake);
     }
     opts.sort(() => Math.random() - 0.5);
-    
-    const grid = document.getElementById('answer-grid');
+
+    const grid = document.getElementById('ans-grid');
     grid.innerHTML = '';
     opts.forEach(o => {
-        const btn = document.createElement('button');
-        btn.className = 'ans-btn';
-        btn.textContent = o;
-        btn.onclick = () => handleAnswer(o);
-        grid.appendChild(btn);
+        const b = document.createElement('button');
+        b.className = 'ans-btn';
+        b.textContent = o;
+        b.onclick = () => check(o);
+        grid.appendChild(b);
     });
 
-    if(gameState.mode === 'bot' && gameState.turn === 2) {
-        setTimeout(botAction, gameState.botDelay);
+    if(state.mode === 'bot' && state.turn === 2) {
+        const [delay, miss] = document.getElementById('bot-diff').value.split('|').map(Number);
+        setTimeout(() => botChoice(miss), delay);
     }
 }
 
-function handleAnswer(val) {
-    if(gameState.isGameOver) return;
-    if(gameState.mode === 'bot' && gameState.turn === 2) return; // Prevent clicking during bot turn
+function check(val) {
+    if(state.turn === 2 && state.mode === 'bot') return;
+    if(val == state.ans) attack();
+    else switchTurn();
+}
 
-    if(val == gameState.currentAns) {
-        attack();
-    } else {
-        showFx("❌ MISS", "#ff4d4d");
-        switchTurn();
-    }
+function botChoice(missChance) {
+    if(Math.random() > missChance) attack();
+    else switchTurn();
 }
 
 function attack() {
-    const weapon = document.getElementById(`p${gameState.turn}-weapon`).value;
-    const damage = weapon === '⚡' ? 20 : (weapon === '🔥' ? 15 : 10);
+    const wpnData = document.getElementById(`p${state.turn}-wpn`).value.split('|');
+    const dmg = parseInt(wpnData[0]);
+    const icon = wpnData[1];
+
+    if(state.turn === 1) state.p2HP -= dmg;
+    else state.p1HP -= dmg;
+
+    triggerFX(icon);
     
-    if(gameState.turn === 1) {
-        gameState.p2HP -= damage;
-        showFx(weapon + " HIT!", "#1a73e8");
+    if(state.p1HP <= 0 || state.p2HP <= 0) {
+        state.active = false;
+        document.getElementById('question-text').textContent = "GAME OVER";
+        document.getElementById('ans-grid').innerHTML = '<button onclick="resetGame()" style="width:100%">RESTART ARENA</button>';
     } else {
-        gameState.p1HP -= damage;
-        showFx(weapon + " HIT!", "#e91e63");
-    }
-
-    if(gameState.p1HP <= 0 || gameState.p2HP <= 0) {
-        endGame();
-    } else {
-        switchTurn();
-    }
-}
-
-function botAction() {
-    const isCorrect = Math.random() > gameState.botMissChance;
-    if(isCorrect) {
-        attack();
-    } else {
-        showFx("🤖 Bot Missed!", "#666");
         switchTurn();
     }
 }
 
 function switchTurn() {
-    gameState.turn = gameState.turn === 1 ? 2 : 1;
+    state.turn = state.turn === 1 ? 2 : 1;
     updateUI();
-    nextQuestion();
+    generateQ();
 }
 
-function showFx(text, color) {
-    const fx = document.getElementById('weapon-fx');
-    fx.textContent = text;
-    fx.style.color = color;
+function triggerFX(icon) {
+    const fx = document.getElementById('fx-text');
+    fx.textContent = icon;
     fx.style.opacity = '1';
-    fx.style.top = '20%';
-    setTimeout(() => { 
-        fx.style.opacity = '0'; 
-        fx.style.top = '40%';
-    }, 800);
-}
-
-function endGame() {
-    gameState.isGameOver = true;
-    const winner = gameState.p1HP > 0 ? "Player 1" : (gameState.mode === 'bot' ? "Bot" : "Player 2");
-    document.getElementById('question').textContent = winner + " WINS!";
-    document.getElementById('answer-grid').innerHTML = '<button onclick="resetGame()" style="width:200px">Play Again</button>';
+    fx.style.transform = 'translate(-50%, -80%) scale(1.5)';
+    setTimeout(() => {
+        fx.style.opacity = '0';
+        fx.style.transform = 'translate(-50%, -50%) scale(1)';
+    }, 600);
 }
 
 updateUI();
-nextQuestion();
+generateQ();
 </script>
-
 </body>
 </html>
