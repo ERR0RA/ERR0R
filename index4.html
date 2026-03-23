@@ -3,58 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Fighter: Master Armory Bot Edition</title>
+    <title>3D Fighter: Ultimate Armory</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
     <style>
         body { margin: 0; overflow: hidden; background: #000; font-family: 'Orbitron', sans-serif; user-select: none; }
-        #lobby { position: absolute; inset: 0; background: radial-gradient(circle, #1a1a1a, #000); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; color: white; }
-        .setup-grid { display: flex; gap: 20px; margin-bottom: 20px; }
-        .player-setup { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; width: 300px; border: 1px solid #444; text-align: center; }
-        select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 5px; font-family: 'Orbitron'; cursor: pointer; border: none; background: #333; color: white; }
-        #start-btn { background: #e63946; color: #fff; font-size: 1.5rem; font-weight: 900; margin-top: 20px; }
-        .mode-toggle { background: #444; margin-bottom: 20px; padding: 10px; border-radius: 10px; }
+        #lobby { position: absolute; inset: 0; background: radial-gradient(circle, #1a1a1a, #000); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; color: white; padding: 20px; text-align: center; }
+        .setup-grid { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+        .player-setup { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; width: 280px; border: 1px solid #444; }
+        select, button { width: 100%; padding: 10px; margin: 5px 0; border-radius: 5px; font-family: 'Orbitron'; cursor: pointer; border: none; background: #222; color: white; }
+        #start-btn { background: #00f2ff; color: #000; font-size: 1.5rem; font-weight: 900; margin-top: 20px; box-shadow: 0 0 20px #00f2ff; }
+        .mode-select { background: #333; padding: 10px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #00f2ff; }
         
         #ui { position: absolute; top: 20px; width: 100%; padding: 0 50px; display: flex; justify-content: space-between; box-sizing: border-box; z-index: 10; visibility: hidden; pointer-events: none; }
-        .bar-container { width: 350px; }
-        .bar-bg { width: 100%; height: 20px; background: #111; border: 1px solid #555; overflow: hidden; }
-        .hp-fill { height: 100%; width: 100%; background: #e63946; transition: width 0.2s; }
-        #ko-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 120px; font-weight: 900; color: #fff; z-index: 150; pointer-events: none; transition: 0.3s; }
+        .bar-container { width: 300px; text-align: center; }
+        .bar-bg { width: 100%; height: 20px; background: #111; border: 1px solid #555; position: relative; }
+        .hp-fill { height: 100%; width: 100%; background: #00f2ff; transition: width 0.2s; box-shadow: 0 0 10px #00f2ff; }
+        #ko-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 100px; font-weight: 900; color: #fff; z-index: 150; transition: 0.3s; pointer-events: none; text-shadow: 0 0 20px #00f2ff; }
     </style>
 </head>
 <body>
 
 <div id="lobby">
-    <h1>MASTER ARMORY</h1>
-    <div class="mode-toggle">
-        <label>GAME MODE: </label>
-        <select id="game-mode" style="width: 150px; display: inline-block;">
-            <option value="pvp">Local PvP</option>
-            <option value="bot">vs Bot (AI)</option>
-        </select>
+    <h1 style="letter-spacing: 4px;">ULTIMATE ARMORY</h1>
+    
+    <div class="mode-select">
+        MODE: <select id="game-mode" style="width: 120px; display: inline-block;"><option value="bot">VS BOT</option><option value="pvp">PVP</option></select>
     </div>
+
     <div class="setup-grid">
         <div class="player-setup">
-            <h3 style="color:#00f2ff">PLAYER 1</h3>
-            <select id="p1-color"><option value="0x00f2ff">Cyan</option><option value="0xffd700">Gold</option></select>
-            <select id="p1-wep">
-                <option value="muramasa">Muramasa (Fast)</option>
-                <option value="dragon">Dragon Slayer (Heavy)</option>
-                <option value="estoc">Estoc (Long)</option>
+            <h3 style="color:#00f2ff">P1 (A/D/W/F)</h3>
+            SKIN: <select id="p1-skin"><option value="0xffdbac">Human</option><option value="0x333333">Shadow</option><option value="0x00ffcc">Android</option></select>
+            WEAPON: <select id="p1-wep">
+                <option value="katana">Katana (Balanced)</option>
+                <option value="executioner">Executioner (Heavy)</option>
+                <option value="rapier">Rapier (Fast/Long)</option>
+                <option value="plague">Plague Blade (Medium)</option>
+                <option value="dagger">Twin Dagger (Ultra Fast)</option>
             </select>
         </div>
-        <div class="player-setup" id="p2-setup">
-            <h3 style="color:#ff0055">PLAYER 2</h3>
-            <select id="p2-color"><option value="0xff0055">Ruby</option><option value="0x00ff44">Acid</option></select>
-            <select id="p2-wep"><option value="muramasa">Muramasa</option><option value="dragon">Dragon Slayer</option><option value="estoc">Estoc</option></select>
+        <div class="player-setup">
+            <h3 style="color:#ff0055">P2 (Arrows/K)</h3>
+            SKIN: <select id="p2-skin"><option value="0x333333">Shadow</option><option value="0xffdbac">Human</option><option value="0xff0055">Demon</option></select>
+            WEAPON: <select id="p2-wep">
+                <option value="katana">Katana</option>
+                <option value="executioner">Executioner</option>
+                <option value="rapier">Rapier</option>
+                <option value="plague">Plague Blade</option>
+                <option value="claymore">Claymore (Huge)</option>
+            </select>
         </div>
     </div>
-    <button id="start-btn">FIGHT</button>
+    <button id="start-btn">START DUEL</button>
 </div>
 
 <div id="ko-msg">K.O.</div>
 <div id="ui">
-    <div class="bar-container"><div class="bar-bg"><div id="hp1" class="hp-fill"></div></div></div>
-    <div class="bar-container"><div class="bar-bg"><div id="hp2" class="hp-fill"></div></div></div>
+    <div class="bar-container"><div class="bar-bg"><div id="hp1" class="hp-fill"></div></div><div id="p1-label">P1</div></div>
+    <div class="bar-container"><div class="bar-bg"><div id="hp2" class="hp-fill" style="background:#ff0055; box-shadow:0 0 10px #ff0055;"></div></div><div id="p2-label">P2</div></div>
 </div>
 
 <script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }</script>
@@ -62,23 +68,25 @@
 <script type="module">
     import * as THREE from 'three';
 
-    const SWORDS = {
-        muramasa: { dmg: 12, speed: 0.2, range: 2.2, scale: [0.06, 2.2, 0.06] },
-        dragon:   { dmg: 35, speed: 0.07, range: 3.2, scale: [0.35, 3.2, 0.15] },
-        estoc:    { dmg: 18, speed: 0.15, range: 3.8, scale: [0.04, 3.8, 0.04] }
+    const WEAPONS = {
+        katana:      { dmg: 14, speed: 0.22, range: 2.3, scale: [0.06, 2.3, 0.06], color: 0xcccccc },
+        executioner: { dmg: 40, speed: 0.08, range: 3.0, scale: [0.4, 3.0, 0.2],   color: 0x444444 },
+        rapier:      { dmg: 10, speed: 0.35, range: 3.6, scale: [0.03, 3.6, 0.03], color: 0x00f2ff },
+        plague:      { dmg: 18, speed: 0.18, range: 2.5, scale: [0.12, 2.5, 0.12], color: 0x33ff33 },
+        dagger:      { dmg: 8,  speed: 0.5,  range: 1.4, scale: [0.05, 1.3, 0.05], color: 0xffaa00 },
+        claymore:    { dmg: 32, speed: 0.1,  range: 3.8, scale: [0.25, 3.8, 0.1],  color: 0x8800ff }
     };
 
-    let roundActive = false;
-    let isBotMode = false;
+    let roundActive = false, isBot = false;
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-    const sun = new THREE.DirectionalLight(0xffffff, 1); sun.position.set(5, 10, 7); scene.add(sun);
-    const grid = new THREE.GridHelper(100, 40, 0x444444, 0x111111); scene.add(grid);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+    const sun = new THREE.PointLight(0xffffff, 100); sun.position.set(0, 10, 10); scene.add(sun);
+    scene.add(new THREE.GridHelper(100, 50, 0x222222, 0x111111));
 
     class Fighter {
         constructor(x, id) {
@@ -87,83 +95,73 @@
             this.vel = new THREE.Vector3();
             scene.add(this.group);
         }
-        init(color, wepKey) {
-            this.group.clear(); this.hp = 100; this.wep = SWORDS[wepKey];
-            const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.5, 1.2), new THREE.MeshStandardMaterial({color: parseInt(color)}));
+        init(skin, wepKey) {
+            this.group.clear(); this.hp = 100; this.wep = WEAPONS[wepKey];
+            const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.5, 1.2), new THREE.MeshStandardMaterial({color: parseInt(skin)}));
             body.position.y = 1.1; this.group.add(body);
             
-            this.pivot = new THREE.Group(); this.pivot.position.set(0.6, 1.3, 0);
-            const blade = new THREE.Mesh(new THREE.BoxGeometry(...this.wep.scale), new THREE.MeshStandardMaterial({color: 0xcccccc, metalness: 0.8}));
+            this.pivot = new THREE.Group(); this.pivot.position.set(0.6, 1.4, 0);
+            const blade = new THREE.Mesh(new THREE.BoxGeometry(...this.wep.scale), new THREE.MeshStandardMaterial({color: this.wep.color, emissive: this.wep.color, emissiveIntensity: 0.5}));
             blade.position.y = this.wep.scale[1]/2; this.pivot.add(blade);
             this.group.add(this.pivot);
         }
         update() {
             if (this.atkPhase > 0) {
                 this.atkPhase -= this.wep.speed;
-                this.pivot.rotation.z = Math.sin(this.atkPhase * Math.PI) * 2;
+                this.pivot.rotation.z = Math.sin(this.atkPhase * Math.PI) * 2.5;
             } else { this.pivot.rotation.z = 0; }
             this.group.position.x += this.vel.x;
             this.vel.x *= 0.8;
-            this.group.position.x = Math.max(-15, Math.min(15, this.group.position.x));
+            this.group.position.x = Math.max(-18, Math.min(18, this.group.position.x));
         }
     }
 
-    const p1 = new Fighter(-6, 1);
-    const p2 = new Fighter(6, 2);
+    const p1 = new Fighter(-7, 1);
+    const p2 = new Fighter(7, 2);
     const keys = {};
     window.onkeydown = (e) => keys[e.code] = true;
     window.onkeyup = (e) => keys[e.code] = false;
 
     document.getElementById('start-btn').onclick = () => {
-        isBotMode = document.getElementById('game-mode').value === 'bot';
-        p1.init(document.getElementById('p1-color').value, document.getElementById('p1-wep').value);
-        p2.init(document.getElementById('p2-color').value, document.getElementById('p2-wep').value);
+        isBot = document.getElementById('game-mode').value === 'bot';
+        p1.init(document.getElementById('p1-skin').value, document.getElementById('p1-wep').value);
+        p2.init(document.getElementById('p2-skin').value, document.getElementById('p2-wep').value);
         document.getElementById('lobby').style.display = 'none';
         document.getElementById('ui').style.visibility = 'visible';
         roundActive = true;
         animate();
     };
 
-    function runBotAI() {
-        const dist = p2.group.position.x - p1.group.position.x;
-        // Move toward player
-        if (Math.abs(dist) > p2.wep.range * 0.8) {
-            p2.vel.x = dist > 0 ? -0.1 : 0.1;
-        }
-        // Attack if in range
-        if (Math.abs(dist) < p2.wep.range && p2.atkPhase <= 0) {
-            p2.atkPhase = 1; p2.hitMark = false;
-        }
+    function botAI() {
+        const gap = p2.group.position.x - p1.group.position.x;
+        if (Math.abs(gap) > p2.wep.range * 0.9) p2.vel.x = gap > 0 ? -0.12 : 0.12;
+        if (Math.abs(gap) < p2.wep.range && p2.atkPhase <= 0) { p2.atkPhase = 1; p2.hitMark = false; }
     }
 
     function animate() {
         if (!roundActive) return;
         requestAnimationFrame(animate);
 
-        // P1 Controls
-        if (keys['KeyA']) p1.vel.x = -0.15;
-        if (keys['KeyD']) p1.vel.x = 0.15;
+        if (keys['KeyA']) p1.vel.x = -0.18;
+        if (keys['KeyD']) p1.vel.x = 0.18;
         if (keys['KeyF'] && p1.atkPhase <= 0) { p1.atkPhase = 1; p1.hitMark = false; }
 
-        // P2 Controls or AI
-        if (isBotMode) {
-            runBotAI();
-        } else {
-            if (keys['ArrowLeft']) p2.vel.x = -0.15;
-            if (keys['ArrowRight']) p2.vel.x = 0.15;
+        if (isBot) botAI();
+        else {
+            if (keys['ArrowLeft']) p2.vel.x = -0.18;
+            if (keys['ArrowRight']) p2.vel.x = 0.18;
             if (keys['KeyK'] && p2.atkPhase <= 0) { p2.atkPhase = 1; p2.hitMark = false; }
         }
 
         p1.update(); p2.update();
 
-        // Collision/Damage
-        const d = Math.abs(p1.group.position.x - p2.group.position.x);
-        [p1, p2].forEach((attacker, i) => {
-            const defender = i === 0 ? p2 : p1;
-            if (attacker.atkPhase > 0.4 && attacker.atkPhase < 0.7 && !attacker.hitMark && d < attacker.wep.range) {
-                defender.hp -= attacker.wep.dmg;
-                attacker.hitMark = true;
-                defender.vel.x = (attacker.group.position.x < defender.group.position.x ? 1 : -1) * 0.4;
+        const dist = Math.abs(p1.group.position.x - p2.group.position.x);
+        [p1, p2].forEach((atk, i) => {
+            const def = i === 0 ? p2 : p1;
+            if (atk.atkPhase > 0.4 && atk.atkPhase < 0.7 && !atk.hitMark && dist < atk.wep.range) {
+                def.hp -= atk.wep.dmg;
+                atk.hitMark = true;
+                def.vel.x = (atk.group.position.x < def.group.position.x ? 1 : -1) * 0.5;
             }
         });
 
@@ -176,7 +174,7 @@
             setTimeout(() => location.reload(), 3000);
         }
 
-        camera.position.set((p1.group.position.x + p2.group.position.x)/2, 5, 15);
+        camera.position.set((p1.group.position.x + p2.group.position.x)/2, 6, 16);
         camera.lookAt((p1.group.position.x + p2.group.position.x)/2, 2, 0);
         renderer.render(scene, camera);
     }
