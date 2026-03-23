@@ -3,41 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Ultra-Fighter: Death & Impact</title>
+    <title>3D Pro Fighter: Neon Sunrise</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; user-select: none; }
+        body { margin: 0; overflow: hidden; background: #222; font-family: 'Orbitron', sans-serif; user-select: none; }
         #ui {
-            position: absolute; top: 0; width: 100%; padding: 20px;
+            position: absolute; top: 0; width: 100%; padding: 30px;
             display: flex; justify-content: space-between; box-sizing: border-box;
             pointer-events: none; z-index: 10;
         }
-        .player-info { width: 320px; background: rgba(0,0,0,0.6); padding: 15px; border-radius: 12px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
-        .bar-bg { width: 100%; height: 14px; background: #111; border-radius: 7px; margin: 8px 0; overflow: hidden; border: 1px solid #333; }
-        .bar-fill { height: 100%; width: 100%; transition: width 0.2s ease-out; }
-        #hp1 { background: #00f2ff; box-shadow: 0 0 20px #00f2ff; }
-        #hp2 { background: #ff004c; box-shadow: 0 0 20px #ff004c; }
-        #death-screen {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            color: white; font-size: 80px; font-weight: 900; text-transform: uppercase;
-            letter-spacing: 10px; opacity: 0; pointer-events: none; transition: 0.5s;
-            text-shadow: 0 0 30px rgba(255,0,0,0.8); z-index: 20;
+        .player-card { 
+            width: 350px; background: rgba(255, 255, 255, 0.1); 
+            padding: 20px; border-radius: 15px; backdrop-filter: blur(15px);
+            border: 2px solid rgba(255,255,255,0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .bar-container { width: 100%; height: 20px; background: rgba(0,0,0,0.3); border-radius: 10px; margin: 10px 0; overflow: hidden; }
+        .bar-fill { height: 100%; width: 100%; transition: width 0.15s ease-out; }
+        #hp1 { background: linear-gradient(90deg, #00f2ff, #7000ff); box-shadow: 0 0 20px #00f2ff; }
+        #hp2 { background: linear-gradient(90deg, #ff004c, #ffaa00); box-shadow: 0 0 20px #ff004c; }
+        
+        #ko-text {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
+            color: #fff; font-size: 120px; font-weight: 900; font-style: italic;
+            text-shadow: 0 0 50px #ff004c; transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
         }
     </style>
 </head>
 <body>
 
-<div id="death-screen">K.O.</div>
+<div id="ko-text">FINISH!</div>
 
 <div id="ui">
-    <div class="player-info">
-        <div style="color:#00f2ff; font-weight:bold; letter-spacing:1px;">VORTEX [P1]</div>
-        <div class="bar-bg"><div id="hp1" class="bar-fill"></div></div>
-        <div style="font-size: 10px; color: #888;">F: ATTACK • R: HEAL</div>
+    <div class="player-card">
+        <div style="color:#00f2ff; font-weight:bold; font-size:20px;">VORTEX</div>
+        <div class="bar-container"><div id="hp1" class="bar-fill"></div></div>
+        <div style="color: #ccc; font-size: 12px;">WASD + F</div>
     </div>
-    <div class="player-info" style="text-align: right;">
-        <div style="color:#ff004c; font-weight:bold; letter-spacing:1px;">MAGMA [P2]</div>
-        <div class="bar-bg"><div id="hp2" class="bar-fill"></div></div>
-        <div style="font-size: 10px; color: #888;">K: ATTACK • L: HEAL</div>
+    <div class="player-card" style="text-align: right;">
+        <div style="color:#ff004c; font-weight:bold; font-size:20px;">BLAZE</div>
+        <div class="bar-container"><div id="hp2" class="bar-fill"></div></div>
+        <div style="color: #ccc; font-size: 12px;">ARROWS + K</div>
     </div>
 </div>
 
@@ -48,170 +54,150 @@
 <script type="module">
     import * as THREE from 'three';
 
-    // --- CONFIG ---
-    const WEAPONS = {
-        sword: { dmg: 15, range: 2.2, speed: 0.18, shake: 0.1, color: 0x00ffff },
-        axe:   { dmg: 35, range: 2.5, speed: 0.07, shake: 0.4, color: 0xffaa00 }
-    };
-
+    // --- SETUP ---
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x020205);
+    scene.background = new THREE.Color(0x87ceeb); // Light sky blue base
+    scene.fog = new THREE.Fog(0x87ceeb, 20, 60);
+
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
     document.body.appendChild(renderer.domElement);
 
-    // --- SCENE SETUP ---
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshStandardMaterial({ color: 0x080808, metalness: 0.8 }));
+    // --- LIGHTING (Lighter/Warmer) ---
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 1);
+    scene.add(hemi);
+    const sun = new THREE.DirectionalLight(0xffffff, 1.5);
+    sun.position.set(5, 20, 10);
+    sun.castShadow = true;
+    scene.add(sun);
+
+    // --- BACKGROUND BUILDINGS ---
+    function createBuilding(x, z, h, color) {
+        const geo = new THREE.BoxGeometry(4, h, 4);
+        const mat = new THREE.MeshStandardMaterial({ color: color, metalness: 0.5, roughness: 0.2 });
+        const b = new THREE.Mesh(geo, mat);
+        b.position.set(x, h/2 - 1, z);
+        scene.add(b);
+    }
+    for(let i=0; i<15; i++) {
+        createBuilding(-20 - Math.random()*20, -10 - Math.random()*20, 10 + Math.random()*20, 0x222244);
+        createBuilding(20 + Math.random()*20, -10 - Math.random()*20, 10 + Math.random()*20, 0x222244);
+    }
+
+    // --- FLOOR ---
+    const floor = new THREE.Mesh(
+        new THREE.PlaneGeometry(100, 100),
+        new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.2, roughness: 0.8 })
+    );
     floor.rotation.x = -Math.PI/2;
     floor.receiveShadow = true;
     scene.add(floor);
 
-    const light1 = new THREE.PointLight(0x00f2ff, 10, 50);
-    light1.position.set(-10, 5, 5);
-    scene.add(light1);
-
-    const light2 = new THREE.PointLight(0xff004c, 10, 50);
-    light2.position.set(10, 5, 5);
-    scene.add(light2);
-
-    let screenShake = 0;
-
     // --- FIGHTER ---
     class Fighter {
-        constructor(color, x, id, wepType) {
+        constructor(color, x, id, wepColor) {
             this.id = id;
             this.hp = 100;
             this.dead = false;
-            this.wep = WEAPONS[wepType];
             this.vel = new THREE.Vector3();
             
-            this.container = new THREE.Group();
-            this.mesh = new THREE.Group(); // The "animating" part
-            
-            const bodyGeo = new THREE.CapsuleGeometry(0.5, 1.2, 4, 12);
-            this.body = new THREE.Mesh(bodyGeo, new THREE.MeshStandardMaterial({ color }));
+            this.group = new THREE.Group();
+            this.body = new THREE.Mesh(
+                new THREE.CapsuleGeometry(0.5, 1.5, 4, 12),
+                new THREE.MeshStandardMaterial({ color: color, metalness: 0.6, roughness: 0.2 })
+            );
+            this.body.position.y = 1.25;
             this.body.castShadow = true;
-            this.body.position.y = 1.1;
-            this.mesh.add(this.body);
+            this.group.add(this.body);
 
-            // Weapon
+            // Weapon (Sleek Sword)
             this.wepPivot = new THREE.Group();
-            this.wepPivot.position.set(0.6, 1.2, 0);
-            const wepMesh = new THREE.Mesh(new THREE.BoxGeometry(0.2, 1.5, 0.2), new THREE.MeshStandardMaterial({ color: 0x888888 }));
-            wepMesh.position.y = 0.75;
-            this.wepPivot.add(wepMesh);
-            this.mesh.add(this.wepPivot);
+            this.wepPivot.position.set(0.6, 1.4, 0);
+            const sword = new THREE.Mesh(
+                new THREE.BoxGeometry(0.1, 2, 0.1),
+                new THREE.MeshStandardMaterial({ color: wepColor, emissive: wepColor, emissiveIntensity: 2 })
+            );
+            sword.position.y = 0.8;
+            this.wepPivot.add(sword);
+            this.group.add(this.wepPivot);
 
-            this.container.add(this.mesh);
-            this.container.position.x = x;
-            scene.add(this.container);
+            this.group.position.x = x;
+            scene.add(this.group);
 
-            this.atkPhase = 0;
-            this.hitRegistered = false;
+            this.atk = 0;
+            this.hitMark = false;
         }
 
-        update(keys, l, r, j, atk, heal) {
-            if (this.dead) {
-                // Death Animation: Slump and rotate
-                this.mesh.rotation.z += (Math.PI/2 - this.mesh.rotation.z) * 0.1;
-                this.mesh.position.y += (-0.8 - this.mesh.position.y) * 0.1;
+        update(keys, l, r, j, f) {
+            if(this.dead) {
+                this.group.rotation.z += (Math.PI/2 - this.group.rotation.z) * 0.05;
+                this.group.position.y *= 0.9;
                 return;
             }
 
-            // Movement
-            const moveSpeed = keys[heal] ? 0.02 : 0.15;
-            if (keys[l]) { this.vel.x = -moveSpeed; this.container.rotation.y = -Math.PI/2; }
-            else if (keys[r]) { this.vel.x = moveSpeed; this.container.rotation.y = Math.PI/2; }
+            if(keys[l]) { this.vel.x = -0.15; this.group.rotation.y = -Math.PI/2; }
+            else if(keys[r]) { this.vel.x = 0.15; this.group.rotation.y = Math.PI/2; }
             else { this.vel.x *= 0.85; }
 
-            if (keys[j] && this.container.position.y <= 0.01) this.vel.y = 0.25;
+            if(keys[j] && this.group.position.y <= 0.01) this.vel.y = 0.25;
 
-            // Heal
-            if (keys[heal] && this.hp < 100) this.hp += 0.1;
-
-            // Attack
-            if (keys[atk] && this.atkPhase <= 0) {
-                this.atkPhase = 1;
-                this.hitRegistered = false;
+            if(keys[f] && this.atk <= 0) { this.atk = 1; this.hitMark = false; }
+            if(this.atk > 0) {
+                this.atk -= 0.1;
+                this.wepPivot.rotation.z = Math.sin(this.atk * Math.PI) * 2.5;
             }
 
-            if (this.atkPhase > 0) {
-                this.atkPhase -= this.wep.speed;
-                this.wepPivot.rotation.z = Math.sin(this.atkPhase * Math.PI) * 2.5;
-            }
-
-            // Physics
             this.vel.y -= 0.01;
-            this.container.position.add(this.vel);
-            if (this.container.position.y < 0) {
-                this.container.position.y = 0;
-                this.vel.y = 0;
-            }
-        }
-
-        takeDamage(dmg, knockback) {
-            if (this.dead) return;
-            this.hp -= dmg;
-            this.vel.x += knockback;
-            this.vel.y += Math.abs(knockback) * 0.5;
-            
-            // Hit Flash
-            this.body.material.emissive.setHex(0xffffff);
-            setTimeout(() => this.body.material.emissive.setHex(0x000000), 50);
-
-            if (this.hp <= 0) {
-                this.hp = 0;
-                this.dead = true;
-                document.getElementById('death-screen').style.opacity = '1';
-            }
+            this.group.position.add(this.vel);
+            if(this.group.position.y < 0) { this.group.position.y = 0; this.vel.y = 0; }
         }
     }
 
-    const p1 = new Fighter(0x00f2ff, -5, 1, 'sword');
-    const p2 = new Fighter(0xff004c, 5, 2, 'axe');
+    const p1 = new Fighter(0x00f2ff, -5, 1, 0x00ffff);
+    const p2 = new Fighter(0xff004c, 5, 2, 0xff0000);
 
     const keys = {};
     window.onkeydown = (e) => keys[e.code] = true;
     window.onkeyup = (e) => keys[e.code] = false;
 
+    let timeScale = 1;
+
     function animate() {
         requestAnimationFrame(animate);
 
-        p1.update(keys, 'KeyA', 'KeyD', 'KeyW', 'KeyF', 'KeyR');
-        p2.update(keys, 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'KeyK', 'KeyL');
+        const dt = 1 * timeScale;
+        p1.update(keys, 'KeyA', 'KeyD', 'KeyW', 'KeyF');
+        p2.update(keys, 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'KeyK');
 
-        // Combat Logic
-        const dist = p1.container.position.distanceTo(p2.container.position);
-        
-        // Check P1 Attack
-        if (p1.atkPhase > 0.4 && p1.atkPhase < 0.7 && !p1.hitRegistered && dist < p1.wep.range) {
-            p2.takeDamage(p1.wep.dmg, 0.2);
-            p1.hitRegistered = true;
-            screenShake = p1.wep.shake;
-        }
-        // Check P2 Attack
-        if (p2.atkPhase > 0.4 && p2.atkPhase < 0.7 && !p2.hitRegistered && dist < p2.wep.range) {
-            p1.takeDamage(p2.wep.dmg, -0.4);
-            p2.hitRegistered = true;
-            screenShake = p2.wep.shake;
+        // Combat
+        const dist = p1.group.position.distanceTo(p2.group.position);
+        if(dist < 2.5) {
+            if(p1.atk > 0.4 && p1.atk < 0.7 && !p1.hitMark) {
+                p2.hp -= 15; p1.hitMark = true; p2.vel.x = 0.3;
+                if(p2.hp <= 0) startDeath();
+            }
+            if(p2.atk > 0.4 && p2.atk < 0.7 && !p2.hitMark) {
+                p1.hp -= 15; p2.hitMark = true; p1.vel.x = -0.3;
+                if(p1.hp <= 0) startDeath();
+            }
         }
 
-        // Screen Shake & UI
-        if (screenShake > 0) {
-            camera.position.x += (Math.random() - 0.5) * screenShake;
-            camera.position.y += (Math.random() - 0.5) * screenShake;
-            screenShake *= 0.9;
+        function startDeath() {
+            timeScale = 0.2; // Slow Motion
+            document.getElementById('ko-text').style.transform = 'translate(-50%, -50%) scale(1)';
+            setTimeout(() => { timeScale = 1; }, 2000);
         }
 
-        document.getElementById('hp1').style.width = p1.hp + '%';
-        document.getElementById('hp2').style.width = p2.hp + '%';
+        document.getElementById('hp1').style.width = Math.max(0, p1.hp) + '%';
+        document.getElementById('hp2').style.width = Math.max(0, p2.hp) + '%';
+        if(p1.hp <= 0) p1.dead = true;
+        if(p2.hp <= 0) p2.dead = true;
 
         // Camera
-        const midX = (p1.container.position.x + p2.container.position.x) / 2;
-        camera.position.x += (midX - camera.position.x) * 0.05;
-        camera.position.z = 15;
+        const midX = (p1.group.position.x + p2.group.position.x) / 2;
+        camera.position.set(midX, 5, 15);
         camera.lookAt(midX, 2, 0);
 
         renderer.render(scene, camera);
