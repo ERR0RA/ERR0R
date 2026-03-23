@@ -3,135 +3,216 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>3D Fighter: Bot Mode</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
+<title>Math Wars: Battle Arena</title>
 <style>
-body { margin:0; overflow:hidden; background:#050505; font-family:'Orbitron'; }
-#lobby { position:absolute; inset:0; background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:10; }
-.setup-grid { display:flex; gap:15px; }
-.player-setup { background:#eee; padding:15px; border-radius:10px; width:300px; }
-select,button { width:100%; padding:8px; margin:5px 0; }
-#ui { position:absolute; top:10px; width:100%; display:flex; justify-content:space-between; padding:0 20px; visibility:hidden; }
-.bar { width:300px; background:#111; }
-.fill { height:15px; background:red; width:100%; }
+    :root { --p1-color: #1a73e8; --p2-color: #e91e63; --bot-color: #4caf50; }
+    body { font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: white; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+    .game-container { background: #16213e; padding: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 100%; max-width: 800px; }
+    
+    /* Battle UI */
+    .battle-floor { display: flex; justify-content: space-between; margin-bottom: 20px; padding: 20px; background: #0f3460; border-radius: 10px; position: relative; }
+    .fighter { text-align: center; width: 45%; }
+    .hp-bar { height: 20px; background: #444; border-radius: 10px; overflow: hidden; margin-top: 10px; border: 2px solid #fff; }
+    .hp-fill { height: 100%; width: 100%; transition: width 0.3s ease; }
+    #p1-hp { background: var(--p1-color); }
+    #p2-hp { background: var(--p2-color); }
+    
+    .controls { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; justify-content: center; }
+    button { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; background: #e8f0fe; }
+    button.active { background: #4ecca3; color: #1a1a2e; }
+    
+    .quiz-box { background: white; color: #333; padding: 20px; border-radius: 10px; text-align: center; }
+    .answer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+    .ans-btn { padding: 15px; border: 2px solid #ddd; border-radius: 8px; font-size: 1.1em; cursor: pointer; background: #f8f9fa; transition: 0.2s; }
+    .ans-btn:hover { background: #eee; }
+
+    #weapon-fx { position: absolute; width: 100%; text-align: center; top: 40%; font-size: 2em; pointer-events: none; opacity: 0; transition: 0.5s; }
+    .weapon-select { margin-top: 10px; font-size: 0.8em; }
 </style>
 </head>
 <body>
 
-<div id="lobby">
-<h1>BOT MODE FIGHTER</h1>
-<div class="setup-grid">
-<div class="player-setup">
-<h3>PLAYER 1</h3>
-<select id="p1-color"><option value="0x0077ff">Blue</option></select>
-<select id="p1-wep"><option value="muramasa">Muramasa</option><option value="dragon">Dragon</option></select>
-</div>
-<div class="player-setup">
-<h3>PLAYER 2</h3>
-<select id="p2-mode">
-<option value="human">Human</option>
-<option value="easy">Easy Bot</option>
-<option value="medium">Medium Bot</option>
-<option value="hard">Hard Bot</option>
-</select>
-<select id="p2-wep"><option value="muramasa">Muramasa</option><option value="dragon">Dragon</option></select>
-</div>
-</div>
-<button id="start">START</button>
+<div class="game-container">
+    <div class="controls">
+        <button id="mode-bot" class="active" onclick="setMode('bot')">vs Bot</button>
+        <button id="mode-pvp" onclick="setMode('pvp')">Local PvP</button>
+        |
+        <span id="bot-settings">
+            <button class="active" onclick="setBotDiff(3000, 0.3)">Noob Bot</button>
+            <button onclick="setBotDiff(1500, 0.1)">Pro Bot</button>
+        </span>
+    </div>
+
+    <div class="battle-floor">
+        <div class="fighter">
+            <h3 id="p1-label" style="color:var(--p1-color)">Player 1</h3>
+            <div class="hp-bar"><div id="p1-hp" class="hp-fill"></div></div>
+            <div class="weapon-select">
+                Weapon: <select id="p1-weapon"><option value="⚔️">Sword (10 DMG)</option><option value="🔥">Fireball (15 DMG)</option><option value="⚡">Lightning (20 DMG)</option></select>
+            </div>
+        </div>
+        
+        <div id="weapon-fx">⚡</div>
+
+        <div class="fighter">
+            <h3 id="p2-label" style="color:var(--p2-color)">Bot</h3>
+            <div class="hp-bar"><div id="p2-hp" class="hp-fill"></div></div>
+            <div class="weapon-select" id="p2-weapon-area" style="display:none">
+                Weapon: <select id="p2-weapon"><option value="🏹">Arrow</option><option value="❄️">Ice</option></select>
+            </div>
+        </div>
+    </div>
+
+    <div class="quiz-box">
+        <h2 id="turn-indicator" style="font-size: 0.9em; color: #666;">Player 1's Turn</h2>
+        <h1 id="question">Ready?</h1>
+        <div class="answer-grid" id="answer-grid"></div>
+    </div>
 </div>
 
-<div id="ui">
-<div class="bar"><div id="hp1" class="fill"></div></div>
-<div class="bar"><div id="hp2" class="fill"></div></div>
-</div>
-
-<script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }</script>
-<script type="module">
-import * as THREE from 'three';
-
-const SWORDS = {
- muramasa:{dmg:10,speed:0.2,range:2},
- dragon:{dmg:30,speed:0.08,range:3}
+<script>
+let gameState = {
+    mode: 'bot', // 'bot' or 'pvp'
+    turn: 1,
+    p1HP: 100,
+    p2HP: 100,
+    botDelay: 3000,
+    botMissChance: 0.3,
+    currentAns: null,
+    isGameOver: false
 };
 
-const BOTS = {
- easy:{speed:0.05,attack:0.01},
- medium:{speed:0.1,attack:0.03},
- hard:{speed:0.15,attack:0.06}
-};
-
-const scene=new THREE.Scene();
-const camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,1000);
-const renderer=new THREE.WebGLRenderer();
-renderer.setSize(innerWidth,innerHeight);
-document.body.appendChild(renderer.domElement);
-
-scene.add(new THREE.AmbientLight(0xffffff,1));
-
-class Fighter{
- constructor(x){
-  this.mesh=new THREE.Mesh(new THREE.BoxGeometry(1,2,1),new THREE.MeshBasicMaterial({color:0xffffff}));
-  this.mesh.position.x=x;
-  scene.add(this.mesh);
-  this.hp=100;
-  this.vel=0;
-  this.atk=0;
- }
- update(keys,l,r,atk){
-  if(keys[l]) this.mesh.position.x-=0.1;
-  if(keys[r]) this.mesh.position.x+=0.1;
-  if(keys[atk] && this.atk<=0) this.atk=1;
-  if(this.atk>0) this.atk-=0.1;
- }
+function setMode(m) {
+    gameState.mode = m;
+    document.getElementById('mode-bot').className = m === 'bot' ? 'active' : '';
+    document.getElementById('mode-pvp').className = m === 'pvp' ? 'active' : '';
+    document.getElementById('p2-label').textContent = m === 'bot' ? 'Bot' : 'Player 2';
+    document.getElementById('bot-settings').style.display = m === 'bot' ? 'inline' : 'none';
+    document.getElementById('p2-weapon-area').style.display = m === 'pvp' ? 'block' : 'none';
+    resetGame();
 }
 
-function botControl(bot,target,level){
- let s=BOTS[level];
- if(target.mesh.position.x>bot.mesh.position.x) bot.mesh.position.x+=s.speed;
- else bot.mesh.position.x-=s.speed;
-
- if(Math.random()<s.attack && bot.atk<=0) bot.atk=1;
-
- if(bot.atk>0) bot.atk-=0.1;
+function setBotDiff(delay, miss) {
+    gameState.botDelay = delay;
+    gameState.botMissChance = miss;
 }
 
-const p1=new Fighter(-5);
-const p2=new Fighter(5);
-const keys={};
-onkeydown=e=>keys[e.code]=true;
-onkeyup=e=>keys[e.code]=false;
-
-let mode="human";
-
-document.getElementById("start").onclick=()=>{
- mode=document.getElementById("p2-mode").value;
- document.getElementById("lobby").style.display="none";
- document.getElementById("ui").style.visibility="visible";
- animate();
-};
-
-function animate(){
- requestAnimationFrame(animate);
-
- p1.update(keys,'KeyA','KeyD','KeyF');
-
- if(mode==="human"){
-  p2.update(keys,'ArrowLeft','ArrowRight','Slash');
- }else{
-  botControl(p2,p1,mode);
- }
-
- if(Math.abs(p1.mesh.position.x-p2.mesh.position.x)<2){
-  if(p1.atk>0) p2.hp-=1;
-  if(p2.atk>0) p1.hp-=1;
- }
-
- document.getElementById("hp1").style.width=p1.hp+"%";
- document.getElementById("hp2").style.width=p2.hp+"%";
-
- camera.position.z=10;
- renderer.render(scene,camera);
+function resetGame() {
+    gameState.p1HP = 100;
+    gameState.p2HP = 100;
+    gameState.turn = 1;
+    gameState.isGameOver = false;
+    updateUI();
+    nextQuestion();
 }
+
+function updateUI() {
+    document.getElementById('p1-hp').style.width = gameState.p1HP + '%';
+    document.getElementById('p2-hp').style.width = gameState.p2HP + '%';
+    document.getElementById('turn-indicator').textContent = gameState.turn === 1 ? "Player 1's Turn" : (gameState.mode === 'bot' ? "Bot is thinking..." : "Player 2's Turn");
+}
+
+function nextQuestion() {
+    if(gameState.isGameOver) return;
+    
+    const n1 = Math.floor(Math.random() * 12) + 2;
+    const n2 = Math.floor(Math.random() * 12) + 2;
+    gameState.currentAns = n1 * n2;
+    
+    document.getElementById('question').textContent = `${n1} × ${n2} = ?`;
+    
+    // Generate options
+    let opts = [gameState.currentAns];
+    while(opts.length < 4) {
+        let f = gameState.currentAns + (Math.floor(Math.random() * 10) - 5);
+        if(!opts.includes(f) && f > 0) opts.push(f);
+    }
+    opts.sort(() => Math.random() - 0.5);
+    
+    const grid = document.getElementById('answer-grid');
+    grid.innerHTML = '';
+    opts.forEach(o => {
+        const btn = document.createElement('button');
+        btn.className = 'ans-btn';
+        btn.textContent = o;
+        btn.onclick = () => handleAnswer(o);
+        grid.appendChild(btn);
+    });
+
+    if(gameState.mode === 'bot' && gameState.turn === 2) {
+        setTimeout(botAction, gameState.botDelay);
+    }
+}
+
+function handleAnswer(val) {
+    if(gameState.isGameOver) return;
+    if(gameState.mode === 'bot' && gameState.turn === 2) return; // Prevent clicking during bot turn
+
+    if(val == gameState.currentAns) {
+        attack();
+    } else {
+        showFx("❌ MISS", "#ff4d4d");
+        switchTurn();
+    }
+}
+
+function attack() {
+    const weapon = document.getElementById(`p${gameState.turn}-weapon`).value;
+    const damage = weapon === '⚡' ? 20 : (weapon === '🔥' ? 15 : 10);
+    
+    if(gameState.turn === 1) {
+        gameState.p2HP -= damage;
+        showFx(weapon + " HIT!", "#1a73e8");
+    } else {
+        gameState.p1HP -= damage;
+        showFx(weapon + " HIT!", "#e91e63");
+    }
+
+    if(gameState.p1HP <= 0 || gameState.p2HP <= 0) {
+        endGame();
+    } else {
+        switchTurn();
+    }
+}
+
+function botAction() {
+    const isCorrect = Math.random() > gameState.botMissChance;
+    if(isCorrect) {
+        attack();
+    } else {
+        showFx("🤖 Bot Missed!", "#666");
+        switchTurn();
+    }
+}
+
+function switchTurn() {
+    gameState.turn = gameState.turn === 1 ? 2 : 1;
+    updateUI();
+    nextQuestion();
+}
+
+function showFx(text, color) {
+    const fx = document.getElementById('weapon-fx');
+    fx.textContent = text;
+    fx.style.color = color;
+    fx.style.opacity = '1';
+    fx.style.top = '20%';
+    setTimeout(() => { 
+        fx.style.opacity = '0'; 
+        fx.style.top = '40%';
+    }, 800);
+}
+
+function endGame() {
+    gameState.isGameOver = true;
+    const winner = gameState.p1HP > 0 ? "Player 1" : (gameState.mode === 'bot' ? "Bot" : "Player 2");
+    document.getElementById('question').textContent = winner + " WINS!";
+    document.getElementById('answer-grid').innerHTML = '<button onclick="resetGame()" style="width:200px">Play Again</button>';
+}
+
+updateUI();
+nextQuestion();
 </script>
+
 </body>
 </html>
