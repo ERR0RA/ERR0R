@@ -1,795 +1,233 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Multiplayer Fighter – Weapons, Punch Anim, Heal Bars</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      background: #111;
-      color: #eee;
-      font-family: system-ui, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      height: 100vh;
-    }
-
-    h1 {
-      margin: 10px 0 4px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-    }
-
-    #subtitle {
-      font-size: 13px;
-      color: #aaa;
-      margin-bottom: 6px;
-    }
-
-    #game-container {
-      position: relative;
-      border: 3px solid #444;
-      box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
-      margin-top: 6px;
-    }
-
-    canvas {
-      display: block;
-      background: radial-gradient(circle at 50% 0%, #555 0, #222 40%, #000 100%);
-    }
-
-    #hud {
-      width: 800px;
-      display: flex;
-      justify-content: space-between;
-      margin-top: 10px;
-      color: #eee;
-      font-size: 14px;
-    }
-
-    .player-panel {
-      width: 48%;
-    }
-
-    .player-panel.right {
-      text-align: right;
-    }
-
-    .player-label {
-      margin-bottom: 4px;
-      font-weight: bold;
-      text-shadow: 0 0 5px #000;
-    }
-
-    .bar-stack {
-      margin-top: 2px;
-    }
-
-    .bar-label {
-      font-size: 11px;
-      color: #ccc;
-      margin-bottom: 1px;
-    }
-
-    .bar-container {
-      width: 100%;
-      height: 16px;
-      border: 2px solid #555;
-      background: #222;
-      position: relative;
-      overflow: hidden;
-      margin-bottom: 3px;
-    }
-
-    .bar-fill {
-      position: absolute;
-      top: 0;
-      left: 0;
-      height: 100%;
-      transform-origin: left center;
-    }
-
-    .bar-health {
-      background: linear-gradient(90deg, #0f0, #ff0, #f00);
-    }
-
-    .bar-heal {
-      background: linear-gradient(90deg, #0ff, #0f0);
-    }
-
-    #scoreboard {
-      width: 800px;
-      margin-top: 8px;
-      display: flex;
-      justify-content: space-between;
-      font-size: 15px;
-      font-weight: bold;
-    }
-
-    .score {
-      padding: 4px 8px;
-      background: #222;
-      border-radius: 4px;
-      border: 1px solid #444;
-      text-shadow: 0 0 4px #000;
-    }
-
-    #round-message {
-      width: 800px;
-      margin-top: 6px;
-      text-align: center;
-      font-size: 14px;
-      color: #ffd966;
-      min-height: 18px;
-    }
-
-    #info {
-      width: 800px;
-      margin-top: 10px;
-      font-size: 13px;
-      color: #ccc;
-      line-height: 1.4;
-    }
-
-    #info code {
-      background: #222;
-      padding: 2px 4px;
-      border-radius: 3px;
-      color: #9cf;
-    }
-
-    #status {
-      margin-top: 6px;
-      font-size: 12px;
-      color: #9f9;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Hyper-Fighter</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; }
+        #ui {
+            position: absolute; top: 0; width: 100%; padding: 20px;
+            display: flex; justify-content: space-between; box-sizing: border-box;
+            pointer-events: none; z-index: 10;
+        }
+        .player-info { width: 300px; }
+        .bar-bg { width: 100%; height: 20px; background: rgba(0,0,0,0.5); border: 2px solid #444; margin-top: 5px; }
+        .bar-fill { height: 100%; transition: width 0.2s ease-out; }
+        #hp1 { background: linear-gradient(90deg, #00f2ff, #0066ff); box-shadow: 0 0 15px #00f2ff; }
+        #hp2 { background: linear-gradient(90deg, #ff004c, #ff6600); box-shadow: 0 0 15px #ff004c; }
+        .controls {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            color: #aaa; font-size: 12px; text-align: center;
+        }
+    </style>
 </head>
 <body>
-  <h1>Multiplayer Fighter</h1>
-  <div id="subtitle">Weapons • Punch animation • Heal bars • Points</div>
 
-  <div id="game-container">
-    <canvas id="game" width="800" height="450"></canvas>
-  </div>
-
-  <div id="hud">
-    <div class="player-panel">
-      <div class="player-label">
-        Player 1 – Move: A/D, Jump: W, Punch: F, Heal: R
-      </div>
-      <div class="bar-stack">
-        <div class="bar-label">Health</div>
-        <div class="bar-container">
-          <div id="healthP1" class="bar-fill bar-health"></div>
-        </div>
-        <div class="bar-label">Heal Energy</div>
-        <div class="bar-container">
-          <div id="healP1" class="bar-fill bar-heal"></div>
-        </div>
-      </div>
+<div id="ui">
+    <div class="player-info">
+        <div style="color: #00f2ff; font-weight: bold;">PLAYER 1 (A/D/W + F)</div>
+        <div class="bar-bg"><div id="hp1" class="bar-fill" style="width: 100%;"></div></div>
     </div>
-
-    <div class="player-panel right">
-      <div class="player-label">
-        Player 2 – Move: ←/→, Jump: ↑, Punch: K, Heal: L
-      </div>
-      <div class="bar-stack">
-        <div class="bar-label">Health</div>
-        <div class="bar-container">
-          <div id="healthP2" class="bar-fill bar-health"></div>
-        </div>
-        <div class="bar-label">Heal Energy</div>
-        <div class="bar-container">
-          <div id="healP2" class="bar-fill bar-heal"></div>
-        </div>
-      </div>
+    <div class="player-info" style="text-align: right;">
+        <div style="color: #ff004c; font-weight: bold;">PLAYER 2 (ARROWS + K)</div>
+        <div class="bar-bg"><div id="hp2" class="bar-fill" style="width: 100%;"></div></div>
     </div>
-  </div>
+</div>
 
-  <div id="scoreboard">
-    <div class="score" id="scoreP1">Player 1: 0 pts</div>
-    <div class="score" id="scoreP2">Player 2: 0 pts</div>
-  </div>
+<div class="controls">
+    WASD to Move/Jump • F to Strike | Arrows to Move/Jump • K to Strike
+</div>
 
-  <div id="round-message"></div>
-
-  <div id="info">
-    <p>
-      Each KO gives the other player <strong>1 point</strong>. Players have weapons with different
-      damage/range/cooldown and a heal bar they can spend to restore health.
-    </p>
-    <p>
-      Player 1 starts with a <code>sword</code>, Player 2 with a <code>hammer</code>.
-      Change weapons in code via <code>equipWeapon("fists" | "sword" | "hammer" | "dagger")</code>.
-    </p>
-    <div id="status">Status: Local mode (no server connected)</div>
-  </div>
-
-  <script>
-    // =========================
-    // Utility
-    // =========================
-    function clamp(v, min, max) {
-      return Math.max(min, Math.min(max, v));
+<script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+        }
     }
+</script>
 
-    // =========================
-    // Input
-    // =========================
-    const keys = {};
-    window.addEventListener("keydown", (e) => {
-      keys[e.code] = true;
+<script type="module">
+    import * as THREE from 'three';
+
+    // --- SETUP ---
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x020205);
+    scene.fog = new THREE.Fog(0x020205, 10, 50);
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    document.body.appendChild(renderer.domElement);
+
+    // --- LIGHTING ---
+    const ambient = new THREE.AmbientLight(0xffffff, 0.1);
+    scene.add(ambient);
+
+    const blueLight = new THREE.PointLight(0x00f2ff, 100, 20);
+    blueLight.position.set(-10, 5, 5);
+    scene.add(blueLight);
+
+    const redLight = new THREE.PointLight(0xff004c, 100, 20);
+    redLight.position.set(10, 5, 5);
+    scene.add(redLight);
+
+    const sun = new THREE.DirectionalLight(0xffffff, 1);
+    sun.position.set(5, 20, 10);
+    sun.castShadow = true;
+    scene.add(sun);
+
+    // --- ARENA ---
+    const floorGeo = new THREE.PlaneGeometry(100, 100);
+    const floorMat = new THREE.MeshStandardMaterial({ 
+        color: 0x111111, 
+        roughness: 0.1, 
+        metalness: 0.5 
     });
-    window.addEventListener("keyup", (e) => {
-      keys[e.code] = false;
-    });
+    const floor = new THREE.Mesh(floorGeo, floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
 
-    // =========================
-    // Network placeholder
-    // =========================
-    const Network = {
-      mode: "local",
-      connected: false,
-      lastSnapshot: null,
-      connect() {
-        this.mode = "local";
-        this.connected = false;
-        updateStatus("Status: Local mode (no server connected)");
-      },
-      sendState(state) {
-        this.lastSnapshot = state;
-      },
-      receiveState() {
-        return this.lastSnapshot;
-      },
-    };
+    // Grid Helper for "Realistic" Tech feel
+    const grid = new THREE.GridHelper(100, 50, 0x444444, 0x222222);
+    scene.add(grid);
 
-    function updateStatus(text) {
-      const el = document.getElementById("status");
-      if (el) el.textContent = text;
-    }
-
-    // =========================
-    // Canvas & constants
-    // =========================
-    const canvas = document.getElementById("game");
-    const ctx = canvas.getContext("2d");
-
-    const FLOOR_Y = 380;
-    const GRAVITY = 0.8;
-    const FRICTION = 0.8;
-    const MOVE_SPEED = 4;
-    const JUMP_FORCE = -14;
-
-    // Weapons
-    const weapons = {
-      fists:  { name: "Fists",  damage: 10, range: 60,  cooldown: 350 },
-      sword:  { name: "Sword",  damage: 22, range: 110, cooldown: 450 },
-      hammer: { name: "Hammer", damage: 30, range: 80,  cooldown: 600 },
-      dagger: { name: "Dagger", damage: 14, range: 55,  cooldown: 250 },
-    };
-
-    // =========================
-    // Fighter
-    // =========================
+    // --- FIGHTER CLASS ---
     class Fighter {
-      constructor(options) {
-        this.x = options.x;
-        this.y = options.y;
-        this.width = 50;
-        this.height = 100;
-        this.color = options.color;
-        this.facing = options.facing || 1;
-        this.vx = 0;
-        this.vy = 0;
-        this.onGround = false;
+        constructor(color, startX, id) {
+            this.id = id;
+            this.hp = 100;
+            this.velocity = new THREE.Vector3();
+            this.onGround = true;
+            
+            // Group to hold body parts
+            this.mesh = new THREE.Group();
+            
+            // Body
+            const bodyGeo = new THREE.CapsuleGeometry(0.5, 1.5, 4, 8);
+            const bodyMat = new THREE.MeshStandardMaterial({ color: color, metalness: 0.8, roughness: 0.2 });
+            this.body = new THREE.Mesh(bodyGeo, bodyMat);
+            this.body.position.y = 1.25;
+            this.body.castShadow = true;
+            this.mesh.add(this.body);
 
-        this.maxHealth = 100;
-        this.health = this.maxHealth;
+            // Glowing Eyes
+            const eyeGeo = new THREE.BoxGeometry(0.6, 0.1, 0.1);
+            const eyeMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const eyes = new THREE.Mesh(eyeGeo, eyeMat);
+            eyes.position.set(0, 1.8, 0.4);
+            this.mesh.add(eyes);
 
-        this.maxHealEnergy = 100;
-        this.healEnergy = this.maxHealEnergy;
+            this.mesh.position.x = startX;
+            scene.add(this.mesh);
 
-        this.weapon = weapons[options.weapon] || weapons.fists;
-
-        this.isPunching = false;
-        this.punchAnim = 0;
-        this.punchAnimSpeed = 0.25;
-        this.lastPunchTime = 0;
-        this.punchHitRegistered = false;
-
-        this.name = options.name || "Fighter";
-      }
-
-      equipWeapon(name) {
-        if (weapons[name]) {
-          this.weapon = weapons[name];
-        }
-      }
-
-      getHitbox() {
-        return {
-          x: this.x - this.width / 2,
-          y: this.y - this.height,
-          width: this.width,
-          height: this.height,
-        };
-      }
-
-      getPunchBox() {
-        const hb = this.getHitbox();
-        const dir = this.facing;
-        const range = this.weapon.range;
-        return {
-          x: dir === 1 ? hb.x + hb.width : hb.x - range,
-          y: hb.y + hb.height * 0.3,
-          width: range,
-          height: hb.height * 0.4,
-        };
-      }
-
-      canPunch() {
-        const now = performance.now();
-        return now - this.lastPunchTime > this.weapon.cooldown;
-      }
-
-      punch() {
-        if (!this.canPunch()) return;
-        this.isPunching = true;
-        this.punchAnim = 1;
-        this.lastPunchTime = performance.now();
-        this.punchHitRegistered = false;
-
-        setTimeout(() => {
-          this.isPunching = false;
-        }, 120);
-      }
-
-      tryHeal() {
-        const healAmount = 15;
-        const cost = 25;
-        if (this.healEnergy >= cost && this.health < this.maxHealth) {
-          this.healEnergy -= cost;
-          this.health = clamp(this.health + healAmount, 0, this.maxHealth);
-        }
-      }
-
-      takeDamage(amount) {
-        this.health = clamp(this.health - amount, 0, this.maxHealth);
-      }
-
-      updatePhysics() {
-        this.vy += GRAVITY;
-        this.vx *= FRICTION;
-
-        this.x += this.vx;
-        this.y += this.vy;
-
-        if (this.y > FLOOR_Y) {
-          this.y = FLOOR_Y;
-          this.vy = 0;
-          this.onGround = true;
-        } else {
-          this.onGround = false;
+            this.isAttacking = false;
+            this.attackCooldown = false;
         }
 
-        this.x = clamp(this.x, 50, canvas.width - 50);
+        update(keys, leftKey, rightKey, jumpKey, attackKey) {
+            const speed = 0.15;
+            const jumpForce = 0.25;
+            const gravity = 0.01;
 
-        if (this.punchAnim > 0) {
-          this.punchAnim -= this.punchAnimSpeed;
-          if (this.punchAnim < 0) this.punchAnim = 0;
+            if (keys[leftKey]) this.velocity.x = -speed;
+            else if (keys[rightKey]) this.velocity.x = speed;
+            else this.velocity.x *= 0.8;
+
+            if (keys[jumpKey] && this.onGround) {
+                this.velocity.y = jumpForce;
+                this.onGround = false;
+            }
+
+            // Attack logic
+            if (keys[attackKey] && !this.attackCooldown) {
+                this.performAttack();
+            }
+
+            // Apply Physics
+            this.velocity.y -= gravity;
+            this.mesh.position.add(this.velocity);
+
+            if (this.mesh.position.y <= 0) {
+                this.mesh.position.y = 0;
+                this.velocity.y = 0;
+                this.onGround = true;
+            }
+
+            // Tilt toward movement
+            this.mesh.rotation.z = -this.velocity.x * 0.5;
+            this.mesh.rotation.y = this.velocity.x > 0 ? Math.PI/2 : -Math.PI/2;
         }
 
-        this.healEnergy = clamp(this.healEnergy + 0.05, 0, this.maxHealEnergy);
-      }
+        performAttack() {
+            this.isAttacking = true;
+            this.attackCooldown = true;
+            
+            // Visual feedback: simple lunge
+            this.body.scale.set(1.5, 1, 1.5);
+            
+            setTimeout(() => {
+                this.body.scale.set(1, 1, 1);
+                this.isAttacking = false;
+            }, 200);
 
-      draw(ctx) {
-        const hb = this.getHitbox();
-
-        // Shadow
-        ctx.save();
-        ctx.fillStyle = "rgba(0,0,0,0.5)";
-        const shadowWidth = this.width * 0.8;
-        const shadowHeight = 15;
-        ctx.beginPath();
-        ctx.ellipse(
-          this.x,
-          FLOOR_Y + 5,
-          shadowWidth / 2,
-          shadowHeight / 2,
-          0,
-          0,
-          Math.PI * 2
-        );
-        ctx.fill();
-        ctx.restore();
-
-        // Body
-        const gradient = ctx.createLinearGradient(
-          hb.x,
-          hb.y,
-          hb.x + hb.width,
-          hb.y + hb.height
-        );
-        gradient.addColorStop(0, this.color);
-        gradient.addColorStop(1, "#111");
-
-        ctx.save();
-        ctx.fillStyle = gradient;
-        ctx.strokeStyle = "#000";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.roundRect(hb.x, hb.y, hb.width, hb.height, 10);
-        ctx.fill();
-        ctx.stroke();
-
-        // Head
-        ctx.beginPath();
-        ctx.arc(this.x, hb.y - 20, 18, 0, Math.PI * 2);
-        ctx.fillStyle = "#f5d7b2";
-        ctx.fill();
-        ctx.stroke();
-
-        // Eye
-        ctx.fillStyle = "#000";
-        const eyeOffsetX = 6 * this.facing;
-        ctx.beginPath();
-        ctx.arc(this.x + eyeOffsetX, hb.y - 22, 3, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Weapon indicator (small icon on body)
-        ctx.fillStyle = "#ffd966";
-        ctx.font = "10px system-ui";
-        ctx.textAlign = "center";
-        ctx.fillText(this.weapon.name, this.x, hb.y + hb.height + 10);
-
-        // Punch animation
-        if (this.isPunching || this.punchAnim > 0) {
-          const pb = this.getPunchBox();
-          const extend = this.punchAnim * 25;
-          const dir = this.facing;
-
-          const x = dir === 1 ? pb.x : pb.x - extend;
-          const w = pb.width + extend;
-
-          const punchGrad = ctx.createLinearGradient(
-            x,
-            pb.y,
-            x + w,
-            pb.y + pb.height
-          );
-          punchGrad.addColorStop(0, "rgba(255,255,255,0.8)");
-          punchGrad.addColorStop(1, "rgba(255,200,0,0.1)");
-
-          ctx.fillStyle = punchGrad;
-          ctx.beginPath();
-          ctx.roundRect(x, pb.y, w, pb.height, 8);
-          ctx.fill();
+            setTimeout(() => { this.attackCooldown = false; }, 500);
         }
-
-        ctx.restore();
-      }
     }
 
-    // =========================
-    // Game state
-    // =========================
-    const player1 = new Fighter({
-      x: 200,
-      y: FLOOR_Y,
-      color: "#3af",
-      facing: 1,
-      name: "Player 1",
-      weapon: "sword",
+    const p1 = new Fighter(0x00f2ff, -5, 1);
+    const p2 = new Fighter(0xff004c, 5, 2);
+
+    // --- INPUT ---
+    const keys = {};
+    window.addEventListener('keydown', (e) => keys[e.code] = true);
+    window.addEventListener('keyup', (e) => keys[e.code] = false);
+
+    // --- GAME LOOP ---
+    function animate() {
+        requestAnimationFrame(animate);
+
+        p1.update(keys, 'KeyA', 'KeyD', 'KeyW', 'KeyF');
+        p2.update(keys, 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'KeyK');
+
+        // Collision Check
+        const dist = p1.mesh.position.distanceTo(p2.mesh.position);
+        if (dist < 1.5) {
+            if (p1.isAttacking) {
+                p2.hp -= 0.5;
+                p2.velocity.x = 0.2;
+            }
+            if (p2.isAttacking) {
+                p1.hp -= 0.5;
+                p1.velocity.x = -0.2;
+            }
+        }
+
+        // Update UI
+        document.getElementById('hp1').style.width = p1.hp + '%';
+        document.getElementById('hp2').style.width = p2.hp + '%';
+
+        // Dynamic Camera: Centers between players and zooms
+        const midPoint = new THREE.Vector3().addVectors(p1.mesh.position, p2.mesh.position).multiplyScalar(0.5);
+        camera.position.x += (midPoint.x - camera.position.x) * 0.05;
+        camera.position.y = 5;
+        camera.position.z = 15 + Math.abs(p1.mesh.position.x - p2.mesh.position.x) * 0.5;
+        camera.lookAt(midPoint.x, 2, 0);
+
+        renderer.render(scene, camera);
+    }
+
+    animate();
+
+    // Handle Resize
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
     });
-
-    const player2 = new Fighter({
-      x: 600,
-      y: FLOOR_Y,
-      color: "#f33",
-      facing: -1,
-      name: "Player 2",
-      weapon: "hammer",
-    });
-
-    let scoreP1 = 0;
-    let scoreP2 = 0;
-    let roundOver = false;
-    let roundMessageTimeout = null;
-
-    function updateScoreboard() {
-      const s1 = document.getElementById("scoreP1");
-      const s2 = document.getElementById("scoreP2");
-      if (s1) s1.textContent = `Player 1: ${scoreP1} pts`;
-      if (s2) s2.textContent = `Player 2: ${scoreP2} pts`;
-    }
-
-    function setRoundMessage(msg) {
-      const el = document.getElementById("round-message");
-      if (!el) return;
-      el.textContent = msg || "";
-    }
-
-    function resetRound() {
-      player1.x = 200;
-      player1.y = FLOOR_Y;
-      player1.vx = 0;
-      player1.vy = 0;
-      player1.health = player1.maxHealth;
-      player1.healEnergy = player1.maxHealEnergy;
-      player1.facing = 1;
-      player1.isPunching = false;
-      player1.punchAnim = 0;
-
-      player2.x = 600;
-      player2.y = FLOOR_Y;
-      player2.vx = 0;
-      player2.vy = 0;
-      player2.health = player2.maxHealth;
-      player2.healEnergy = player2.maxHealEnergy;
-      player2.facing = -1;
-      player2.isPunching = false;
-      player2.punchAnim = 0;
-
-      roundOver = false;
-      setRoundMessage("");
-    }
-
-    // =========================
-    // Collision helpers
-    // =========================
-    function rectsOverlap(a, b) {
-      return !(
-        a.x + a.width < b.x ||
-        a.x > b.x + b.width ||
-        a.y + a.height < b.y ||
-        a.y > b.y + b.height
-      );
-    }
-
-    // =========================
-    // Input → movement & actions
-    // =========================
-    function handleInput() {
-      if (roundOver) return;
-
-      // Player 1
-      if (keys["KeyA"]) {
-        player1.vx = -MOVE_SPEED;
-        player1.facing = -1;
-      } else if (keys["KeyD"]) {
-        player1.vx = MOVE_SPEED;
-        player1.facing = 1;
-      }
-
-      if (keys["KeyW"] && player1.onGround) {
-        player1.vy = JUMP_FORCE;
-      }
-
-      if (keys["KeyF"]) {
-        player1.punch();
-      }
-
-      if (keys["KeyR"]) {
-        player1.tryHeal();
-      }
-
-      // Player 2
-      if (keys["ArrowLeft"]) {
-        player2.vx = -MOVE_SPEED;
-        player2.facing = -1;
-      } else if (keys["ArrowRight"]) {
-        player2.vx = MOVE_SPEED;
-        player2.facing = 1;
-      }
-
-      if (keys["ArrowUp"] && player2.onGround) {
-        player2.vy = JUMP_FORCE;
-      }
-
-      if (keys["KeyK"]) {
-        player2.punch();
-      }
-
-      if (keys["KeyL"]) {
-        player2.tryHeal();
-      }
-    }
-
-    // =========================
-    // Combat + points
-    // =========================
-    function handleCombat() {
-      if (roundOver) return;
-
-      const hb1 = player1.getHitbox();
-      const hb2 = player2.getHitbox();
-
-      const minDistance = 40;
-      const dx = player2.x - player1.x;
-      if (Math.abs(dx) < minDistance) {
-        const push = (minDistance - Math.abs(dx)) / 2;
-        if (dx > 0) {
-          player1.x -= push;
-          player2.x += push;
-        } else {
-          player1.x += push;
-          player2.x -= push;
-        }
-      }
-
-      // Player 1 punch
-      if (player1.isPunching && !player1.punchHitRegistered) {
-        const pb1 = player1.getPunchBox();
-        if (rectsOverlap(pb1, hb2)) {
-          player2.takeDamage(player1.weapon.damage);
-          player1.punchHitRegistered = true;
-        }
-      }
-
-      // Player 2 punch
-      if (player2.isPunching && !player2.punchHitRegistered) {
-        const pb2 = player2.getPunchBox();
-        if (rectsOverlap(pb2, hb1)) {
-          player1.takeDamage(player2.weapon.damage);
-          player2.punchHitRegistered = true;
-        }
-      }
-
-      if (player1.health <= 0 || player2.health <= 0) {
-        roundOver = true;
-
-        if (player1.health <= 0 && player2.health <= 0) {
-          setRoundMessage("Double KO! No points awarded.");
-        } else if (player1.health <= 0) {
-          scoreP2 += 1;
-          setRoundMessage("Player 2 scores a point!");
-        } else if (player2.health <= 0) {
-          scoreP1 += 1;
-          setRoundMessage("Player 1 scores a point!");
-        }
-
-        updateScoreboard();
-
-        if (roundMessageTimeout) clearTimeout(roundMessageTimeout);
-        roundMessageTimeout = setTimeout(() => {
-          resetRound();
-        }, 1300);
-      }
-    }
-
-    // =========================
-    // Rendering
-    // =========================
-    function drawBackground() {
-      const skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-      skyGrad.addColorStop(0, "#1b1f3b");
-      skyGrad.addColorStop(0.5, "#222");
-      skyGrad.addColorStop(1, "#111");
-      ctx.fillStyle = skyGrad;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      ctx.save();
-      ctx.fillStyle = "#181818";
-      for (let i = 0; i < 10; i++) {
-        const w = 60 + Math.random() * 80;
-        const h = 80 + Math.random() * 120;
-        const x = i * 80 + Math.random() * 20;
-        const y = FLOOR_Y - h - 60;
-        ctx.fillRect(x, y, w, h);
-      }
-      ctx.restore();
-
-      ctx.save();
-      const floorGrad = ctx.createLinearGradient(0, FLOOR_Y, 0, canvas.height);
-      floorGrad.addColorStop(0, "#333");
-      floorGrad.addColorStop(1, "#111");
-      ctx.fillStyle = floorGrad;
-      ctx.fillRect(0, FLOOR_Y, canvas.width, canvas.height - FLOOR_Y);
-
-      ctx.strokeStyle = "rgba(255,255,255,0.05)";
-      ctx.lineWidth = 1;
-      for (let i = 0; i < 10; i++) {
-        ctx.beginPath();
-        ctx.moveTo(0, FLOOR_Y + i * 8);
-        ctx.lineTo(canvas.width, FLOOR_Y + i * 8);
-        ctx.stroke();
-      }
-      ctx.restore();
-
-      ctx.save();
-      ctx.globalCompositeOperation = "lighter";
-      const spotlight = ctx.createRadialGradient(
-        canvas.width * 0.25,
-        0,
-        0,
-        canvas.width * 0.25,
-        0,
-        300
-      );
-      spotlight.addColorStop(0, "rgba(255,255,255,0.25)");
-      spotlight.addColorStop(1, "rgba(255,255,255,0)");
-      ctx.fillStyle = spotlight;
-      ctx.beginPath();
-      ctx.arc(canvas.width * 0.25, 0, 300, 0, Math.PI * 2);
-      ctx.fill();
-
-      const spotlight2 = ctx.createRadialGradient(
-        canvas.width * 0.75,
-        0,
-        0,
-        canvas.width * 0.75,
-        0,
-        300
-      );
-      spotlight2.addColorStop(0, "rgba(255,255,255,0.25)");
-      spotlight2.addColorStop(1, "rgba(255,255,255,0)");
-      ctx.fillStyle = spotlight2;
-      ctx.beginPath();
-      ctx.arc(canvas.width * 0.75, 0, 300, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    }
-
-    function updateBars() {
-      const h1 = document.getElementById("healthP1");
-      const h2 = document.getElementById("healthP2");
-      const e1 = document.getElementById("healP1");
-      const e2 = document.getElementById("healP2");
-      if (!h1 || !h2 || !e1 || !e2) return;
-
-      const p1HealthRatio = player1.health / player1.maxHealth;
-      const p2HealthRatio = player2.health / player2.maxHealth;
-      const p1HealRatio = player1.healEnergy / player1.maxHealEnergy;
-      const p2HealRatio = player2.healEnergy / player2.maxHealEnergy;
-
-      h1.style.transform = `scaleX(${p1HealthRatio})`;
-      h2.style.transform = `scaleX(${p2HealthRatio})`;
-      e1.style.transform = `scaleX(${p1HealRatio})`;
-      e2.style.transform = `scaleX(${p2HealRatio})`;
-
-      h2.style.transformOrigin = "right center";
-      e2.style.transformOrigin = "right center";
-    }
-
-    // =========================
-    // Main loop
-    // =========================
-    let lastTime = 0;
-
-    function gameLoop(timestamp) {
-      const dt = timestamp - lastTime;
-      lastTime = timestamp;
-
-      handleInput();
-      player1.updatePhysics();
-      player2.updatePhysics();
-      handleCombat();
-
-      Network.sendState({
-        p1: { x: player1.x, y: player1.y, health: player1.health },
-        p2: { x: player2.x, y: player2.y, health: player2.health },
-      });
-
-      drawBackground();
-      player1.draw(ctx);
-      player2.draw(ctx);
-      updateBars();
-
-      requestAnimationFrame(gameLoop);
-    }
-
-    // =========================
-    // Init
-    // =========================
-    resetRound();
-    updateScoreboard();
-    Network.connect();
-    requestAnimationFrame(gameLoop);
-  </script>
+</script>
 </body>
 </html>
