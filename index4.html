@@ -3,54 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Fighter: Projectile Update</title>
+    <title>3D Fighter: Super Ability Update</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
     <style>
         body { margin: 0; overflow: hidden; background: #fff; font-family: 'Orbitron', sans-serif; user-select: none; }
         #lobby { position: absolute; inset: 0; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; }
         .setup-grid { display: flex; gap: 20px; margin-bottom: 20px; }
-        .player-setup { background: #f8f9fa; padding: 20px; border-radius: 15px; width: 260px; text-align: center; border: 3px solid #eee; }
-        select, button { width: 100%; padding: 10px; margin: 5px 0; border-radius: 8px; font-family: 'Orbitron'; font-weight: bold; cursor: pointer; }
+        .player-setup { background: #fdfdfd; padding: 20px; border-radius: 15px; width: 280px; text-align: center; border: 3px solid #eee; }
+        select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; font-family: 'Orbitron'; font-weight: bold; cursor: pointer; border: 2px solid #ddd; }
         #start-btn { background: #00ff88; border: none; font-size: 1.2rem; margin-top: 20px; }
-        #scoreboard { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 50px; background: rgba(255,255,255,0.9); padding: 10px 30px; border-radius: 50px; border: 3px solid #222; z-index: 100; visibility: hidden; }
-        #ui { position: absolute; top: 100px; width: 100%; padding: 0 50px; display: flex; justify-content: space-between; box-sizing: border-box; pointer-events: none; z-index: 10; visibility: hidden; }
-        .bar-bg { width: 280px; height: 15px; background: #eee; border-radius: 10px; overflow: hidden; border: 2px solid #333; }
-        .hp-fill { height: 100%; width: 100%; transition: width 0.2s; }
-        #ko-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 100px; font-weight: 900; color: #222; transition: 0.3s; z-index: 150; }
+        
+        #scoreboard { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 50px; background: rgba(255,255,255,0.95); padding: 12px 40px; border-radius: 50px; border: 3px solid #333; z-index: 100; visibility: hidden; }
+        
+        #ui { position: absolute; top: 100px; width: 100%; padding: 0 60px; display: flex; justify-content: space-between; box-sizing: border-box; pointer-events: none; z-index: 10; visibility: hidden; }
+        .bar-container { width: 300px; }
+        .bar-bg { width: 100%; height: 18px; background: #eee; border-radius: 10px; overflow: hidden; border: 2px solid #222; }
+        .hp-fill { height: 100%; width: 100%; transition: width 0.15s; }
+        .super-bar { width: 100%; height: 8px; background: #333; margin-top: 5px; border-radius: 4px; overflow: hidden; }
+        .super-fill { height: 100%; width: 0%; background: #ffcc00; transition: width 0.3s; }
+        
+        #ko-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 100px; font-weight: 900; color: #111; transition: 0.3s; z-index: 150; pointer-events: none; }
     </style>
 </head>
 <body>
 
 <div id="lobby">
-    <h1>BATTLE ARENA: ARROW EDITION</h1>
+    <h1>SUPER ABILITY UPDATE</h1>
     <div class="setup-grid">
         <div class="player-setup" style="border-color: #0088ff;">
             <h2 style="color:#0088ff">P1</h2>
-            <select id="p1-color"><option value="0x0088ff">Blue</option><option value="0x00ff88">Green</option><option value="0x7000ff">Purple</option></select>
+            <select id="p1-color"><option value="0x0088ff">Blue</option><option value="0x7000ff">Purple</option></select>
             <select id="p1-wep">
+                <option value="crossbow">Crossbow</option>
+                <option value="bow">Recurve Bow</option>
+                <option value="shuriken">Shurikens</option>
+                <option value="axe">Throwing Axe</option>
                 <option value="longsword">Longsword</option>
-                <option value="bow">Longbow (Ranged)</option>
-                <option value="shuriken">Shurikens (Fast)</option>
-                <option value="hammer">Hammer</option>
             </select>
         </div>
         <div class="player-setup" style="border-color: #ff4444;">
             <h2 style="color:#ff4444">P2</h2>
-            <select id="p2-color"><option value="0xff4444">Red</option><option value="0xffaa00">Orange</option><option value="0x333333">Black</option></select>
+            <select id="p2-color"><option value="0xff4444">Red</option><option value="0xff8800">Orange</option></select>
             <select id="p2-wep">
+                <option value="crossbow">Crossbow</option>
+                <option value="bow">Recurve Bow</option>
+                <option value="shuriken">Shurikens</option>
+                <option value="axe">Throwing Axe</option>
                 <option value="longsword">Longsword</option>
-                <option value="bow">Longbow (Ranged)</option>
-                <option value="shuriken">Shurikens (Fast)</option>
-                <option value="hammer">Hammer</option>
             </select>
         </div>
     </div>
-    <button id="start-btn">FIGHT</button>
+    <button id="start-btn">FIGHT!</button>
 </div>
 
 <div id="scoreboard"><div class="score-box">P1: <span id="score1">0</span></div><div class="score-box">P2: <span id="score2">0</span></div></div>
 <div id="ko-msg">K.O.</div>
-<div id="ui"><div class="bar-bg"><div id="hp1" class="hp-fill"></div></div><div class="bar-bg"><div id="hp2" class="hp-fill"></div></div></div>
+<div id="ui">
+    <div class="bar-container">
+        <div class="bar-bg"><div id="hp1" class="hp-fill" style="background: #0088ff;"></div></div>
+        <div class="super-bar"><div id="super1" class="super-fill"></div></div>
+    </div>
+    <div class="bar-container">
+        <div class="bar-bg"><div id="hp2" class="hp-fill" style="background: #ff4444;"></div></div>
+        <div class="super-bar"><div id="super2" class="super-fill"></div></div>
+    </div>
+</div>
 
 <script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }</script>
 
@@ -58,10 +75,11 @@
     import * as THREE from 'three';
 
     const WEP_DATA = {
-        longsword: { type: 'melee', dmg: 20, speed: 0.15, range: 2.5, scale: [0.1, 2, 0.1] },
-        hammer:    { type: 'melee', dmg: 40, speed: 0.06, range: 2.0, scale: [0.4, 1.4, 0.4] },
-        bow:       { type: 'ranged', dmg: 25, speed: 0.05, pSpeed: 0.6, pScale: [0.05, 0.05, 0.5] },
-        shuriken:  { type: 'ranged', dmg: 8,  speed: 0.2, pSpeed: 0.8, pScale: [0.3, 0.05, 0.3] }
+        crossbow:  { type: 'ranged', dmg: 25, speed: 0.04, pSpeed: 0.7, pScale: [0.05, 0.05, 0.6], superHits: 4 },
+        bow:       { type: 'ranged', dmg: 18, speed: 0.08, pSpeed: 0.6, pScale: [0.04, 0.04, 0.5], superHits: 5 },
+        shuriken:  { type: 'ranged', dmg: 7,  speed: 0.2,  pSpeed: 0.8, pScale: [0.3, 0.05, 0.3], superHits: 6 },
+        axe:       { type: 'ranged', dmg: 30, speed: 0.06, pSpeed: 0.4, pScale: [0.4, 0.4, 0.1],  superHits: 4 },
+        longsword: { type: 'melee',  dmg: 20, speed: 0.15, range: 2.5,  scale: [0.1, 2, 0.1],    superHits: 5 }
     };
 
     let p1Pts = 0, p2Pts = 0, roundActive = true;
@@ -80,25 +98,26 @@
 
     class Fighter {
         constructor(x, id) {
-            this.id = id; this.startX = x; this.hp = 100; this.dead = false;
+            this.id = id; this.startX = x; this.hp = 100; this.hits = 0; this.dead = false;
             this.vel = new THREE.Vector3(); this.group = new THREE.Group();
             this.atkPhase = 0; this.hitMark = false; scene.add(this.group);
         }
         init(color, wepType) {
             this.group.clear(); this.group.position.set(this.startX, 0, 0);
-            this.hp = 100; this.dead = false; this.wep = WEP_DATA[wepType];
-            const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.5, 1.5), new THREE.MeshStandardMaterial({ color: parseInt(color) }));
+            this.hp = 100; this.hits = 0; this.dead = false; this.wepType = wepType; this.wep = WEP_DATA[wepType];
+            this.mat = new THREE.MeshStandardMaterial({ color: parseInt(color) });
+            const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.5, 1.5), this.mat);
             body.position.y = 1.25; body.castShadow = true; this.group.add(body);
-            this.wepPivot = new THREE.Group(); this.wepPivot.position.set(0.6, 1.3, 0);
-            this.group.add(this.wepPivot);
         }
-        shoot(dir) {
-            const pGeo = new THREE.BoxGeometry(...this.wep.pScale);
-            const pMat = new THREE.MeshStandardMaterial({ color: 0x333333 });
-            const p = new THREE.Mesh(pGeo, pMat);
-            p.position.copy(this.group.position).add(new THREE.Vector3(0, 1.5, 0));
-            p.userData = { velocity: new THREE.Vector3(dir * this.wep.pSpeed, 0, 0), owner: this.id, dmg: this.wep.dmg };
-            projectiles.push(p); scene.add(p);
+        shoot(dir, isSuper = false) {
+            const count = isSuper && this.wepType === 'shuriken' ? 5 : (isSuper && this.wepType === 'crossbow' ? 3 : 1);
+            for(let i=0; i<count; i++) {
+                const p = new THREE.Mesh(new THREE.BoxGeometry(...this.wep.pScale), new THREE.MeshStandardMaterial({ color: isSuper ? 0xffcc00 : 0x333333 }));
+                p.position.copy(this.group.position).add(new THREE.Vector3(0, 1.5, 0));
+                let v = new THREE.Vector3(dir * this.wep.pSpeed, (isSuper && count > 1 ? (i - 1) * 0.1 : 0), 0);
+                p.userData = { velocity: v, owner: this.id, dmg: isSuper ? this.wep.dmg * 1.5 : this.wep.dmg };
+                projectiles.push(p); scene.add(p);
+            }
         }
         update(keys, l, r, j, f) {
             if(this.dead || !roundActive) return;
@@ -106,11 +125,19 @@
             else if(keys[r]) { this.vel.x = 0.15; this.group.rotation.y = Math.PI/2; }
             else this.vel.x *= 0.85;
             if(keys[j] && this.group.position.y <= 0.05) this.vel.y = 0.25;
+            
             if(keys[f] && this.atkPhase <= 0) { 
-                this.atkPhase = 1; this.hitMark = false; 
-                if(this.wep.type === 'ranged') this.shoot(this.group.rotation.y > 0 ? 1 : -1);
+                this.atkPhase = 1; this.hitMark = false;
+                const isSuper = this.hits >= this.wep.superHits;
+                if(this.wep.type === 'ranged') this.shoot(this.group.rotation.y > 0 ? 1 : -1, isSuper);
+                if(isSuper) { 
+                    this.hits = 0; 
+                    if(this.wepType === 'longsword') this.vel.x = (this.group.rotation.y > 0 ? 1.5 : -1.5);
+                }
             }
             if(this.atkPhase > 0) this.atkPhase -= this.wep.speed;
+            
+            this.mat.emissive.setHex(this.hits >= this.wep.superHits ? 0xffaa00 : 0x000000);
             this.vel.y -= 0.01; this.group.position.add(this.vel);
             if(this.group.position.y < 0) { this.group.position.y = 0; this.vel.y = 0; }
         }
@@ -133,19 +160,18 @@
         p1.update(keys, 'KeyA', 'KeyD', 'KeyW', 'KeyF');
         p2.update(keys, 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'KeyK');
 
-        // Projectile Logic
         for(let i = projectiles.length-1; i >= 0; i--) {
             const p = projectiles[i]; p.position.add(p.userData.velocity);
             const target = p.userData.owner === 1 ? p2 : p1;
+            const attacker = p.userData.owner === 1 ? p1 : p2;
             if(p.position.distanceTo(target.group.position.clone().add(new THREE.Vector3(0,1,0))) < 1) {
-                target.hp -= p.userData.dmg; scene.remove(p); projectiles.splice(i, 1);
+                target.hp -= p.userData.dmg; attacker.hits++; scene.remove(p); projectiles.splice(i, 1);
             } else if(Math.abs(p.position.x) > 50) { scene.remove(p); projectiles.splice(i, 1); }
         }
 
-        // Melee Logic
         const dist = p1.group.position.distanceTo(p2.group.position);
-        if(p1.wep.type === 'melee' && p1.atkPhase > 0.4 && p1.atkPhase < 0.7 && !p1.hitMark && dist < p1.wep.range) { p2.hp -= p1.wep.dmg; p1.hitMark = true; }
-        if(p2.wep.type === 'melee' && p2.atkPhase > 0.4 && p2.atkPhase < 0.7 && !p2.hitMark && dist < p2.wep.range) { p1.hp -= p2.wep.dmg; p2.hitMark = true; }
+        if(p1.wep.type === 'melee' && p1.atkPhase > 0.4 && p1.atkPhase < 0.7 && !p1.hitMark && dist < p1.wep.range) { p2.hp -= p1.wep.dmg; p1.hitMark = true; p1.hits++; }
+        if(p2.wep.type === 'melee' && p2.atkPhase > 0.4 && p2.atkPhase < 0.7 && !p2.hitMark && dist < p2.wep.range) { p1.hp -= p2.wep.dmg; p2.hitMark = true; p2.hits++; }
 
         if((p1.hp <= 0 || p2.hp <= 0) && roundActive) {
             roundActive = false; if(p1.hp > 0) p1Pts++; else p2Pts++;
@@ -160,7 +186,10 @@
 
         document.getElementById('hp1').style.width = Math.max(0, p1.hp) + '%';
         document.getElementById('hp2').style.width = Math.max(0, p2.hp) + '%';
+        document.getElementById('super1').style.width = Math.min(100, (p1.hits / p1.wep.superHits) * 100) + '%';
+        document.getElementById('super2').style.width = Math.min(100, (p2.hits / p2.wep.superHits) * 100) + '%';
         document.getElementById('score1').innerText = p1Pts; document.getElementById('score2').innerText = p2Pts;
+        
         camera.position.set((p1.group.position.x + p2.group.position.x)/2, 6, 18);
         camera.lookAt((p1.group.position.x + p2.group.position.x)/2, 2, 0);
         renderer.render(scene, camera);
