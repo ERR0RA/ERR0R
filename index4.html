@@ -3,231 +3,248 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Hyper-Fighter</title>
+    <title>3D Ultra-Fighter: Weapons & Healing</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; }
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; user-select: none; }
         #ui {
             position: absolute; top: 0; width: 100%; padding: 20px;
             display: flex; justify-content: space-between; box-sizing: border-box;
             pointer-events: none; z-index: 10;
         }
-        .player-info { width: 300px; }
-        .bar-bg { width: 100%; height: 20px; background: rgba(0,0,0,0.5); border: 2px solid #444; margin-top: 5px; }
-        .bar-fill { height: 100%; transition: width 0.2s ease-out; }
-        #hp1 { background: linear-gradient(90deg, #00f2ff, #0066ff); box-shadow: 0 0 15px #00f2ff; }
-        #hp2 { background: linear-gradient(90deg, #ff004c, #ff6600); box-shadow: 0 0 15px #ff004c; }
-        .controls {
-            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            color: #aaa; font-size: 12px; text-align: center;
+        .player-info { width: 320px; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; backdrop-filter: blur(5px); }
+        .label { font-size: 14px; margin-bottom: 5px; display: flex; justify-content: space-between; }
+        .bar-bg { width: 100%; height: 18px; background: #222; border: 1px solid #444; margin-bottom: 8px; overflow: hidden; position: relative; }
+        .bar-fill { height: 100%; width: 100%; transition: width 0.3s cubic-bezier(0.17, 0.67, 0.83, 0.67); }
+        .energy-fill { height: 100%; width: 100%; background: #bdff00; transition: width 0.1s linear; }
+        
+        #hp1 { background: linear-gradient(90deg, #00f2ff, #0066ff); box-shadow: 0 0 10px #00f2ff; }
+        #hp2 { background: linear-gradient(90deg, #ff004c, #ff6600); box-shadow: 0 0 10px #ff004c; }
+        
+        .controls-hint {
+            position: absolute; bottom: 20px; width: 100%; text-align: center;
+            color: #666; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
         }
+        b { color: #fff; }
     </style>
 </head>
 <body>
 
 <div id="ui">
-    <div class="player-info">
-        <div style="color: #00f2ff; font-weight: bold;">PLAYER 1 (A/D/W + F)</div>
-        <div class="bar-bg"><div id="hp1" class="bar-fill" style="width: 100%;"></div></div>
+    <div class="player-info" style="border-left: 4px solid #00f2ff;">
+        <div class="label"><span style="color:#00f2ff">P1: CYBER-KNIGHT</span> <span id="wep1" style="color:#aaa">SWORD</span></div>
+        <div class="bar-bg"><div id="hp1" class="bar-fill"></div></div>
+        <div class="bar-bg" style="height: 6px;"><div id="en1" class="energy-fill"></div></div>
+        <div style="font-size: 10px; color: #888;">F: STRIKE • R: HEAL (COSTS ENERGY)</div>
     </div>
-    <div class="player-info" style="text-align: right;">
-        <div style="color: #ff004c; font-weight: bold;">PLAYER 2 (ARROWS + K)</div>
-        <div class="bar-bg"><div id="hp2" class="bar-fill" style="width: 100%;"></div></div>
+
+    <div class="player-info" style="border-right: 4px solid #ff004c; text-align: right;">
+        <div class="label"><span id="wep2" style="color:#aaa">AXE</span> <span style="color:#ff004c">P2: BLAZE-WARDEN</span></div>
+        <div class="bar-bg"><div id="hp2" class="bar-fill"></div></div>
+        <div class="bar-bg" style="height: 6px;"><div id="en2" class="energy-fill" style="float: right;"></div></div>
+        <div style="font-size: 10px; color: #888;">K: STRIKE • L: HEAL (COSTS ENERGY)</div>
     </div>
 </div>
 
-<div class="controls">
-    WASD to Move/Jump • F to Strike | Arrows to Move/Jump • K to Strike
+<div class="controls-hint">
+    P1: <b>WASD</b> Move • <b>F</b> Attack • <b>R</b> Heal | P2: <b>ARROWS</b> Move • <b>K</b> Attack • <b>L</b> Heal
 </div>
 
 <script type="importmap">
-    {
-        "imports": {
-            "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
-        }
-    }
+    { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
 </script>
 
 <script type="module">
     import * as THREE from 'three';
 
-    // --- SETUP ---
+    // --- GAME CONSTANTS ---
+    const WEAPONS = {
+        sword:  { name: 'SWORD', damage: 12, range: 2.2, speed: 0.15, color: 0xcccccc, size: [0.1, 1.8, 0.1] },
+        axe:    { name: 'AXE',   damage: 25, range: 1.8, speed: 0.06, color: 0x888888, size: [0.4, 1.2, 0.2] },
+        dagger: { name: 'DAGGER',damage: 6,  range: 1.4, speed: 0.25, color: 0x444444, size: [0.05, 0.8, 0.1] }
+    };
+
+    // --- INITIALIZATION ---
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x020205);
-    scene.fog = new THREE.Fog(0x020205, 10, 50);
+    scene.background = new THREE.Color(0x050508);
+    scene.fog = new THREE.Fog(0x050508, 15, 45);
 
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     document.body.appendChild(renderer.domElement);
 
-    // --- LIGHTING ---
-    const ambient = new THREE.AmbientLight(0xffffff, 0.1);
-    scene.add(ambient);
+    // --- LIGHTS ---
+    const hLight = new THREE.HemisphereLight(0x4040ff, 0xff4040, 0.5);
+    scene.add(hLight);
 
-    const blueLight = new THREE.PointLight(0x00f2ff, 100, 20);
-    blueLight.position.set(-10, 5, 5);
-    scene.add(blueLight);
+    const spot = new THREE.SpotLight(0xffffff, 500);
+    spot.position.set(0, 20, 10);
+    spot.castShadow = true;
+    scene.add(spot);
 
-    const redLight = new THREE.PointLight(0xff004c, 100, 20);
-    redLight.position.set(10, 5, 5);
-    scene.add(redLight);
-
-    const sun = new THREE.DirectionalLight(0xffffff, 1);
-    sun.position.set(5, 20, 10);
-    sun.castShadow = true;
-    scene.add(sun);
-
-    // --- ARENA ---
-    const floorGeo = new THREE.PlaneGeometry(100, 100);
-    const floorMat = new THREE.MeshStandardMaterial({ 
-        color: 0x111111, 
-        roughness: 0.1, 
-        metalness: 0.5 
-    });
-    const floor = new THREE.Mesh(floorGeo, floorMat);
-    floor.rotation.x = -Math.PI / 2;
+    // --- ENVIRONMENT ---
+    const floor = new THREE.Mesh(
+        new THREE.PlaneGeometry(100, 100),
+        new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.2, metalness: 0.8 })
+    );
+    floor.rotation.x = -Math.PI/2;
     floor.receiveShadow = true;
     scene.add(floor);
 
-    // Grid Helper for "Realistic" Tech feel
-    const grid = new THREE.GridHelper(100, 50, 0x444444, 0x222222);
+    const grid = new THREE.GridHelper(100, 40, 0x00f2ff, 0x222222);
+    grid.position.y = 0.01;
     scene.add(grid);
 
     // --- FIGHTER CLASS ---
     class Fighter {
-        constructor(color, startX, id) {
+        constructor(color, startX, id, weaponType) {
             this.id = id;
             this.hp = 100;
+            this.energy = 100;
             this.velocity = new THREE.Vector3();
             this.onGround = true;
+            this.weaponData = WEAPONS[weaponType];
             
-            // Group to hold body parts
             this.mesh = new THREE.Group();
             
-            // Body
-            const bodyGeo = new THREE.CapsuleGeometry(0.5, 1.5, 4, 8);
-            const bodyMat = new THREE.MeshStandardMaterial({ color: color, metalness: 0.8, roughness: 0.2 });
-            this.body = new THREE.Mesh(bodyGeo, bodyMat);
-            this.body.position.y = 1.25;
+            // Body Capsule
+            const bodyMat = new THREE.MeshStandardMaterial({ color: color, metalness: 0.7, roughness: 0.3 });
+            this.body = new THREE.Mesh(new THREE.CapsuleGeometry(0.5, 1.2, 4, 8), bodyMat);
+            this.body.position.y = 1.1;
             this.body.castShadow = true;
             this.mesh.add(this.body);
 
-            // Glowing Eyes
-            const eyeGeo = new THREE.BoxGeometry(0.6, 0.1, 0.1);
-            const eyeMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-            const eyes = new THREE.Mesh(eyeGeo, eyeMat);
-            eyes.position.set(0, 1.8, 0.4);
-            this.mesh.add(eyes);
+            // Healing Aura (Invisible by default)
+            const healGeo = new THREE.CylinderGeometry(0.8, 0.8, 2, 16, 1, true);
+            const healMat = new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0, side: THREE.DoubleSide });
+            this.healAura = new THREE.Mesh(healGeo, healMat);
+            this.healAura.position.y = 1;
+            this.mesh.add(this.healAura);
+
+            // Weapon Mesh
+            const wepGeo = new THREE.BoxGeometry(...this.weaponData.size);
+            const wepMat = new THREE.MeshStandardMaterial({ color: this.weaponData.color, metalness: 1 });
+            this.weaponMesh = new THREE.Mesh(wepGeo, wepMat);
+            this.weaponAnchor = new THREE.Group();
+            this.weaponAnchor.position.set(0.6, 1.2, 0);
+            this.weaponMesh.position.y = 0.5;
+            this.weaponAnchor.add(this.weaponMesh);
+            this.mesh.add(this.weaponAnchor);
 
             this.mesh.position.x = startX;
             scene.add(this.mesh);
 
-            this.isAttacking = false;
-            this.attackCooldown = false;
+            this.attackAnim = 0;
+            this.isHealing = false;
         }
 
-        update(keys, leftKey, rightKey, jumpKey, attackKey) {
-            const speed = 0.15;
-            const jumpForce = 0.25;
-            const gravity = 0.01;
+        update(keys, left, right, jump, attack, healKey) {
+            const speed = this.isHealing ? 0.03 : 0.15;
+            
+            // Movement
+            if (keys[left]) { this.velocity.x = -speed; this.mesh.rotation.y = -Math.PI/2; }
+            else if (keys[right]) { this.velocity.x = speed; this.mesh.rotation.y = Math.PI/2; }
+            else { this.velocity.x *= 0.85; }
 
-            if (keys[leftKey]) this.velocity.x = -speed;
-            else if (keys[rightKey]) this.velocity.x = speed;
-            else this.velocity.x *= 0.8;
-
-            if (keys[jumpKey] && this.onGround) {
-                this.velocity.y = jumpForce;
+            if (keys[jump] && this.onGround) {
+                this.velocity.y = 0.25;
                 this.onGround = false;
             }
 
-            // Attack logic
-            if (keys[attackKey] && !this.attackCooldown) {
-                this.performAttack();
+            // Healing Logic
+            if (keys[healKey] && this.energy > 0.5 && this.hp < 100) {
+                this.isHealing = true;
+                this.hp = Math.min(100, this.hp + 0.1);
+                this.energy -= 0.5;
+                this.healAura.opacity = 0.3;
+                this.healAura.rotation.y += 0.1;
+            } else {
+                this.isHealing = false;
+                this.healAura.opacity = 0;
+                this.energy = Math.min(100, this.energy + 0.1); // Passive energy regen
             }
 
-            // Apply Physics
-            this.velocity.y -= gravity;
-            this.mesh.position.add(this.velocity);
+            // Attack Anim
+            if (keys[attack] && this.attackAnim <= 0) {
+                this.attackAnim = 1;
+            }
 
+            if (this.attackAnim > 0) {
+                this.attackAnim -= this.weaponData.speed;
+                this.weaponAnchor.rotation.z = Math.sin(this.attackAnim * Math.PI) * 2;
+            } else {
+                this.weaponAnchor.rotation.z = 0;
+            }
+
+            // Physics
+            this.velocity.y -= 0.01;
+            this.mesh.position.add(this.velocity);
             if (this.mesh.position.y <= 0) {
                 this.mesh.position.y = 0;
                 this.velocity.y = 0;
                 this.onGround = true;
             }
-
-            // Tilt toward movement
-            this.mesh.rotation.z = -this.velocity.x * 0.5;
-            this.mesh.rotation.y = this.velocity.x > 0 ? Math.PI/2 : -Math.PI/2;
+            this.mesh.position.x = Math.max(-20, Math.min(20, this.mesh.position.x));
         }
 
-        performAttack() {
-            this.isAttacking = true;
-            this.attackCooldown = true;
-            
-            // Visual feedback: simple lunge
-            this.body.scale.set(1.5, 1, 1.5);
-            
-            setTimeout(() => {
-                this.body.scale.set(1, 1, 1);
-                this.isAttacking = false;
-            }, 200);
-
-            setTimeout(() => { this.attackCooldown = false; }, 500);
+        takeDamage(dmg) {
+            this.hp -= dmg;
+            this.body.material.emissive.setHex(0xff0000);
+            setTimeout(() => this.body.material.emissive.setHex(0x000000), 100);
         }
     }
 
-    const p1 = new Fighter(0x00f2ff, -5, 1);
-    const p2 = new Fighter(0xff004c, 5, 2);
+    // Initialize Players with different weapons
+    const p1 = new Fighter(0x00f2ff, -6, 1, 'sword');
+    const p2 = new Fighter(0xff004c, 6, 2, 'axe');
 
-    // --- INPUT ---
     const keys = {};
-    window.addEventListener('keydown', (e) => keys[e.code] = true);
-    window.addEventListener('keyup', (e) => keys[e.code] = false);
+    window.onkeydown = (e) => keys[e.code] = true;
+    window.onkeyup = (e) => keys[e.code] = false;
 
-    // --- GAME LOOP ---
     function animate() {
         requestAnimationFrame(animate);
 
-        p1.update(keys, 'KeyA', 'KeyD', 'KeyW', 'KeyF');
-        p2.update(keys, 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'KeyK');
+        p1.update(keys, 'KeyA', 'KeyD', 'KeyW', 'KeyF', 'KeyR');
+        p2.update(keys, 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'KeyK', 'KeyL');
 
-        // Collision Check
+        // Collision & Combat
         const dist = p1.mesh.position.distanceTo(p2.mesh.position);
-        if (dist < 1.5) {
-            if (p1.isAttacking) {
-                p2.hp -= 0.5;
-                p2.velocity.x = 0.2;
-            }
-            if (p2.isAttacking) {
-                p1.hp -= 0.5;
-                p1.velocity.x = -0.2;
-            }
+        
+        // P1 hits P2
+        if (p1.attackAnim > 0.5 && dist < p1.weaponData.range) {
+            p2.takeDamage(p1.weaponData.damage / 10);
+            p2.velocity.x += 0.05;
+        }
+        // P2 hits P1
+        if (p2.attackAnim > 0.5 && dist < p2.weaponData.range) {
+            p1.takeDamage(p2.weaponData.damage / 10);
+            p1.velocity.x -= 0.05;
         }
 
         // Update UI
         document.getElementById('hp1').style.width = p1.hp + '%';
         document.getElementById('hp2').style.width = p2.hp + '%';
+        document.getElementById('en1').style.width = p1.energy + '%';
+        document.getElementById('en2').style.width = p2.energy + '%';
 
-        // Dynamic Camera: Centers between players and zooms
-        const midPoint = new THREE.Vector3().addVectors(p1.mesh.position, p2.mesh.position).multiplyScalar(0.5);
-        camera.position.x += (midPoint.x - camera.position.x) * 0.05;
-        camera.position.y = 5;
-        camera.position.z = 15 + Math.abs(p1.mesh.position.x - p2.mesh.position.x) * 0.5;
-        camera.lookAt(midPoint.x, 2, 0);
+        // Camera Logic
+        const midX = (p1.mesh.position.x + p2.mesh.position.x) / 2;
+        camera.position.x += (midX - camera.position.x) * 0.05;
+        camera.position.z = 12 + Math.abs(p1.mesh.position.x - p2.mesh.position.x) * 0.4;
+        camera.lookAt(midX, 1.5, 0);
 
         renderer.render(scene, camera);
     }
 
     animate();
 
-    // Handle Resize
-    window.addEventListener('resize', () => {
+    window.onresize = () => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
-    });
+    };
 </script>
 </body>
 </html>
