@@ -3,69 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Fighter: Super Ability Update</title>
+    <title>3D Fighter: Realistic Steel</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; overflow: hidden; background: #fff; font-family: 'Orbitron', sans-serif; user-select: none; }
-        #lobby { position: absolute; inset: 0; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; }
+        body { margin: 0; overflow: hidden; background: #1a1a1a; font-family: 'Orbitron', sans-serif; user-select: none; }
+        #lobby { position: absolute; inset: 0; background: radial-gradient(circle, #fff 0%, #ddd 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; }
         .setup-grid { display: flex; gap: 20px; margin-bottom: 20px; }
-        .player-setup { background: #fdfdfd; padding: 20px; border-radius: 15px; width: 280px; text-align: center; border: 3px solid #eee; }
-        select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; font-family: 'Orbitron'; font-weight: bold; cursor: pointer; border: 2px solid #ddd; }
-        #start-btn { background: #00ff88; border: none; font-size: 1.2rem; margin-top: 20px; }
+        .player-setup { background: rgba(255,255,255,0.8); padding: 25px; border-radius: 15px; width: 300px; text-align: center; border: 1px solid #ccc; backdrop-filter: blur(5px); }
+        select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 5px; font-family: 'Orbitron'; font-weight: bold; cursor: pointer; border: 1px solid #999; }
+        #start-btn { background: #222; color: #fff; border: none; font-size: 1.4rem; transition: 0.3s; }
+        #start-btn:hover { background: #444; letter-spacing: 2px; }
         
-        #scoreboard { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 50px; background: rgba(255,255,255,0.95); padding: 12px 40px; border-radius: 50px; border: 3px solid #333; z-index: 100; visibility: hidden; }
-        
-        #ui { position: absolute; top: 100px; width: 100%; padding: 0 60px; display: flex; justify-content: space-between; box-sizing: border-box; pointer-events: none; z-index: 10; visibility: hidden; }
-        .bar-container { width: 300px; }
-        .bar-bg { width: 100%; height: 18px; background: #eee; border-radius: 10px; overflow: hidden; border: 2px solid #222; }
-        .hp-fill { height: 100%; width: 100%; transition: width 0.15s; }
-        .super-bar { width: 100%; height: 8px; background: #333; margin-top: 5px; border-radius: 4px; overflow: hidden; }
-        .super-fill { height: 100%; width: 0%; background: #ffcc00; transition: width 0.3s; }
-        
-        #ko-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 100px; font-weight: 900; color: #111; transition: 0.3s; z-index: 150; pointer-events: none; }
+        #scoreboard { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 40px; background: rgba(0,0,0,0.8); color: white; padding: 15px 40px; border-radius: 10px; z-index: 100; visibility: hidden; border: 1px solid #444; }
+        #ui { position: absolute; top: 110px; width: 100%; padding: 0 60px; display: flex; justify-content: space-between; box-sizing: border-box; pointer-events: none; z-index: 10; visibility: hidden; }
+        .bar-container { width: 350px; }
+        .bar-bg { width: 100%; height: 20px; background: #333; border: 2px solid #000; overflow: hidden; }
+        .hp-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #f00, #a00); transition: width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .super-bg { width: 100%; height: 10px; background: #111; margin-top: 5px; border: 1px solid #000; }
+        .super-fill { height: 100%; width: 0%; background: #0cf; transition: width 0.3s; box-shadow: 0 0 10px #0cf; }
+        #ko-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 120px; font-weight: 900; color: #000; transition: 0.5s; z-index: 150; }
     </style>
 </head>
 <body>
 
 <div id="lobby">
-    <h1>SUPER ABILITY UPDATE</h1>
+    <h1 style="font-size: 3rem; color: #222;">REALISTIC STEEL 3D</h1>
     <div class="setup-grid">
-        <div class="player-setup" style="border-color: #0088ff;">
-            <h2 style="color:#0088ff">P1</h2>
-            <select id="p1-color"><option value="0x0088ff">Blue</option><option value="0x7000ff">Purple</option></select>
+        <div class="player-setup">
+            <h2 style="color:#0077ff">P1 SETUP</h2>
+            <select id="p1-color">
+                <option value="0x0077ff">Cobalt Blue</option>
+                <option value="0xff3300">Crimson</option>
+                <option value="0x00ff88">Emerald</option>
+                <option value="0xffdd00">Gold</option>
+                <option value="0x7700ff">Deep Purple</option>
+                <option value="0x333333">Carbon</option>
+                <option value="0xeeeeee">Silver</option>
+                <option value="0xff00ff">Neon Pink</option>
+                <option value="0x00ffff">Cyan</option>
+                <option value="0xff8800">Sunset</option>
+            </select>
             <select id="p1-wep">
-                <option value="crossbow">Crossbow</option>
-                <option value="bow">Recurve Bow</option>
-                <option value="shuriken">Shurikens</option>
-                <option value="axe">Throwing Axe</option>
-                <option value="longsword">Longsword</option>
+                <option value="kat">Katana (Fast)</option>
+                <option value="zwei">Zweihander (Heavy)</option>
+                <option value="rap">Rapier (Thrust)</option>
+                <option value="sci">Scimitar (Balanced)</option>
+                <option value="broad">Broadsword (Standard)</option>
+                <option value="exec">Executioner (Power)</option>
+                <option value="dag">Dagger (Close)</option>
+                <option value="mace">Mace (Impact)</option>
             </select>
         </div>
-        <div class="player-setup" style="border-color: #ff4444;">
-            <h2 style="color:#ff4444">P2</h2>
-            <select id="p2-color"><option value="0xff4444">Red</option><option value="0xff8800">Orange</option></select>
+        <div class="player-setup">
+            <h2 style="color:#ff3300">P2 SETUP</h2>
+            <select id="p2-color"><option value="0xff3300">Crimson</option><option value="0x0077ff">Cobalt</option><option value="0x333333">Carbon</option><option value="0x00ff88">Emerald</option></select>
             <select id="p2-wep">
-                <option value="crossbow">Crossbow</option>
-                <option value="bow">Recurve Bow</option>
-                <option value="shuriken">Shurikens</option>
-                <option value="axe">Throwing Axe</option>
-                <option value="longsword">Longsword</option>
+                <option value="kat">Katana</option><option value="zwei">Zweihander</option><option value="rap">Rapier</option><option value="sci">Scimitar</option>
             </select>
         </div>
     </div>
-    <button id="start-btn">FIGHT!</button>
+    <button id="start-btn">BEGIN DUEL</button>
 </div>
 
 <div id="scoreboard"><div class="score-box">P1: <span id="score1">0</span></div><div class="score-box">P2: <span id="score2">0</span></div></div>
 <div id="ko-msg">K.O.</div>
 <div id="ui">
     <div class="bar-container">
-        <div class="bar-bg"><div id="hp1" class="hp-fill" style="background: #0088ff;"></div></div>
-        <div class="super-bar"><div id="super1" class="super-fill"></div></div>
+        <div class="bar-bg"><div id="hp1" class="hp-fill"></div></div>
+        <div class="super-bg"><div id="super1" class="super-fill"></div></div>
     </div>
     <div class="bar-container">
-        <div class="bar-bg"><div id="hp2" class="hp-fill" style="background: #ff4444;"></div></div>
-        <div class="super-bar"><div id="super2" class="super-fill"></div></div>
+        <div class="bar-bg"><div id="hp2" class="hp-fill"></div></div>
+        <div class="super-bg"><div id="super2" class="super-fill"></div></div>
     </div>
 </div>
 
@@ -75,25 +84,35 @@
     import * as THREE from 'three';
 
     const WEP_DATA = {
-        crossbow:  { type: 'ranged', dmg: 25, speed: 0.04, pSpeed: 0.7, pScale: [0.05, 0.05, 0.6], superHits: 4 },
-        bow:       { type: 'ranged', dmg: 18, speed: 0.08, pSpeed: 0.6, pScale: [0.04, 0.04, 0.5], superHits: 5 },
-        shuriken:  { type: 'ranged', dmg: 7,  speed: 0.2,  pSpeed: 0.8, pScale: [0.3, 0.05, 0.3], superHits: 6 },
-        axe:       { type: 'ranged', dmg: 30, speed: 0.06, pSpeed: 0.4, pScale: [0.4, 0.4, 0.1],  superHits: 4 },
-        longsword: { type: 'melee',  dmg: 20, speed: 0.15, range: 2.5,  scale: [0.1, 2, 0.1],    superHits: 5 }
+        kat:   { dmg: 14, speed: 0.22, range: 2.2, scale: [0.06, 2.0, 0.06], superHits: 6 },
+        zwei:  { dmg: 40, speed: 0.07, range: 3.2, scale: [0.15, 3.2, 0.15], superHits: 4 },
+        rap:   { dmg: 18, speed: 0.28, range: 2.8, scale: [0.04, 2.4, 0.04], superHits: 7 },
+        sci:   { dmg: 20, speed: 0.18, range: 2.4, scale: [0.08, 1.8, 0.2],  superHits: 5 },
+        broad: { dmg: 24, speed: 0.14, range: 2.5, scale: [0.12, 2.2, 0.12], superHits: 5 },
+        exec:  { dmg: 32, speed: 0.11, range: 2.6, scale: [0.25, 2.4, 0.08], superHits: 4 },
+        dag:   { dmg: 8,  speed: 0.45, range: 1.4, scale: [0.05, 0.8, 0.05], superHits: 8 },
+        mace:  { dmg: 28, speed: 0.12, range: 2.0, scale: [0.3, 1.6, 0.3],  superHits: 5 }
     };
 
     let p1Pts = 0, p2Pts = 0, roundActive = true;
-    const projectiles = [];
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xdddddd);
+    scene.fog = new THREE.Fog(0xdddddd, 10, 50);
 
-    const scene = new THREE.Scene(); scene.background = new THREE.Color(0xffffff);
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight); renderer.shadowMap.enabled = true;
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.toneMapping = THREE.ReinhardToneMapping;
     document.body.appendChild(renderer.domElement);
 
-    scene.add(new THREE.AmbientLight(0xffffff, 1));
-    const sun = new THREE.DirectionalLight(0xffffff, 1); sun.position.set(5, 15, 5); sun.castShadow = true; scene.add(sun);
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshStandardMaterial({ color: 0xeeeeee }));
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 1);
+    scene.add(hemi);
+    const sun = new THREE.DirectionalLight(0xffffff, 1.5);
+    sun.position.set(5, 20, 10); sun.castShadow = true;
+    scene.add(sun);
+
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.1, metalness: 0.2 }));
     floor.rotation.x = -Math.PI/2; floor.receiveShadow = true; scene.add(floor);
 
     class Fighter {
@@ -102,48 +121,37 @@
             this.vel = new THREE.Vector3(); this.group = new THREE.Group();
             this.atkPhase = 0; this.hitMark = false; scene.add(this.group);
         }
-        init(color, wepType) {
+        init(color, wepKey) {
             this.group.clear(); this.group.position.set(this.startX, 0, 0);
-            this.hp = 100; this.hits = 0; this.dead = false; this.wepType = wepType; this.wep = WEP_DATA[wepType];
-            this.mat = new THREE.MeshStandardMaterial({ color: parseInt(color) });
-            const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.5, 1.5), this.mat);
+            this.hp = 100; this.hits = 0; this.dead = false; this.wep = WEP_DATA[wepKey];
+            
+            this.bodyMat = new THREE.MeshStandardMaterial({ color: parseInt(color), roughness: 0.3, metalness: 0.8 });
+            const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.5, 1.5), this.bodyMat);
             body.position.y = 1.25; body.castShadow = true; this.group.add(body);
-        }
-        shoot(dir, isSuper = false) {
-            const count = isSuper && this.wepType === 'shuriken' ? 5 : (isSuper && this.wepType === 'crossbow' ? 3 : 1);
-            for(let i=0; i<count; i++) {
-                const p = new THREE.Mesh(new THREE.BoxGeometry(...this.wep.pScale), new THREE.MeshStandardMaterial({ color: isSuper ? 0xffcc00 : 0x333333 }));
-                p.position.copy(this.group.position).add(new THREE.Vector3(0, 1.5, 0));
-                let v = new THREE.Vector3(dir * this.wep.pSpeed, (isSuper && count > 1 ? (i - 1) * 0.1 : 0), 0);
-                p.userData = { velocity: v, owner: this.id, dmg: isSuper ? this.wep.dmg * 1.5 : this.wep.dmg };
-                projectiles.push(p); scene.add(p);
-            }
+
+            this.pivot = new THREE.Group(); this.pivot.position.set(0.6, 1.4, 0);
+            this.blade = new THREE.Mesh(new THREE.BoxGeometry(...this.wep.scale), new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 1, roughness: 0.1 }));
+            this.blade.position.y = this.wep.scale[1]/2; this.pivot.add(this.blade);
+            this.group.add(this.pivot);
         }
         update(keys, l, r, j, f) {
             if(this.dead || !roundActive) return;
             if(keys[l]) { this.vel.x = -0.15; this.group.rotation.y = -Math.PI/2; }
             else if(keys[r]) { this.vel.x = 0.15; this.group.rotation.y = Math.PI/2; }
-            else this.vel.x *= 0.85;
+            else this.vel.x *= 0.88;
             if(keys[j] && this.group.position.y <= 0.05) this.vel.y = 0.25;
-            
-            if(keys[f] && this.atkPhase <= 0) { 
-                this.atkPhase = 1; this.hitMark = false;
-                const isSuper = this.hits >= this.wep.superHits;
-                if(this.wep.type === 'ranged') this.shoot(this.group.rotation.y > 0 ? 1 : -1, isSuper);
-                if(isSuper) { 
-                    this.hits = 0; 
-                    if(this.wepType === 'longsword') this.vel.x = (this.group.rotation.y > 0 ? 1.5 : -1.5);
-                }
+            if(keys[f] && this.atkPhase <= 0) { this.atkPhase = 1; this.hitMark = false; }
+            if(this.atkPhase > 0) {
+                this.atkPhase -= this.wep.speed;
+                this.pivot.rotation.z = Math.sin(this.atkPhase * Math.PI) * 2.8;
             }
-            if(this.atkPhase > 0) this.atkPhase -= this.wep.speed;
-            
-            this.mat.emissive.setHex(this.hits >= this.wep.superHits ? 0xffaa00 : 0x000000);
+            this.bodyMat.emissive.setHex(this.hits >= this.wep.superHits ? 0x00ffff : 0x000000);
             this.vel.y -= 0.01; this.group.position.add(this.vel);
             if(this.group.position.y < 0) { this.group.position.y = 0; this.vel.y = 0; }
         }
     }
 
-    const p1 = new Fighter(-7, 1); const p2 = new Fighter(7, 2);
+    const p1 = new Fighter(-6, 1); const p2 = new Fighter(6, 2);
     const keys = {}; window.onkeydown = (e) => keys[e.code] = true; window.onkeyup = (e) => keys[e.code] = false;
 
     document.getElementById('start-btn').onclick = () => {
@@ -160,37 +168,33 @@
         p1.update(keys, 'KeyA', 'KeyD', 'KeyW', 'KeyF');
         p2.update(keys, 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'KeyK');
 
-        for(let i = projectiles.length-1; i >= 0; i--) {
-            const p = projectiles[i]; p.position.add(p.userData.velocity);
-            const target = p.userData.owner === 1 ? p2 : p1;
-            const attacker = p.userData.owner === 1 ? p1 : p2;
-            if(p.position.distanceTo(target.group.position.clone().add(new THREE.Vector3(0,1,0))) < 1) {
-                target.hp -= p.userData.dmg; attacker.hits++; scene.remove(p); projectiles.splice(i, 1);
-            } else if(Math.abs(p.position.x) > 50) { scene.remove(p); projectiles.splice(i, 1); }
-        }
-
         const dist = p1.group.position.distanceTo(p2.group.position);
-        if(p1.wep.type === 'melee' && p1.atkPhase > 0.4 && p1.atkPhase < 0.7 && !p1.hitMark && dist < p1.wep.range) { p2.hp -= p1.wep.dmg; p1.hitMark = true; p1.hits++; }
-        if(p2.wep.type === 'melee' && p2.atkPhase > 0.4 && p2.atkPhase < 0.7 && !p2.hitMark && dist < p2.wep.range) { p1.hp -= p2.wep.dmg; p2.hitMark = true; p2.hits++; }
+        const checkHit = (atk, def, dir) => {
+            if(atk.atkPhase > 0.4 && atk.atkPhase < 0.7 && !atk.hitMark && dist < atk.wep.range) {
+                let damage = atk.wep.dmg;
+                if(atk.hits >= atk.wep.superHits) { damage *= 2.2; atk.hits = 0; scene.background.set(0xffffff); setTimeout(()=>scene.background.set(0xdddddd), 50); }
+                def.hp -= damage; atk.hitMark = true; atk.hits++; def.vel.x = dir * 0.4;
+            }
+        };
+        checkHit(p1, p2, 1); checkHit(p2, p1, -1);
 
         if((p1.hp <= 0 || p2.hp <= 0) && roundActive) {
             roundActive = false; if(p1.hp > 0) p1Pts++; else p2Pts++;
             document.getElementById('ko-msg').style.transform = 'translate(-50%, -50%) scale(1)';
-            setTimeout(() => { 
+            setTimeout(() => {
                 document.getElementById('ko-msg').style.transform = 'translate(-50%, -50%) scale(0)';
                 p1.init(document.getElementById('p1-color').value, document.getElementById('p1-wep').value);
                 p2.init(document.getElementById('p2-color').value, document.getElementById('p2-wep').value);
-                roundActive = true; 
+                roundActive = true;
             }, 2000);
         }
 
         document.getElementById('hp1').style.width = Math.max(0, p1.hp) + '%';
         document.getElementById('hp2').style.width = Math.max(0, p2.hp) + '%';
-        document.getElementById('super1').style.width = Math.min(100, (p1.hits / p1.wep.superHits) * 100) + '%';
-        document.getElementById('super2').style.width = Math.min(100, (p2.hits / p2.wep.superHits) * 100) + '%';
+        document.getElementById('super1').style.width = (p1.hits / p1.wep.superHits * 100) + '%';
+        document.getElementById('super2').style.width = (p2.hits / p2.wep.superHits * 100) + '%';
         document.getElementById('score1').innerText = p1Pts; document.getElementById('score2').innerText = p2Pts;
-        
-        camera.position.set((p1.group.position.x + p2.group.position.x)/2, 6, 18);
+        camera.position.set((p1.group.position.x + p2.group.position.x)/2, 5, 15);
         camera.lookAt((p1.group.position.x + p2.group.position.x)/2, 2, 0);
         renderer.render(scene, camera);
     }
