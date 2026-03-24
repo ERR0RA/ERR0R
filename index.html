@@ -1,203 +1,188 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ultimate Math Quiz - Pro</title>
-<style>
-    body { font-family: 'Segoe UI', sans-serif; padding: 20px; max-width: 700px; margin:auto; background: #f0f2f5; }
-    .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
-    .controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
-    button { padding: 10px 14px; border: none; border-radius: 8px; background: #e8f0fe; color: #1a73e8; cursor: pointer; font-weight: 600; }
-    button.active { background: #1a73e8; color: white; }
-    .answer-btn { display: block; width: 100%; text-align: left; margin: 8px 0; background: #f8f9fa; border: 1px solid #ddd; padding: 15px; border-radius: 8px; font-size: 16px; cursor: pointer; transition: 0.2s; }
-    .correct { background: #d4edda !important; border-color: #28a745 !important; color: #155724; }
-    .wrong { background: #f8d7da !important; border-color: #dc3545 !important; color: #721c24; }
-    canvas { background: white; border: 1px solid #ccc; border-radius: 8px; width: 100%; display: block; margin: 20px auto; }
-    #solution { display: none; padding: 15px; background: #fff3cd; border-left: 5px solid #ffc107; margin-top: 15px; border-radius: 4px; }
-    #feedback { font-weight: bold; text-align: center; height: 30px; font-size: 1.2em; margin-bottom: 10px; }
-    footer { text-align: center; font-size: 0.8em; color: #666; margin-top: 20px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>3D Arena: Obstacle Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
+    <style>
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Orbitron', sans-serif; user-select: none; touch-action: none; }
+        #lobby { position: absolute; inset: 0; background: radial-gradient(circle, #1a1a1a, #000); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; color: white; text-align: center; }
+        .setup-card { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; border: 1px solid #00f2ff; width: 300px; }
+        select, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; font-family: 'Orbitron'; cursor: pointer; border: none; background: #222; color: white; }
+        #start-btn { background: #00f2ff; color: #000; font-weight: 900; box-shadow: 0 0 20px #00f2ff; }
+        #controls { position: absolute; bottom: 40px; width: 100%; display: none; justify-content: space-between; padding: 0 40px; box-sizing: border-box; z-index: 100; pointer-events: none; }
+        .joystick-area { width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%; position: relative; pointer-events: auto; border: 2px solid rgba(255,255,255,0.2); }
+        #stick { width: 40px; height: 40px; background: #00f2ff; border-radius: 50%; position: absolute; top: 30px; left: 30px; }
+        #atk-btn { width: 90px; height: 90px; background: rgba(255,0,85,0.3); border: 3px solid #ff0055; border-radius: 50%; color: white; font-weight: 900; pointer-events: auto; display: flex; align-items: center; justify-content: center; }
+        #ko-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 80px; font-weight: 900; color: #fff; z-index: 150; transition: 0.3s; pointer-events: none; }
+    </style>
 </head>
 <body>
 
-<div class="card">
-    <div class="controls" id="diff-btns">
-        <button onclick="updateSettings('diff', 'easy', this)" class="active">Easy</button>
-        <button onclick="updateSettings('diff', 'medium', this)">Medium</button>
-        <button onclick="updateSettings('diff', 'hard', this)">Hard</button>
-    </div>
-    <div class="controls" id="topic-btns">
-        <button onclick="updateSettings('topic', 'arithmetic', this)" class="active">Arithmetic</button>
-        <button onclick="updateSettings('topic', 'pythagoras', this)">Pythagoras</button>
-        <button onclick="updateSettings('topic', 'algebra', this)">Algebra</button>
-        <button onclick="updateSettings('topic', 'rounding', this)">Rounding/Bounds</button>
-        <button onclick="updateSettings('topic', 'loci', this)">Loci</button>
+<div id="lobby">
+    <h1>3D TACTICAL ARENA</h1>
+    <div class="setup-card">
+        <select id="p1-wep">
+            <option value="katana">Katana</option>
+            <option value="claymore">Claymore (Heavy)</option>
+            <option value="rapier">Rapier (Long)</option>
+        </select>
+        <button id="start-btn">BEGIN DUEL</button>
     </div>
 </div>
 
-<div class="card">
-    <div id="feedback"></div>
-    <h2 id="question-text">Select a topic...</h2>
-    <div id="answers"></div>
-    <div id="solution"></div>
-    <button id="manual-next" onclick="generateQuestion()" style="display:none; background:#28a745; color:white; width:100%; margin-top:10px; padding:15px; border:none; border-radius:8px; cursor:pointer;">Next Question →</button>
+<div id="ko-msg">K.O.</div>
+
+<div id="controls">
+    <div class="joystick-area" id="joy-boundary"><div id="stick"></div></div>
+    <div id="atk-btn">HIT</div>
 </div>
 
-<canvas id="mathCanvas" width="400" height="300"></canvas>
+<script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }</script>
 
-<footer>This code has been made in collaboration with AI and human(s).</footer>
+<script type="module">
+    import * as THREE from 'three';
 
-<script>
-let currentTopic = 'arithmetic', currentDiff = 'easy', currentQuestion = null, wrongCount = 0;
+    const WEAPONS = {
+        katana:   { dmg: 15, speed: 0.2, range: 2.5, cd: 600, color: 0xcccccc, size: [0.06, 2.5, 0.06] },
+        claymore: { dmg: 40, speed: 0.08, range: 3.5, cd: 1500, color: 0x888888, size: [0.25, 3.5, 0.1] },
+        rapier:   { dmg: 10, speed: 0.3, range: 4.0, cd: 400, color: 0x00f2ff, size: [0.03, 4.0, 0.03] }
+    };
 
-function updateSettings(type, val, btn) {
-    if (type === 'diff') currentDiff = val;
-    if (type === 'topic') currentTopic = val;
-    const parentId = type === 'diff' ? 'diff-btns' : 'topic-btns';
-    document.querySelectorAll(`#${parentId} button`).forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    generateQuestion();
-}
+    let roundActive = false;
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
 
-function rand(min, max) { return Math.floor(Math.random() * (max - min + 1) + min); }
+    scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+    const light = new THREE.DirectionalLight(0xffffff, 1); light.position.set(5, 10, 5); scene.add(light);
+    scene.add(new THREE.GridHelper(40, 40, 0x222222, 0x111111));
 
-function generateQuestion() {
-    wrongCount = 0;
-    document.getElementById('solution').style.display = 'none';
-    document.getElementById('feedback').textContent = "";
-    document.getElementById('manual-next').style.display = 'none';
-    
-    let qData = { type: 'text' };
-
-    if (currentTopic === 'arithmetic') {
-        let n1 = rand(2, 50), n2 = rand(2, 50);
-        if (currentDiff === 'easy') { qData.q = `${n1} + ${n2} = ?`; qData.ans = n1 + n2; }
-        else if (currentDiff === 'medium') { n1 = rand(6, 14); n2 = rand(6, 14); qData.q = `${n1} × ${n2} = ?`; qData.ans = n1 * n2; }
-        else { n1 = rand(10, 30); n2 = rand(5, 15); qData.q = `Calculate ${n1}² - ${n2}²`; qData.ans = (n1*n1) - (n2*n2); }
-        qData.sol = `Result: ${qData.ans}`;
-    } 
-
-    else if (currentTopic === 'algebra') {
-        let a = rand(2, 6), b = rand(2, 8);
-        if (currentDiff === 'easy') { 
-            qData.q = `Simplify: ${a}x + ${b}x - 2x`; qData.ans = `${a + b - 2}x`; 
-        } else {
-            qData.q = `Expand: ${a}(x + ${b})`; qData.ans = `${a}x + ${a*b}`;
-        }
-        qData.sol = `Correct expansion: ${qData.ans}`;
-    }
-
-    else if (currentTopic === 'rounding') {
-        let num = (Math.random() * 100).toFixed(3);
-        if (currentDiff === 'easy') {
-            qData.q = `Round ${num} to 1 decimal place.`;
-            qData.ans = parseFloat(num).toFixed(1);
-        } else {
-            let val = rand(10, 50);
-            qData.q = `What is the upper bound of ${val} measured to the nearest whole number?`;
-            qData.ans = val + 0.5;
-        }
-        qData.sol = `The rule gives ${qData.ans}`;
-    }
-
-    else if (currentTopic === 'loci') {
-        qData.type = 'loci';
-        let dist = rand(4, 8);
-        qData.q = `The canvas shows a point. Identify the locus of points exactly ${dist}cm away.`;
-        qData.ans = "A circle";
-        qData.options = ["A circle", "A straight line", "A square", "Two parallel lines"];
-        qData.dist = dist * 10;
-        qData.sol = "A locus of points at a fixed distance from a single point always forms a circle.";
-    }
-
-    else if (currentTopic === 'pythagoras') {
-        let a = rand(3, 8), b = rand(4, 10);
-        qData.ans = Math.sqrt(a*a + b*b).toFixed(1);
-        qData.q = `Find hypotenuse c if a=${a} and b=${b} (1 decimal).`;
-        qData.type = 'pyth'; qData.a = a; qData.b = b;
-        qData.sol = `√(${a}² + ${b}²) = √(${a*a + b*b}) = ${qData.ans}`;
-    }
-
-    currentQuestion = qData;
-    renderUI(qData);
-    draw(qData);
-}
-
-function renderUI(q) {
-    document.getElementById('question-text').textContent = q.q;
-    const container = document.getElementById('answers');
-    container.innerHTML = "";
-
-    let opts = q.options ? [...q.options] : [q.ans];
-    if(!q.options) {
-        while(opts.length < 4) {
-            let offset = (Math.random() * 6 - 3).toFixed(currentTopic === 'arithmetic' || currentTopic === 'algebra' ? 0 : 1);
-            let val = isNaN(q.ans) ? q.ans + rand(1,3) : (parseFloat(q.ans) + parseFloat(offset)).toFixed(currentTopic === 'arithmetic' || currentTopic === 'algebra' ? 0 : 1);
-            if(!opts.includes(val)) opts.push(val);
-        }
-    }
-    opts.sort(() => Math.random() - 0.5);
-
-    opts.forEach(opt => {
-        const b = document.createElement('button');
-        b.className = 'answer-btn';
-        b.textContent = opt;
-        b.onclick = () => check(b, opt);
-        container.appendChild(b);
+    // Pillars (Obstacles)
+    const pillars = [];
+    const pGeo = new THREE.BoxGeometry(2, 6, 2);
+    const pMat = new THREE.MeshStandardMaterial({color: 0x111111, emissive: 0x00f2ff, emissiveIntensity: 0.2});
+    [[-6,-6], [6,-6], [-6,6], [6,6]].forEach(pos => {
+        const p = new THREE.Mesh(pGeo, pMat);
+        p.position.set(pos[0], 3, pos[1]);
+        scene.add(p);
+        pillars.push(new THREE.Box3().setFromObject(p));
     });
-}
 
-function check(btn, val) {
-    const fb = document.getElementById('feedback');
-    if(fb.textContent.includes("Correct")) return;
+    class Fighter {
+        constructor(x, z, color, id) {
+            this.id = id; this.hp = 100; this.atkPhase = 0; this.lastAtk = 0;
+            this.mesh = new THREE.Group();
+            this.body = new THREE.Mesh(new THREE.CapsuleGeometry(0.5, 1), new THREE.MeshStandardMaterial({color}));
+            this.body.position.y = 1; this.mesh.add(this.body);
+            this.mesh.position.set(x, 0, z);
+            
+            this.canvas = document.createElement('canvas'); this.canvas.width = 128; this.canvas.height = 32;
+            this.ctx = this.canvas.getContext('2d'); this.texture = new THREE.CanvasTexture(this.canvas);
+            this.hpSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.texture }));
+            this.hpSprite.position.y = 2.8; this.hpSprite.scale.set(2, 0.5, 1);
+            this.mesh.add(this.hpSprite);
+            scene.add(this.mesh);
+        }
 
-    if (val == currentQuestion.ans) {
-        btn.classList.add('correct');
-        fb.innerHTML = "<span style='color:green'>✅ Correct!</span>";
-        document.getElementById('manual-next').style.display = 'block';
-        setTimeout(generateQuestion, 1800);
-    } else {
-        btn.classList.add('wrong');
-        wrongCount++;
-        fb.innerHTML = "<span style='color:red'>❌ Try again</span>";
-        if (wrongCount >= 2) {
-            document.getElementById('solution').style.display = 'block';
-            document.getElementById('solution').innerHTML = `<b>Solution:</b> ${currentQuestion.sol}`;
+        initWeapon(wepKey) {
+            this.wep = WEAPONS[wepKey];
+            this.pivot = new THREE.Group(); this.pivot.position.set(0.6, 1.2, 0);
+            const blade = new THREE.Mesh(new THREE.BoxGeometry(...this.wep.size), new THREE.MeshStandardMaterial({color: this.wep.color}));
+            blade.position.y = this.wep.size[1]/2; this.pivot.add(blade);
+            this.mesh.add(this.pivot);
+        }
+
+        move(dx, dz) {
+            const oldPos = this.mesh.position.clone();
+            this.mesh.position.x += dx; this.mesh.position.z += dz;
+            const fBox = new THREE.Box3().setFromCenterAndSize(this.mesh.position, new THREE.Vector3(1, 2, 1));
+            if (pillars.some(p => p.intersectsBox(fBox)) || Math.abs(this.mesh.position.x) > 18 || Math.abs(this.mesh.position.z) > 18) {
+                this.mesh.position.copy(oldPos);
+            }
+        }
+
+        updateUI() {
+            this.ctx.clearRect(0, 0, 128, 32);
+            this.ctx.fillStyle = '#111'; this.ctx.fillRect(0, 10, 128, 12);
+            this.ctx.fillStyle = this.id === 1 ? '#00f2ff' : '#ff0055';
+            this.ctx.fillRect(0, 10, (this.hp / 100) * 128, 12);
+            this.texture.needsUpdate = true;
         }
     }
-}
 
-function draw(q) {
-    const c = document.getElementById('mathCanvas'), ctx = c.getContext('2d');
-    ctx.clearRect(0,0,400,300);
-    ctx.strokeStyle = "#333"; ctx.lineWidth = 2;
-    
-    if(q.type === 'pyth') {
-        ctx.beginPath(); ctx.moveTo(150, 200); ctx.lineTo(150, 100); ctx.lineTo(250, 200); ctx.closePath(); ctx.stroke();
-        ctx.fillText("a", 135, 150); ctx.fillText("b", 200, 215); ctx.fillText("c", 210, 150);
-    } else if (q.type === 'loci') {
-        ctx.fillStyle = "red";
-        ctx.beginPath(); ctx.arc(200, 150, 3, 0, Math.PI*2); ctx.fill();
-        ctx.setLineDash([5, 5]);
-        ctx.beginPath(); ctx.arc(200, 150, q.dist, 0, Math.PI*2); ctx.stroke();
-        ctx.setLineDash([]);
-    } else {
-        // Generic grid for other topics
-        ctx.strokeStyle = "#ddd";
-        for(let i=0; i<400; i+=40) {
-            ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,300); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(400,i); ctx.stroke();
+    const p1 = new Fighter(-3, 0, 0x00f2ff, 1);
+    const p2 = new Fighter(3, 0, 0xff0055, 2);
+    const keys = {}; const joy = { x: 0, y: 0, active: false };
+
+    window.onkeydown = (e) => keys[e.code] = true;
+    window.onkeyup = (e) => keys[e.code] = false;
+
+    const joyBound = document.getElementById('joy-boundary');
+    joyBound.addEventListener('touchmove', (e) => {
+        const rect = joyBound.getBoundingClientRect();
+        const dx = e.touches[0].clientX - (rect.left + 50);
+        const dy = e.touches[0].clientY - (rect.top + 50);
+        const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 35);
+        const angle = Math.atan2(dy, dx);
+        joy.x = (Math.cos(angle) * dist) / 35; joy.y = (Math.sin(angle) * dist) / 35;
+        document.getElementById('stick').style.transform = `translate(${joy.x * 35}px, ${joy.y * 35}px)`;
+    });
+    joyBound.addEventListener('touchend', () => { joy.x = 0; joy.y = 0; document.getElementById('stick').style.transform = 'none'; });
+    document.getElementById('atk-btn').addEventListener('touchstart', () => p1.atkPhase <= 0 && (p1.atkPhase = 1, p1.lastAtk = Date.now(), p1.hitMark = false));
+
+    document.getElementById('start-btn').onclick = () => {
+        p1.initWeapon(document.getElementById('p1-wep').value);
+        p2.initWeapon('katana');
+        document.getElementById('lobby').style.display = 'none';
+        document.getElementById('controls').style.display = 'flex';
+        roundActive = true; animate();
+    };
+
+    function animate() {
+        if (!roundActive) return;
+        requestAnimationFrame(animate);
+
+        if (keys['KeyW'] || joy.y < -0.2) p1.move(0, -0.15);
+        if (keys['KeyS'] || joy.y > 0.2) p1.move(0, 0.15);
+        if (keys['KeyA'] || joy.x < -0.2) p1.move(-0.15, 0);
+        if (keys['KeyD'] || joy.x > 0.2) p1.move(0.15, 0);
+        if (keys['Space'] && p1.atkPhase <= 0) { p1.atkPhase = 1; p1.hitMark = false; }
+
+        // Simple AI
+        const toP1 = new THREE.Vector3().subVectors(p1.mesh.position, p2.mesh.position);
+        if (toP1.length() > 2.2) p2.move(toP1.normalize().x * 0.08, toP1.z * 0.08);
+        else if (p2.atkPhase <= 0) { p2.atkPhase = 1; p2.hitMark = false; }
+
+        [p1, p2].forEach((atk, i) => {
+            const def = i === 0 ? p2 : p1;
+            atk.mesh.lookAt(def.mesh.position);
+            if (atk.atkPhase > 0) {
+                atk.atkPhase -= atk.wep.speed;
+                atk.pivot.rotation.x = Math.sin(atk.atkPhase * Math.PI) * -2;
+                if (atk.atkPhase > 0.4 && atk.atkPhase < 0.6 && !atk.hitMark && atk.mesh.position.distanceTo(def.mesh.position) < atk.wep.range) {
+                    // Check if pillar is in the way of the hit
+                    const ray = new THREE.Raycaster(atk.mesh.position, new THREE.Vector3().subVectors(def.mesh.position, atk.mesh.position).normalize());
+                    const wallHit = ray.intersectObjects(scene.children).find(o => o.object.geometry.type === "BoxGeometry" && o.distance < atk.mesh.position.distanceTo(def.mesh.position));
+                    if (!wallHit) { def.hp -= atk.wep.dmg; atk.hitMark = true; }
+                }
+            }
+            atk.updateUI();
+        });
+
+        if (p1.hp <= 0 || p2.hp <= 0) {
+            roundActive = false; document.getElementById('ko-msg').style.transform = 'translate(-50%, -50%) scale(1)';
+            setTimeout(() => location.reload(), 3000);
         }
-    }
-}
 
-generateQuestion();
+        const mid = new THREE.Vector3().addVectors(p1.mesh.position, p2.mesh.position).multiplyScalar(0.5);
+        camera.position.lerp(new THREE.Vector3(mid.x, 10, mid.z + 14), 0.1);
+        camera.lookAt(mid);
+        renderer.render(scene, camera);
+    }
 </script>
-</body>
-<body>
-<a href="index2.html">Snakes and ladders game</a>
-<a href="index3.html">Maths wars/a>
-<a href="index4.html">Games/a>
 </body>
 </html>
