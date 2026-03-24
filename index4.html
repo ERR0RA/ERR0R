@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>3D Fighter: Mobile Master Armory</title>
+    <title>3D Fighter: Cooldown Armory</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
     <style>
         body { margin: 0; overflow: hidden; background: #000; font-family: 'Orbitron', sans-serif; user-select: none; touch-action: none; }
@@ -18,6 +18,10 @@
         .bar-container { width: 40%; }
         .bar-bg { width: 100%; height: 12px; background: #111; border: 1px solid #555; position: relative; }
         .hp-fill { height: 100%; width: 100%; background: #00f2ff; transition: width 0.2s; }
+        
+        /* Cooldown Bar */
+        .cd-bg { width: 100%; height: 4px; background: #222; margin-top: 4px; border: 1px solid #333; }
+        .cd-fill { height: 100%; width: 0%; background: #ffd700; transition: width 0.1s linear; }
         
         /* Touch Controls */
         #touch-controls { position: absolute; bottom: 30px; width: 100%; display: none; justify-content: space-between; padding: 0 30px; box-sizing: border-box; z-index: 100; pointer-events: none; }
@@ -39,9 +43,9 @@
             <h3 style="color:#00f2ff; margin:5px;">P1 SETUP</h3>
             <select id="p1-skin"><option value="0xffdbac">Human</option><option value="0x00ffcc">Android</option></select>
             <select id="p1-wep">
-                <option value="katana">Katana</option>
-                <option value="executioner">Executioner</option>
-                <option value="rapier">Rapier</option>
+                <option value="katana">Katana (Mid CD)</option>
+                <option value="executioner">Executioner (Long CD)</option>
+                <option value="rapier">Rapier (Fast CD)</option>
             </select>
         </div>
     </div>
@@ -51,8 +55,14 @@
 <div id="ko-msg">K.O.</div>
 
 <div id="ui">
-    <div class="bar-container"><div class="bar-bg"><div id="hp1" class="hp-fill"></div></div></div>
-    <div class="bar-container"><div class="bar-bg"><div id="hp2" class="hp-fill" style="background:#ff0055;"></div></div></div>
+    <div class="bar-container">
+        <div class="bar-bg"><div id="hp1" class="hp-fill"></div></div>
+        <div class="cd-bg"><div id="cd1" class="cd-fill"></div></div>
+    </div>
+    <div class="bar-container">
+        <div class="bar-bg"><div id="hp2" class="hp-fill" style="background:#ff0055;"></div></div>
+        <div class="cd-bg"><div id="cd2" class="cd-fill"></div></div>
+    </div>
 </div>
 
 <div id="touch-controls">
@@ -69,9 +79,9 @@
     import * as THREE from 'three';
 
     const WEAPONS = {
-        katana:      { dmg: 14, speed: 0.2, range: 2.3, scale: [0.06, 2.3, 0.06], color: 0xcccccc },
-        executioner: { dmg: 40, speed: 0.07, range: 3.0, scale: [0.35, 3.0, 0.15], color: 0x444444 },
-        rapier:      { dmg: 10, speed: 0.3, range: 3.6, scale: [0.03, 3.6, 0.03], color: 0x00f2ff }
+        katana:      { dmg: 14, speed: 0.2, range: 2.3, cooldown: 600, scale: [0.06, 2.3, 0.06], color: 0xcccccc },
+        executioner: { dmg: 40, speed: 0.07, range: 3.0, cooldown: 1500, scale: [0.35, 3.0, 0.15], color: 0x444444 },
+        rapier:      { dmg: 10, speed: 0.3, range: 3.6, cooldown: 350, scale: [0.03, 3.6, 0.03], color: 0x00f2ff }
     };
 
     let roundActive = false, isBot = false;
@@ -88,13 +98,20 @@
 
     class Fighter {
         constructor(x, id) {
-            this.id = id; this.hp = 100; this.atkPhase = 0; this.hitMark = false;
-            this.group = new THREE.Group(); this.group.position.x = x;
+            this.id = id; 
+            this.hp = 100; 
+            this.atkPhase = 0; 
+            this.hitMark = false;
+            this.lastAtkTime = 0;
+            this.group = new THREE.Group(); 
+            this.group.position.x = x;
             this.vel = new THREE.Vector3();
             scene.add(this.group);
         }
         init(skin, wepKey) {
-            this.group.clear(); this.hp = 100; this.wep = WEAPONS[wepKey];
+            this.group.clear(); 
+            this.hp = 100; 
+            this.wep = WEAPONS[wepKey];
             const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.4, 1), new THREE.MeshStandardMaterial({color: parseInt(skin)}));
             body.position.y = 0.9; this.group.add(body);
             this.pivot = new THREE.Group(); this.pivot.position.set(0.5, 1.2, 0);
@@ -111,13 +128,22 @@
             this.vel.x *= 0.8;
             this.group.position.x = Math.max(-12, Math.min(12, this.group.position.x));
         }
+        attack() {
+            const now = Date.now();
+            if (this.atkPhase <= 0 && now - this.lastAtkTime > this.wep.cooldown) {
+                this.atkPhase = 1;
+                this.hitMark = false;
+                this.lastAtkTime = now;
+                return true;
+            }
+            return false;
+        }
     }
 
     const p1 = new Fighter(-5, 1);
     const p2 = new Fighter(5, 2);
     const inputs = { left: false, right: false, atk: false };
 
-    // Touch Event Listeners
     const setupTouch = (id, key) => {
         const el = document.getElementById(id);
         el.addEventListener('touchstart', (e) => { e.preventDefault(); inputs[key] = true; });
@@ -127,7 +153,6 @@
     setupTouch('right-btn', 'right');
     setupTouch('atk-btn', 'atk');
 
-    // Desktop Key Listeners
     const keys = {};
     window.onkeydown = (e) => keys[e.code] = true;
     window.onkeyup = (e) => keys[e.code] = false;
@@ -135,7 +160,7 @@
     document.getElementById('start-btn').onclick = () => {
         isBot = document.getElementById('game-mode').value === 'bot';
         p1.init(document.getElementById('p1-skin').value, document.getElementById('p1-wep').value);
-        p2.init("0x333333", "katana"); // Default P2/Bot
+        p2.init("0x333333", "katana"); 
         document.getElementById('lobby').style.display = 'none';
         document.getElementById('ui').style.visibility = 'visible';
         document.getElementById('touch-controls').style.display = 'flex';
@@ -147,15 +172,18 @@
         if (!roundActive) return;
         requestAnimationFrame(animate);
 
-        // Movement Logic (Combines Touch + Keyboard)
+        const now = Date.now();
+
+        // P1 Action
         if (inputs.left || keys['KeyA']) p1.vel.x = -0.15;
         if (inputs.right || keys['KeyD']) p1.vel.x = 0.15;
-        if ((inputs.atk || keys['KeyF']) && p1.atkPhase <= 0) { p1.atkPhase = 1; p1.hitMark = false; }
+        if (inputs.atk || keys['KeyF']) p1.attack();
 
+        // P2/Bot Action
         if (isBot) {
             const gap = p2.group.position.x - p1.group.position.x;
             if (Math.abs(gap) > 1.8) p2.vel.x = gap > 0 ? -0.08 : 0.08;
-            if (Math.abs(gap) < 2.2 && p2.atkPhase <= 0) { p2.atkPhase = 1; p2.hitMark = false; }
+            if (Math.abs(gap) < 2.2) p2.attack();
         }
 
         p1.update(); p2.update();
@@ -171,8 +199,16 @@
             }
         });
 
+        // UI Updates
         document.getElementById('hp1').style.width = Math.max(0, p1.hp) + '%';
         document.getElementById('hp2').style.width = Math.max(0, p2.hp) + '%';
+
+        // Cooldown UI Bars
+        const cd1Perc = Math.min(100, ((now - p1.lastAtkTime) / p1.wep.cooldown) * 100);
+        document.getElementById('cd1').style.width = (100 - cd1Perc) + '%';
+        
+        const cd2Perc = Math.min(100, ((now - p2.lastAtkTime) / p2.wep.cooldown) * 100);
+        document.getElementById('cd2').style.width = (100 - cd2Perc) + '%';
 
         if (p1.hp <= 0 || p2.hp <= 0) {
             roundActive = false;
